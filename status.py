@@ -61,7 +61,7 @@ def dim_path(path: str, dimmed_prefix: str, bold: bool = False) -> str:
     if path.startswith(dimmed_prefix):
         return f"[dim]{dimmed_prefix}[/]{'[b]' if bold else ''}{path[len(dimmed_prefix):]}{'[/]' if bold else ''}"
     else:
-        return path
+        return f"{'[b]' if bold else ''}{path}{'[/]' if bold else ''}"
 
 
 def colored_path(path: str, dimmed_prefix: t.Optional[str] = None) -> str:
@@ -122,8 +122,8 @@ def colored_port_mapping(mapping: t.Tuple[str, str]) -> str:
     return f'{mapping[0]}[dim]:{mapping[1]}[/]'
 
 
-def print_project(project: str, print_path: bool, output_build: bool, list_volumes: int,
-                  list_environment: bool):
+def print_project(project: str, print_path: bool, output_build: bool, list_environment: bool,
+                  list_volumes: int):
     compose_dir = None
     compose_file = None
     if os.path.isfile(project) and 'docker-compose' in project and (
@@ -205,7 +205,7 @@ def print_project(project: str, print_path: bool, output_build: bool, list_volum
                     colored_key_value(env, key=env, value=value) if value != '' else f'[dim]{env}[/]',
                     colored_key_value(value, key=env, value=value))
 
-        if list_volumes > 0 and 'volumes' in service:
+        if list_volumes >= 1 and 'volumes' in service:
             table = rich.table.Table(title_justify='left', style='dim', header_style='i')
             s.add(table)
             table.add_column("Volume")
@@ -217,12 +217,15 @@ def print_project(project: str, print_path: bool, output_build: bool, list_volum
                 source_volume = volume['source'] if is_volume else \
                     colored_path(relative_path_if_below(volume['source']), dimmed_prefix=compose_dir)
                 files = rich.tree.Tree(colored_readonly(source_volume, ro, is_volume))
-                if list_volumes > 1 and volume['source'].startswith('/') and os.path.isdir(volume['source']):
-                    for f in sorted(os.listdir(volume['source'])):
-                        if os.path.isdir(os.path.join(volume['source'], f)):
-                            files.add(f"[yellow]{f}/[/]")
-                        else:
-                            files.add(f)
+                if list_volumes >= 2 and volume['source'].startswith('/') and os.path.isdir(volume['source']):
+                    try:
+                        for f in sorted(os.listdir(volume['source'])):
+                            if os.path.isdir(os.path.join(volume['source'], f)):
+                                files.add(f"[yellow]{f}/[/]")
+                            else:
+                                files.add(f)
+                    except PermissionError:
+                        pass
                 table.add_row(files,
                               colored_readonly(volume['target'], ro, is_volume),
                               colored_readonly('ro' if ro else 'rw', ro, is_volume))
@@ -234,20 +237,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog='PROG')
     parser.add_argument('projects', nargs='*', default=['.'],
                         help='compose files and/or directories containing a docker-compose.y[a]ml')
+    parser.add_argument('-p', '--path', action='store_true', help='print path of compose file')
+    parser.add_argument('-b', '--build', action='store_true', help='output build context and arguments')
+    parser.add_argument('-e', '--envs', action='store_true', help='list environment variables')
     parser.add_argument('-v', '--volumes', action='count', default=0,
                         help='list volumes (use -vv to also list content)')
-    parser.add_argument('-e', '--envs', action='store_true', help='list environment variables')
-    parser.add_argument('-b', '--build', action='store_true', help='output build context and arguments')
-    parser.add_argument('-p', '--path', action='store_true', help='print path of compose file')
-    parser.add_argument('-a', '--all', action='store_true', help='print everything')
+    parser.add_argument('-a', '--all', action='count', default=0, help='like -pbev (use -aa for -pbevv)')
     args = parser.parse_args()
 
     for project in args.projects:
         print_project(project,
-                      print_path=args.all or args.path,
-                      output_build=args.all or args.build,
-                      list_volumes=2 if args.all else args.volumes,
-                      list_environment=args.all or args.envs,
+                      print_path=args.all >= 1 or args.path,
+                      output_build=args.all >= 1 or args.build,
+                      list_environment=args.all >= 1 or args.envs,
+                      list_volumes=max(args.all, args.volumes),
                       )
 
     return 0
