@@ -1,51 +1,20 @@
 #!/usr/bin/env python3
 import argparse
-import json
+import dataclasses
 import os
 import re
 import subprocess
 import sys
 import typing as t
 
-import dotenv
 import rich
 import rich.table
 import rich.tree
-import yaml
 
-
-def load_env_file():
-    return dotenv.dotenv_values('.env')
-
-
-def load_compose_config(cwd: str, file: str):
-    result = subprocess.run(
-        ['docker', 'compose', '-f', file, 'config'],
-        # env={
-        #    'PATH': os.getenv('PATH'),
-        # },
-        capture_output=True,
-        encoding='utf-8',
-        universal_newlines=True,
-        cwd=cwd,
-    )
-    result.check_returncode()
-    return yaml.safe_load(result.stdout)
-
-
-def load_compose_ps(cwd: str, file: str):
-    result = subprocess.run(
-        ['docker', 'compose', '-f', file, 'ps', '--format', 'json'],
-        # env={
-        #    'PATH': os.getenv('PATH'),
-        # },
-        capture_output=True,
-        encoding='utf-8',
-        universal_newlines=True,
-        cwd=cwd,
-    )
-    result.check_returncode()
-    return json.loads(result.stdout)
+from common import find_compose_projects
+from common import load_compose_config
+from common import load_compose_ps
+from common import relative_path_if_below
 
 
 def colored_container_state(state: str) -> str:
@@ -106,41 +75,21 @@ def colored_key_value(text: str, key: str, value: str) -> str:
         return text.replace(',', '[b white],[/]')
 
 
-def relative_path_if_below(path: str) -> str:
-    is_dir = os.path.isdir(path)
-    relpath = os.path.relpath(path)
-    if relpath.startswith('../'):
-        return os.path.abspath(path) + ('/' if is_dir else '')
-    else:
-        if not relpath == '.' and not relpath.startswith('./') and not relpath.startswith('/'):
-            return './' + relpath + ('/' if is_dir and relpath != '' else '')
-        else:
-            return relpath
-
-
 def colored_port_mapping(mapping: t.Tuple[str, str]) -> str:
     return f'{mapping[0]}[dim]:{mapping[1]}[/]'
 
 
-def print_project(project: str, print_path: bool, output_build: bool, list_environment: bool,
-                  list_volumes: int):
-    compose_dir = None
-    compose_file = None
-    if os.path.isfile(project) and 'docker-compose' in project and (
-        project.endswith('.yml') or project.endswith('.yaml')):
-        compose_dir, compose_file = os.path.split(project)
-        if compose_dir == '':
-            compose_dir = '.'
-    if compose_dir is None or compose_file is None:
-        for file in ['docker-compose.yml', 'docker-compose.yaml']:
-            if os.path.exists(os.path.join(project, file)):
-                compose_dir, compose_file = project, file
-                break
-    if compose_dir is None or compose_file is None:
-        return
+@dataclasses.dataclass
+class PrintOptions:
+    print_path: bool
+    output_build: bool
+    list_environment: bool
+    list_volumes: int
 
-    compose_dir = relative_path_if_below(compose_dir)
+    align_right: bool
 
+
+def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
     try:
         compose_config = load_compose_config(compose_dir, compose_file)
     except subprocess.CalledProcessError as e:
@@ -149,10 +98,13 @@ def print_project(project: str, print_path: bool, output_build: bool, list_envir
         rich.print(tree)
         return
 
+    justify: rich.console.JustifyMethod = 'left'
+    if options.align_right: justify = 'right'
+
     compose_ps = load_compose_ps(compose_dir, compose_file)
 
     compose_id = f"[b]{compose_config['name']}[/]"
-    if print_path:
+    if options.print_path:
         compose_id += f" [dim]{os.path.join(compose_dir, compose_file)}[/]"
     tree = rich.tree.Tree(compose_id)
     for service_name, service in compose_config['services'].items():
@@ -180,32 +132,32 @@ def print_project(project: str, print_path: bool, output_build: bool, list_envir
         ]
         s = tree.add(' '.join(z for z in service_line if z != ''))
 
-        if output_build and not is_image:
+        if options.output_build and not is_image:
             build_context = dim_path(relative_path_if_below(service['build']['context']),
                                      dimmed_prefix=compose_dir)
             s.add(f'[i]Build context:[/] {build_context}')
 
-        if output_build and not is_image and 'args' in service['build']:
+        if options.output_build and not is_image and 'args' in service['build']:
             table = rich.table.Table(title_justify='left', style='dim', header_style='i')
             s.add(table)
-            table.add_column("Build argument")
+            table.add_column("Build argument", justify=justify)
             table.add_column("Value")
             for arg, value in service['build']['args'].items():
                 table.add_row(
                     colored_key_value(arg, key=arg, value=value) if value != '' else f'[dim]{arg}[/]',
                     colored_key_value(value, key=arg, value=value))
 
-        if list_environment and 'environment' in service:
+        if options.list_environment and 'environment' in service:
             table = rich.table.Table(title_justify='left', style='dim', header_style='i')
             s.add(table)
-            table.add_column("Environment variable")
+            table.add_column("Environment variable", justify=justify)
             table.add_column("Value")
             for env, value in service['environment'].items():
                 table.add_row(
                     colored_key_value(env, key=env, value=value) if value != '' else f'[dim]{env}[/]',
                     colored_key_value(value, key=env, value=value))
 
-        if list_volumes >= 1 and 'volumes' in service:
+        if options.list_volumes >= 1 and 'volumes' in service:
             table = rich.table.Table(title_justify='left', style='dim', header_style='i')
             s.add(table)
             table.add_column("Volume")
@@ -217,7 +169,8 @@ def print_project(project: str, print_path: bool, output_build: bool, list_envir
                 source_volume = volume['source'] if is_volume else \
                     colored_path(relative_path_if_below(volume['source']), dimmed_prefix=compose_dir)
                 files = rich.tree.Tree(colored_readonly(source_volume, ro, is_volume))
-                if list_volumes >= 2 and volume['source'].startswith('/') and os.path.isdir(volume['source']):
+                if options.list_volumes >= 2 and volume['source'].startswith('/') and os.path.isdir(
+                    volume['source']):
                     try:
                         for f in sorted(os.listdir(volume['source'])):
                             if os.path.isdir(os.path.join(volume['source'], f)):
@@ -234,24 +187,32 @@ def print_project(project: str, print_path: bool, output_build: bool, list_envir
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(prog='PROG')
+    parser = argparse.ArgumentParser()
     parser.add_argument('projects', nargs='*', default=['.'],
                         help='compose files and/or directories containing a docker-compose.y[a]ml')
-    parser.add_argument('-p', '--path', action='store_true', help='print path of compose file')
-    parser.add_argument('-b', '--build', action='store_true', help='output build context and arguments')
-    parser.add_argument('-e', '--envs', action='store_true', help='list environment variables')
-    parser.add_argument('-v', '--volumes', action='count', default=0,
-                        help='list volumes (use -vv to also list content)')
-    parser.add_argument('-a', '--all', action='count', default=0, help='like -pbev (use -aa for -pbevv)')
+    group = parser.add_argument_group(title='details')
+    group.add_argument('-p', '--path', action='store_true', help='print path of compose file')
+    group.add_argument('-b', '--build', action='store_true', help='output build context and arguments')
+    group.add_argument('-e', '--envs', action='store_true', help='list environment variables')
+    group.add_argument('-v', '--volumes', action='count', default=0,
+                       help='list volumes (use -vv to also list content)')
+    group.add_argument('-a', '--all', action='count', default=0, help='like -pbev (use -aa for -pbevv)')
+    group = parser.add_argument_group(title='formatting')
+    group.add_argument('-r', '--align-right', action='store_true', help='right-align variable names')
     args = parser.parse_args()
 
-    for project in args.projects:
-        print_project(project,
-                      print_path=args.all >= 1 or args.path,
-                      output_build=args.all >= 1 or args.build,
-                      list_environment=args.all >= 1 or args.envs,
-                      list_volumes=max(args.all, args.volumes),
-                      )
+    for compose_dir, compose_file in find_compose_projects(args.projects):
+        print_project(
+            compose_dir=compose_dir,
+            compose_file=compose_file,
+            options=PrintOptions(
+                print_path=args.all >= 1 or args.path,
+                output_build=args.all >= 1 or args.build,
+                list_environment=args.all >= 1 or args.envs,
+                list_volumes=max(args.all, args.volumes),
+                align_right=args.align_right,
+            )
+        )
 
     return 0
 
