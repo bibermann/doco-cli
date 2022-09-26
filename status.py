@@ -42,9 +42,9 @@ def colored_path(path: str, dimmed_prefix: t.Optional[str] = None) -> str:
                     bold=True) if dimmed_prefix is not None else f"[b]{path}[/]"
 
 
-def colored_readonly(text: str, ro: bool, is_volume: bool) -> str:
+def colored_readonly(text: str, ro: bool, is_bind_mount: bool) -> str:
     ro_text = text if ro else f'[dark_orange]{text}[/]'
-    return ro_text if not is_volume else f'[dim]{ro_text}[/]'
+    return ro_text if is_bind_mount else f'[dim]{ro_text}[/]'
 
 
 def colored_image(image: str) -> str:
@@ -165,10 +165,15 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
             table.add_column("ro/rw")
             for volume in service['volumes']:
                 ro = volume.get('read_only', False)
-                is_volume = volume['type'] == 'volume'
-                source_volume = volume['source'] if is_volume else \
-                    colored_path(relative_path_if_below(volume['source']), dimmed_prefix=compose_dir)
-                files = rich.tree.Tree(colored_readonly(source_volume, ro, is_volume))
+                is_volume_mount = volume['type'] == 'volume'
+                is_bind_mount = volume['type'] == 'bind'
+                if is_volume_mount:
+                    source_volume = volume['source']
+                elif is_bind_mount:
+                    source_volume = colored_path(relative_path_if_below(volume['source']), dimmed_prefix=compose_dir)
+                else:
+                    source_volume = f"{volume['source']} [dim]({volume['type']})[/]"
+                files = rich.tree.Tree(colored_readonly(source_volume, ro, is_bind_mount))
                 if options.list_volumes >= 2 and volume['source'].startswith('/') and os.path.isdir(
                     volume['source']):
                     try:
@@ -180,8 +185,8 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                     except PermissionError:
                         pass
                 table.add_row(files,
-                              colored_readonly(volume['target'], ro, is_volume),
-                              colored_readonly('ro' if ro else 'rw', ro, is_volume))
+                              colored_readonly(volume['target'], ro, is_bind_mount),
+                              colored_readonly('ro' if ro else 'rw', ro, is_bind_mount))
 
     rich.print(tree)
 
