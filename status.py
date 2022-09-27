@@ -9,6 +9,7 @@ import typing as t
 
 import rich
 import rich.box
+import rich.markup
 import rich.table
 import rich.tree
 
@@ -105,8 +106,8 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
     try:
         compose_config = load_compose_config(compose_dir, compose_file)
     except subprocess.CalledProcessError as e:
-        tree = rich.tree.Tree(f"[b]{os.path.join(compose_dir, compose_file)}")
-        tree.add(f'[red]{e.stderr.strip()}')
+        tree = rich.tree.Tree(f"[b]{rich.markup.escape(os.path.join(compose_dir, compose_file))}")
+        tree.add(f'[red]{rich.markup.escape(e.stderr.strip())}')
         rich.print(tree)
         return
 
@@ -115,12 +116,11 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
 
     compose_ps = load_compose_ps(compose_dir, compose_file)
 
-    compose_id = f"[b]{compose_config['name']}[/]"
+    compose_id = f"[b]{rich.markup.escape(compose_config['name'])}[/]"
     if options.print_path:
-        compose_id += f" [dim]{os.path.join(compose_dir, compose_file)}[/]"
+        compose_id += f" [dim]{rich.markup.escape(os.path.join(compose_dir, compose_file))}[/]"
     tree = rich.tree.Tree(compose_id)
     for service_name, service in compose_config['services'].items():
-        # print(json.dumps(service, indent=4))
         state = next((s['State'] for s in compose_ps if s['Service'] == service_name), 'exited')
         is_image = 'image' in service
         dockerfile_path = None
@@ -129,8 +129,8 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                 os.path.join(service['build']['context'],
                              service['build']['dockerfile'])
             )
-        source = colored_image(service['image']) if is_image \
-            else colored_dockerfile(dockerfile_path, compose_dir)
+        source = colored_image(rich.markup.escape(service['image'])) if is_image \
+            else colored_dockerfile(rich.markup.escape(dockerfile_path), rich.markup.escape(compose_dir))
 
         ports = ''
         if 'ports' in service:
@@ -138,15 +138,15 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
 
         service_line = [
             colored_container_state(state),
-            f"[b]{service_name}[/]",
+            f"[b]{rich.markup.escape(service_name)}[/]",
             ports,
             source,
         ]
         s = tree.add(' '.join(z for z in service_line if z != ''))
 
         if options.output_build and not is_image:
-            build_context = dim_path(relative_path_if_below(service['build']['context']),
-                                     dimmed_prefix=compose_dir)
+            build_context = dim_path(rich.markup.escape(relative_path_if_below(service['build']['context'])),
+                                     dimmed_prefix=rich.markup.escape(compose_dir))
             s.add(f'[i]Build context:[/] {build_context}')
 
         if options.output_build and not is_image and 'args' in service['build']:
@@ -156,8 +156,9 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
             table.add_column("Value")
             for arg, value in service['build']['args'].items():
                 table.add_row(
-                    colored_key_value(arg, key=arg, value=value) if value != '' else f'[dim]{arg}[/]',
-                    colored_key_value(value, key=arg, value=value))
+                    colored_key_value(rich.markup.escape(arg), key=arg, value=value)
+                    if value != '' else f'[dim]{rich.markup.escape(arg)}[/]',
+                    colored_key_value(rich.markup.escape(value), key=arg, value=value))
 
         if options.list_environment and 'environment' in service:
             table = create_table(alternate_bg=options.alternate_rows and justify == 'left')
@@ -166,8 +167,9 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
             table.add_column("Value")
             for env, value in service['environment'].items():
                 table.add_row(
-                    colored_key_value(env, key=env, value=value) if value != '' else f'[dim]{env}[/]',
-                    colored_key_value(value, key=env, value=value))
+                    colored_key_value(rich.markup.escape(env), key=env, value=value)
+                    if value != '' else f'[dim]{rich.markup.escape(env)}[/]',
+                    colored_key_value(rich.markup.escape(value), key=env, value=value))
 
         if options.list_volumes >= 1 and 'volumes' in service:
             table = create_table(alternate_bg=options.alternate_rows)
@@ -180,25 +182,25 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                 is_volume_mount = volume['type'] == 'volume'
                 is_bind_mount = volume['type'] == 'bind'
                 if is_volume_mount:
-                    source_volume = volume['source']
+                    source_volume = rich.markup.escape(volume['source'])
                 elif is_bind_mount:
-                    source_volume = colored_path(relative_path_if_below(volume['source']),
-                                                 dimmed_prefix=compose_dir)
+                    source_volume = colored_path(rich.markup.escape(relative_path_if_below(volume['source'])),
+                                                 dimmed_prefix=rich.markup.escape(compose_dir))
                 else:
-                    source_volume = f"{volume['source']} [dim]({volume['type']})[/]"
-                files = rich.tree.Tree(colored_readonly(source_volume, ro, is_bind_mount))
+                    source_volume = f"{rich.markup.escape(volume['source'])} [dim]({volume['type']})[/]"
+                files = rich.tree.Tree(colored_readonly(rich.markup.escape(source_volume), ro, is_bind_mount))
                 if options.list_volumes >= 2 and volume['source'].startswith('/') and os.path.isdir(
                     volume['source']):
                     try:
                         for f in sorted(os.listdir(volume['source'])):
                             if os.path.isdir(os.path.join(volume['source'], f)):
-                                files.add(f"[yellow]{f}/[/]")
+                                files.add(f"[yellow]{rich.markup.escape(f)}/[/]")
                             else:
-                                files.add(f)
+                                files.add(rich.markup.escape(f))
                     except PermissionError:
                         pass
                 table.add_row(files,
-                              colored_readonly(volume['target'], ro, is_bind_mount),
+                              colored_readonly(rich.markup.escape(volume['target']), ro, is_bind_mount),
                               colored_readonly('ro' if ro else 'rw', ro, is_bind_mount))
 
     rich.print(tree)

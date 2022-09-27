@@ -4,6 +4,7 @@ import dataclasses
 import datetime
 import os
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -16,6 +17,7 @@ import rich.json
 import rich.panel
 import rich.pretty
 import rich.tree
+import rich.markup
 
 from common import find_compose_projects
 from common import load_compose_config
@@ -50,7 +52,16 @@ def format_no_backup(path: str, reason: str, emphasize: bool = True) -> str:
 
 
 def format_cmd_line(cmd: t.List[str]) -> rich.console.RenderableType:
-    return '\[' + ', '.join(f"[dim]{item}[/]" for item in cmd) + ']'
+    cmdline = rich.markup.escape(shlex.join(cmd))
+    cmdline = re.sub(r' (--?[^ =-][^ =]*)', r' [/][dim dark_orange]\1[/][dim]', cmdline)
+    cmdline = re.sub(r'([\'"\\])', r'[/][dark_orange]\1[/][dim]', cmdline)
+    cmdline = re.sub(r' -- ', r'[/] [dark_orange]--[/] [dim]', cmdline)
+    cmdline = f"[dim]{cmdline}[/]"
+    if len(cmd) > 0:
+        program = rich.markup.escape(cmd[0])
+        if cmdline.startswith(f"[dim]{program} "):
+            cmdline = f"[dark_orange]{program}[/][dim]" + cmdline[5 + len(program):]
+    return cmdline
 
 
 def dir_from_path(path: str) -> str:
@@ -117,7 +128,7 @@ class BackupJob:
 def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str], job: BackupJob, dry_run: bool,
                   rich_node: rich.tree.Tree):
     cmd = run_rsync_backup_with_hardlinks(
-        source=job.source_path,
+        source=os.path.abspath(job.source_path),
         destination_root='services',
         new_backup=os.path.join(new_backup_dir, job.target_path),
         old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
@@ -157,14 +168,14 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     try:
         compose_config = load_compose_config(compose_dir, compose_file)
     except subprocess.CalledProcessError as e:
-        tree = rich.tree.Tree(f"[b]{os.path.join(compose_dir, compose_file)}")
-        tree.add(f'[red]{e.stderr.strip()}')
+        tree = rich.tree.Tree(f"[b]{rich.markup.escape(os.path.join(compose_dir, compose_file))}")
+        tree.add(f'[red]{rich.markup.escape(e.stderr.strip())}')
         rich.print(tree)
         return
 
     compose_name = compose_config['name']
-    compose_id = f"[b]{compose_name}[/]"
-    compose_id += f" [dim]{os.path.join(compose_dir, compose_file)}[/]"
+    compose_id = f"[b]{rich.markup.escape(compose_name)}[/]"
+    compose_id += f" [dim]{rich.markup.escape(os.path.join(compose_dir, compose_file))}[/]"
 
     now = datetime.datetime.now()
     new_backup_dir = os.path.join(compose_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
@@ -184,10 +195,10 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
 
     tree = rich.tree.Tree(compose_id)
     if old_backup_dir is None:
-        tree.add(f"[i]Backup directory:[/] [b]{new_backup_dir}[/]")
+        tree.add(f"[i]Backup directory:[/] [b]{rich.markup.escape(new_backup_dir)}[/]")
     else:
-        tree.add(f"[i]Backup directory:[/] [dim]{old_backup_dir}[/] => [b]{new_backup_dir}[/]")
-    backup_node = tree.add('[i]Backups[/]')
+        tree.add(f"[i]Backup directory:[/] [dim]{rich.markup.escape(old_backup_dir)}[/] => [b]{rich.markup.escape(new_backup_dir)}[/]")
+    backup_node = tree.add('[i]Backup items[/]')
 
     # Schedule config.json
     config_group = rich.console.Group('[green]config.json[/]')
@@ -196,21 +207,21 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     # Schedule compose.yaml
     source_path = os.path.join(compose_dir, compose_file)
     target_path = 'compose.yaml'
-    backup_node.add(format_do_backup(source_path, target_path))
+    backup_node.add(format_do_backup(rich.markup.escape(source_path), rich.markup.escape(target_path)))
     jobs.append(BackupJob(source_path=source_path, target_path=target_path))
 
     # Schedule project files
     if options.include_project_dir:
         target_path = 'project-files/'
-        backup_node.add(format_do_backup(compose_dir, target_path))
+        backup_node.add(format_do_backup(rich.markup.escape(compose_dir), rich.markup.escape(target_path)))
         jobs.append(BackupJob(source_path=compose_dir, target_path=target_path))
     else:
-        backup_node.add(format_no_backup(compose_dir, 'project dir'))
+        backup_node.add(format_no_backup(rich.markup.escape(compose_dir), 'project dir'))
 
     # Schedule volumes
     volumes_included: t.Set[str] = set()
     for service_name, service in compose_config['services'].items():
-        s = backup_node.add(f"service [b]{service_name}[/]")
+        s = backup_node.add(f"[b]{rich.markup.escape(service_name)}[/]")
         s_config = BackupServiceConfig(name=service_name)
         config.services.append(s_config)
 
@@ -220,23 +231,23 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
             target = volume['target']
 
             if options.include_project_dir and relative_path_if_below(source).startswith(compose_dir):
-                s.add(format_no_backup(source, 'already included', emphasize=False))
+                s.add(format_no_backup(rich.markup.escape(source), 'already included', emphasize=False))
                 s_config.excluded_volumes.append(source)
                 continue
 
             if source in volumes_included:
-                s.add(format_no_backup(source, 'already included', emphasize=False))
+                s.add(format_no_backup(rich.markup.escape(source), 'already included', emphasize=False))
                 s_config.excluded_volumes.append(source)
                 continue
 
             is_bind_mount = volume['type'] == 'bind'
             if not is_bind_mount:
-                s.add(format_no_backup(source, 'no bind mount'))
+                s.add(format_no_backup(rich.markup.escape(source), 'no bind mount'))
                 s_config.excluded_volumes.append(source)
                 continue
             ro = volume.get('read_only', False)
             if ro and not options.include_read_only_volumes:
-                s.add(format_no_backup(source, 'read-only'))
+                s.add(format_no_backup(rich.markup.escape(source), 'read-only'))
                 s_config.excluded_volumes.append(source)
                 continue
             found = False
@@ -245,18 +256,18 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
                     found = True
                     break
             if not found:
-                s.add(format_no_backup(source, 'expressions don\'t match'))
+                s.add(format_no_backup(rich.markup.escape(source), 'expressions don\'t match'))
                 s_config.excluded_volumes.append(source)
                 continue
 
             target_path = os.path.join('volumes', service_name, dir_from_path(target))
-            s.add(format_do_backup(source, target_path))
+            s.add(format_do_backup(rich.markup.escape(source), rich.markup.escape(target_path)))
             s_config.included_volumes.append((source, target_path))
             jobs.append(BackupJob(source_path=source, target_path=target_path))
             volumes_included.add(source)
 
         if len(volumes) == 0:
-            s.add('no volumes')
+            s.add('[dim](no volumes)[/]')
 
     run_node = rich.tree.Tree('[i]Would run[/]')
     if options.dry_run_verbose:
