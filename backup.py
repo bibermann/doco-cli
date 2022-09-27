@@ -19,10 +19,11 @@ import rich.tree
 
 from common import find_compose_projects
 from common import load_compose_config
-from common import load_compose_ps
 from common import relative_path_if_below
 from common import run_rsync_backup_with_hardlinks
 from common import run_rsync_without_delete
+
+LAST_BACKUP_DIR_FILENAME = '.last-backup-dir'
 
 
 @dataclasses.dataclass
@@ -59,6 +60,21 @@ def dir_from_path(path: str) -> str:
     return result
 
 
+def load_last_backup_directory(compose_dir: str) -> t.Optional[str]:
+    path = os.path.join(compose_dir, LAST_BACKUP_DIR_FILENAME)
+    if os.path.isfile(path):
+        with open(path, encoding='utf-8') as f:
+            value = f.readline().strip()
+            if value != '' and not '..' in value and not value.startswith('/'):
+                return value
+
+
+def save_last_backup_directory(compose_dir: str, value: str) -> None:
+    path = os.path.join(compose_dir, LAST_BACKUP_DIR_FILENAME)
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(value)
+
+
 class BackupServiceConfig(pydantic.BaseModel):
     name: str
     included_volumes: t.List[t.Tuple[str, str]] = []
@@ -67,7 +83,10 @@ class BackupServiceConfig(pydantic.BaseModel):
 
 class BackupConfig(pydantic.BaseModel):
     project_path: str
+    compose_file: str
     timestamp: datetime.datetime
+    backup_dir: str
+    last_backup_dir: t.Optional[str]
     include_project_dir: bool
     include_read_only_volumes: bool
     volume_patterns: t.List[str]
@@ -78,7 +97,7 @@ def do_backup_config(new_backup_dir: str, old_backup_dir: t.Optional[str], confi
                      target_file_name: str, dry_run: bool, rich_node: rich.tree.Tree):
     with tempfile.TemporaryDirectory() as tmp_dir:
         source = os.path.join(tmp_dir, target_file_name)
-        with open(source, 'w') as f:
+        with open(source, 'w', encoding='utf-8') as f:
             f.write(config.json(indent=4))
         cmd = run_rsync_backup_with_hardlinks(
             source=source,
@@ -143,21 +162,20 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         rich.print(tree)
         return
 
-    compose_ps = load_compose_ps(compose_dir, compose_file)
-
     compose_name = compose_config['name']
     compose_id = f"[b]{compose_name}[/]"
     compose_id += f" [dim]{os.path.join(compose_dir, compose_file)}[/]"
 
     now = datetime.datetime.now()
-    today_iso = now.date().isoformat()
-    yesterday_iso = (now.date() - datetime.timedelta(days=1)).isoformat()
-    new_backup_dir = os.path.join(compose_name, f"backup-{today_iso}")
-    old_backup_dir = os.path.join(compose_name, f"backup-{yesterday_iso}")
+    new_backup_dir = os.path.join(compose_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
+    old_backup_dir = load_last_backup_directory(compose_dir)
 
     config = BackupConfig(
         project_path=os.path.abspath(compose_dir),
+        compose_file=compose_file,
         timestamp=now,
+        backup_dir=new_backup_dir,
+        last_backup_dir=old_backup_dir,
         include_project_dir=options.include_project_dir,
         include_read_only_volumes=options.include_read_only_volumes,
         volume_patterns=options.volumes,
@@ -165,7 +183,10 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     jobs: t.List[BackupJob] = []
 
     tree = rich.tree.Tree(compose_id)
-    tree.add(f"[i]Project directory:[/] [b]{new_backup_dir}[/]")
+    if old_backup_dir is None:
+        tree.add(f"[i]Backup directory:[/] [b]{new_backup_dir}[/]")
+    else:
+        tree.add(f"[i]Backup directory:[/] [dim]{old_backup_dir}[/] => [b]{new_backup_dir}[/]")
     backup_node = tree.add('[i]Backups[/]')
 
     # Schedule config.json
@@ -189,9 +210,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     # Schedule volumes
     volumes_included: t.Set[str] = set()
     for service_name, service in compose_config['services'].items():
-        state = next((s['State'] for s in compose_ps if s['Service'] == service_name), 'exited')
-
-        s = backup_node.add(f"service [b]{service_name}[/] [dim]{state}[/]")
+        s = backup_node.add(f"service [b]{service_name}[/]")
         s_config = BackupServiceConfig(name=service_name)
         config.services.append(s_config)
 
@@ -239,7 +258,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         if len(volumes) == 0:
             s.add('no volumes')
 
-    run_node = rich.tree.Tree('Would run')
+    run_node = rich.tree.Tree('[i]Would run[/]')
     if options.dry_run_verbose:
         tree.add(run_node)
 
@@ -260,6 +279,9 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
             )
 
         rich.print(tree)
+
+    if not options.dry_run:
+        save_last_backup_directory(compose_dir, new_backup_dir)
 
 
 def main() -> int:
