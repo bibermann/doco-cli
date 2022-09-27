@@ -61,7 +61,7 @@ def load_compose_ps(cwd: str, file: str):
 
 
 def run_rsync_without_delete(source: str, destination_root: str, destination: str, dry_run: bool = False) -> \
-t.List[str]:
+    t.List[str]:
     opt = RsyncOptions(root=destination_root, delete_from_destination=False)
     cmd = [
         'rsync', *opt.OPTS,

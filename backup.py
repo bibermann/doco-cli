@@ -48,7 +48,7 @@ def format_no_backup(path: str, reason: str, emphasize: bool = True) -> str:
         return f"{path} [dim]({reason})[/]"
 
 
-def format_cmd_line(cmd: t.List[str])-> rich.console.RenderableType:
+def format_cmd_line(cmd: t.List[str]) -> rich.console.RenderableType:
     return '\[' + ', '.join(f"[dim]{item}[/]" for item in cmd) + ']'
 
 
@@ -255,8 +255,8 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         if options.dry_run_verbose:
             config_group.renderables.append(
                 rich.panel.Panel(rich.json.JSON(config.json(indent=4)),
-                                                       expand=False,
-                                                       border_style='green')
+                                 expand=False,
+                                 border_style='green')
             )
 
         rich.print(tree)
@@ -270,7 +270,7 @@ def main() -> int:
     parser.add_argument('-r', '--include-ro', action='store_true',
                         help='also consider read-only volumes')
     parser.add_argument('-v', '--volume', nargs='+', default=[], help='regex for volume selection')
-    parser.add_argument('--verbose', action='store_true',help='print more details if --dry-run')
+    parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually backup, only show what would be done')
     args = parser.parse_args()
