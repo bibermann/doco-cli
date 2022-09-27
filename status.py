@@ -8,6 +8,7 @@ import sys
 import typing as t
 
 import rich
+import rich.box
 import rich.table
 import rich.tree
 
@@ -15,6 +16,16 @@ from common import find_compose_projects
 from common import load_compose_config
 from common import load_compose_ps
 from common import relative_path_if_below
+
+
+def create_table(alternate_bg: bool) -> rich.table.Table:
+    return rich.table.Table(
+        title_justify='left',
+        style='dim',
+        header_style='i',
+        box=rich.box.SQUARE,
+        row_styles=['on grey7', ''] if alternate_bg else None,
+    )
 
 
 def colored_container_state(state: str) -> str:
@@ -87,6 +98,7 @@ class PrintOptions:
     list_volumes: int
 
     align_right: bool
+    alternate_rows: bool
 
 
 def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
@@ -138,9 +150,9 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
             s.add(f'[i]Build context:[/] {build_context}')
 
         if options.output_build and not is_image and 'args' in service['build']:
-            table = rich.table.Table(title_justify='left', style='dim', header_style='i')
+            table = create_table(alternate_bg=options.alternate_rows and justify == 'left')
             s.add(table)
-            table.add_column("Build argument", justify=justify)
+            table.add_column("Build argument", no_wrap=True, justify=justify)
             table.add_column("Value")
             for arg, value in service['build']['args'].items():
                 table.add_row(
@@ -148,9 +160,9 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                     colored_key_value(value, key=arg, value=value))
 
         if options.list_environment and 'environment' in service:
-            table = rich.table.Table(title_justify='left', style='dim', header_style='i')
+            table = create_table(alternate_bg=options.alternate_rows and justify == 'left')
             s.add(table)
-            table.add_column("Environment variable", justify=justify)
+            table.add_column("Environment variable", no_wrap=True, justify=justify)
             table.add_column("Value")
             for env, value in service['environment'].items():
                 table.add_row(
@@ -158,7 +170,7 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                     colored_key_value(value, key=env, value=value))
 
         if options.list_volumes >= 1 and 'volumes' in service:
-            table = rich.table.Table(title_justify='left', style='dim', header_style='i')
+            table = create_table(alternate_bg=options.alternate_rows)
             s.add(table)
             table.add_column("Volume")
             table.add_column("Container path")
@@ -170,7 +182,8 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                 if is_volume_mount:
                     source_volume = volume['source']
                 elif is_bind_mount:
-                    source_volume = colored_path(relative_path_if_below(volume['source']), dimmed_prefix=compose_dir)
+                    source_volume = colored_path(relative_path_if_below(volume['source']),
+                                                 dimmed_prefix=compose_dir)
                 else:
                     source_volume = f"{volume['source']} [dim]({volume['type']})[/]"
                 files = rich.tree.Tree(colored_readonly(source_volume, ro, is_bind_mount))
@@ -204,6 +217,7 @@ def main() -> int:
     group.add_argument('-a', '--all', action='count', default=0, help='like -pbev (use -aa for -pbevv)')
     group = parser.add_argument_group(title='formatting')
     group.add_argument('-r', '--align-right', action='store_true', help='right-align variable names')
+    group.add_argument('--alternate-rows', action='store_true', help='alternate row colors in tables')
     args = parser.parse_args()
 
     for compose_dir, compose_file in find_compose_projects(args.projects):
@@ -216,6 +230,7 @@ def main() -> int:
                 list_environment=args.all >= 1 or args.envs,
                 list_volumes=max(args.all, args.volumes),
                 align_right=args.align_right,
+                alternate_rows=args.alternate_rows,
             )
         )
 
