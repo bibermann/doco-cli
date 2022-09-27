@@ -89,12 +89,14 @@ def run_rsync_backup_incremental(source: str, destination_root: str, destination
     return cmd
 
 
-def run_rsync_backup_with_hardlinks(source: str, destination_root: str, new_backup: str, old_backup_dir: str,
+def run_rsync_backup_with_hardlinks(source: str, destination_root: str, new_backup: str,
+                                    old_backup_dirs: t.List[str],
                                     dry_run: bool = False) -> t.List[str]:
     opt = RsyncOptions(root=destination_root, delete_from_destination=True)
+    for old_backup_dir in old_backup_dirs:
+        opt.OPTS.extend(['--link-dest', f"{opt.ROOT}/{old_backup_dir}"])
     cmd = [
         'rsync', *opt.OPTS,
-        '--link-dest', f"{opt.ROOT}/{old_backup_dir}",
         '--', source,
         f"{opt.HOST}::{opt.MODULE}{opt.ROOT}/{new_backup}"
     ]

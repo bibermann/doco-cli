@@ -74,7 +74,7 @@ class BackupConfig(pydantic.BaseModel):
     services: t.List[BackupServiceConfig] = []
 
 
-def do_backup_config(new_backup_dir: str, old_backup_dir: str, config: BackupConfig,
+def do_backup_config(new_backup_dir: str, old_backup_dir: t.Optional[str], config: BackupConfig,
                      target_file_name: str, dry_run: bool, rich_node: rich.tree.Tree):
     with tempfile.TemporaryDirectory() as tmp_dir:
         source = os.path.join(tmp_dir, target_file_name)
@@ -83,7 +83,7 @@ def do_backup_config(new_backup_dir: str, old_backup_dir: str, config: BackupCon
         cmd = run_rsync_backup_with_hardlinks(
             source=source,
             destination_root='services', new_backup=os.path.join(new_backup_dir, target_file_name),
-            old_backup_dir=old_backup_dir,
+            old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
             dry_run=dry_run
         )
         rich_node.add(format_cmd_line(cmd))
@@ -95,13 +95,13 @@ class BackupJob:
     target_path: str
 
 
-def do_backup_job(new_backup_dir: str, old_backup_dir: str, job: BackupJob, dry_run: bool,
+def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str], job: BackupJob, dry_run: bool,
                   rich_node: rich.tree.Tree):
     cmd = run_rsync_backup_with_hardlinks(
         source=job.source_path,
         destination_root='services',
         new_backup=os.path.join(new_backup_dir, job.target_path),
-        old_backup_dir=old_backup_dir,
+        old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
         dry_run=dry_run
     )
     rich_node.add(format_cmd_line(cmd))
