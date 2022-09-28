@@ -106,6 +106,17 @@ def run_rsync_backup_with_hardlinks(source: str, destination_root: str, new_back
     return cmd
 
 
+def run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool = False):
+    cmd = [
+        'docker', 'compose', '-f', compose_file,
+        *command,
+    ]
+    if not dry_run:
+        print(f"Running {cmd} in {compose_dir}")
+        subprocess.run(cmd, cwd=compose_dir, check=True)
+    return cmd
+
+
 def relative_path_if_below(path: str) -> str:
     is_dir = os.path.isdir(path)
     relpath = os.path.relpath(path)

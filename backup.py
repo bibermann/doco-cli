@@ -14,14 +14,16 @@ import pydantic
 import rich
 import rich.console
 import rich.json
+import rich.markup
 import rich.panel
 import rich.pretty
 import rich.tree
-import rich.markup
 
 from common import find_compose_projects
 from common import load_compose_config
+from common import load_compose_ps
 from common import relative_path_if_below
+from common import run_compose
 from common import run_rsync_backup_with_hardlinks
 from common import run_rsync_without_delete
 
@@ -102,6 +104,7 @@ class BackupConfig(pydantic.BaseModel):
     include_read_only_volumes: bool
     volume_patterns: t.List[str]
     services: t.List[BackupServiceConfig] = []
+    restarted_project: bool
 
 
 def do_backup_config(new_backup_dir: str, old_backup_dir: t.Optional[str], config: BackupConfig,
@@ -132,6 +135,26 @@ def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str], job: Bac
         destination_root='services',
         new_backup=os.path.join(new_backup_dir, job.target_path),
         old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
+        dry_run=dry_run
+    )
+    rich_node.add(format_cmd_line(cmd))
+
+
+def do_run_compose_down(compose_dir, compose_file, dry_run: bool, rich_node: rich.tree.Tree):
+    cmd = run_compose(
+        compose_dir=os.path.abspath(compose_dir),
+        compose_file=compose_file,
+        command=['down'],
+        dry_run=dry_run
+    )
+    rich_node.add(format_cmd_line(cmd))
+
+
+def do_run_compose_up(compose_dir, compose_file, dry_run: bool, rich_node: rich.tree.Tree):
+    cmd = run_compose(
+        compose_dir=os.path.abspath(compose_dir),
+        compose_file=compose_file,
+        command=['up', '--build', '-d'],
         dry_run=dry_run
     )
     rich_node.add(format_cmd_line(cmd))
@@ -173,6 +196,8 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         rich.print(tree)
         return
 
+    compose_ps = load_compose_ps(compose_dir, compose_file)
+
     compose_name = compose_config['name']
     compose_id = f"[b]{rich.markup.escape(compose_name)}[/]"
     compose_id += f" [dim]{rich.markup.escape(os.path.join(compose_dir, compose_file))}[/]"
@@ -190,6 +215,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         include_project_dir=options.include_project_dir,
         include_read_only_volumes=options.include_read_only_volumes,
         volume_patterns=options.volumes,
+        restarted_project=False,  # updated later
     )
     jobs: t.List[BackupJob] = []
 
@@ -197,7 +223,8 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     if old_backup_dir is None:
         tree.add(f"[i]Backup directory:[/] [b]{rich.markup.escape(new_backup_dir)}[/]")
     else:
-        tree.add(f"[i]Backup directory:[/] [dim]{rich.markup.escape(old_backup_dir)}[/] => [b]{rich.markup.escape(new_backup_dir)}[/]")
+        tree.add(
+            f"[i]Backup directory:[/] [dim]{rich.markup.escape(old_backup_dir)}[/] => [b]{rich.markup.escape(new_backup_dir)}[/]")
     backup_node = tree.add('[i]Backup items[/]')
 
     # Schedule config.json
@@ -218,10 +245,16 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     else:
         backup_node.add(format_no_backup(rich.markup.escape(compose_dir), 'project dir'))
 
+    has_running_or_restarting = False
+
     # Schedule volumes
     volumes_included: t.Set[str] = set()
     for service_name, service in compose_config['services'].items():
-        s = backup_node.add(f"[b]{rich.markup.escape(service_name)}[/]")
+        state = next((s['State'] for s in compose_ps if s['Service'] == service_name), 'exited')
+        if state in ['running', 'restarting']:
+            has_running_or_restarting = True
+
+        s = backup_node.add(f"[b]{rich.markup.escape(service_name)}[/] [i]{state}[/]")
         s_config = BackupServiceConfig(name=service_name)
         config.services.append(s_config)
 
@@ -273,13 +306,21 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     if options.dry_run_verbose:
         tree.add(run_node)
 
+    config.restarted_project = has_running_or_restarting
+
     create_target_structure(new_backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
+
+    if has_running_or_restarting:
+        do_run_compose_down(compose_dir, compose_file, dry_run=options.dry_run, rich_node=run_node)
 
     # Backup scheduled files
     do_backup_config(new_backup_dir, old_backup_dir, config, 'config.json', dry_run=options.dry_run,
                      rich_node=run_node)
     for job in jobs:
         do_backup_job(new_backup_dir, old_backup_dir, job, dry_run=options.dry_run, rich_node=run_node)
+
+    if has_running_or_restarting:
+        do_run_compose_up(compose_dir, compose_file, dry_run=options.dry_run, rich_node=run_node)
 
     if options.dry_run:
         if options.dry_run_verbose:
