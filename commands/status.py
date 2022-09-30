@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 import argparse
 import dataclasses
 import os
 import re
 import subprocess
-import sys
 import typing as t
 
 import rich
@@ -13,10 +11,10 @@ import rich.markup
 import rich.table
 import rich.tree
 
-from common import find_compose_projects
-from common import load_compose_config
-from common import load_compose_ps
-from common import relative_path_if_below
+from utils.common import find_compose_projects
+from utils.common import load_compose_config
+from utils.common import load_compose_ps
+from utils.common import relative_path_if_below
 
 
 def create_table(alternate_bg: bool) -> rich.table.Table:
@@ -206,10 +204,7 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
     rich.print(tree)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('projects', nargs='*', default=['.'],
-                        help='compose files and/or directories containing a docker-compose.y[a]ml')
+def add_to_parser(parser: argparse.ArgumentParser):
     group = parser.add_argument_group(title='details')
     group.add_argument('-p', '--path', action='store_true', help='print path of compose file')
     group.add_argument('-b', '--build', action='store_true', help='output build context and arguments')
@@ -220,8 +215,9 @@ def main() -> int:
     group = parser.add_argument_group(title='formatting')
     group.add_argument('-r', '--align-right', action='store_true', help='right-align variable names')
     group.add_argument('--alternate-rows', action='store_true', help='alternate row colors in tables')
-    args = parser.parse_args()
 
+
+def main(args) -> int:
     for compose_dir, compose_file in find_compose_projects(args.projects):
         print_project(
             compose_dir=compose_dir,
@@ -237,7 +233,3 @@ def main() -> int:
         )
 
     return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())

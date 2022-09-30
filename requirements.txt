@@ -1,4 +1,5 @@
+argcomplete
+pydantic
 python-dotenv
 pyyaml
 rich
-pydantic

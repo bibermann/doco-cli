@@ -19,13 +19,13 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
-from common import find_compose_projects
-from common import load_compose_config
-from common import load_compose_ps
-from common import relative_path_if_below
-from common import run_compose
-from common import run_rsync_backup_with_hardlinks
-from common import run_rsync_without_delete
+from utils.common import find_compose_projects
+from utils.common import load_compose_config
+from utils.common import load_compose_ps
+from utils.common import relative_path_if_below
+from utils.common import run_rsync_backup_with_hardlinks
+from utils.common import run_rsync_without_delete
+from utils.rich import rich_run_compose
 
 LAST_BACKUP_DIR_FILENAME = '.last-backup-dir'
 
@@ -135,26 +135,6 @@ def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str], job: Bac
         destination_root='services',
         new_backup=os.path.join(new_backup_dir, job.target_path),
         old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
-        dry_run=dry_run
-    )
-    rich_node.add(format_cmd_line(cmd))
-
-
-def do_run_compose_down(compose_dir, compose_file, dry_run: bool, rich_node: rich.tree.Tree):
-    cmd = run_compose(
-        compose_dir=os.path.abspath(compose_dir),
-        compose_file=compose_file,
-        command=['down'],
-        dry_run=dry_run
-    )
-    rich_node.add(format_cmd_line(cmd))
-
-
-def do_run_compose_up(compose_dir, compose_file, dry_run: bool, rich_node: rich.tree.Tree):
-    cmd = run_compose(
-        compose_dir=os.path.abspath(compose_dir),
-        compose_file=compose_file,
-        command=['up', '--build', '-d'],
         dry_run=dry_run
     )
     rich_node.add(format_cmd_line(cmd))
@@ -311,7 +291,9 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     create_target_structure(new_backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
 
     if has_running_or_restarting:
-        do_run_compose_down(compose_dir, compose_file, dry_run=options.dry_run, rich_node=run_node)
+        rich_run_compose(compose_dir, compose_file,
+                         command=['down'],
+                         dry_run=options.dry_run, rich_node=run_node)
 
     # Backup scheduled files
     do_backup_config(new_backup_dir, old_backup_dir, config, 'config.json', dry_run=options.dry_run,
@@ -320,7 +302,9 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         do_backup_job(new_backup_dir, old_backup_dir, job, dry_run=options.dry_run, rich_node=run_node)
 
     if has_running_or_restarting:
-        do_run_compose_up(compose_dir, compose_file, dry_run=options.dry_run, rich_node=run_node)
+        rich_run_compose(compose_dir, compose_file,
+                         command=['up', '-d'],
+                         dry_run=options.dry_run, rich_node=run_node)
 
     if options.dry_run:
         if options.dry_run_verbose:

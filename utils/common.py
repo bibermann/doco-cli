@@ -106,14 +106,20 @@ def run_rsync_backup_with_hardlinks(source: str, destination_root: str, new_back
     return cmd
 
 
-def run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool = False):
+def run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool = False,
+                cancelable: bool = False):
     cmd = [
         'docker', 'compose', '-f', compose_file,
         *command,
     ]
     if not dry_run:
         print(f"Running {cmd} in {compose_dir}")
-        subprocess.run(cmd, cwd=compose_dir, check=True)
+        try:
+            subprocess.run(cmd, cwd=compose_dir, check=True)
+        except KeyboardInterrupt:
+            if not cancelable:
+                raise
+
     return cmd
 
 
@@ -137,7 +143,7 @@ def find_compose_projects(paths: t.Iterable[str]) -> t.Generator[None, t.Tuple[s
             project.endswith('.yml') or project.endswith('.yaml')):
             compose_dir, compose_file = os.path.split(project)
             if compose_dir == '':
-                compose_dir = '.'
+                compose_dir = '..'
         if compose_dir is None or compose_file is None:
             for file in ['docker-compose.yml', 'docker-compose.yaml']:
                 if os.path.exists(os.path.join(project, file)):
