@@ -143,7 +143,7 @@ def find_compose_projects(paths: t.Iterable[str]) -> t.Generator[None, t.Tuple[s
             project.endswith('.yml') or project.endswith('.yaml')):
             compose_dir, compose_file = os.path.split(project)
             if compose_dir == '':
-                compose_dir = '..'
+                compose_dir = '.'
         if compose_dir is None or compose_file is None:
             for file in ['docker-compose.yml', 'docker-compose.yaml']:
                 if os.path.exists(os.path.join(project, file)):
