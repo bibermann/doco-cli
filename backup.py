@@ -327,7 +327,7 @@ def main() -> int:
     parser.add_argument('-d', '--include-project-dir', action='store_true', help='include project directory')
     parser.add_argument('-r', '--include-ro', action='store_true',
                         help='also consider read-only volumes')
-    parser.add_argument('-v', '--volume', nargs='+', default=[], help='regex for volume selection')
+    parser.add_argument('-v', '--volume', action='append', default=[], help='regex for volume selection')
     parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually backup, only show what would be done')
