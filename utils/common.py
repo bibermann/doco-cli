@@ -124,13 +124,13 @@ def run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool =
 
 
 def relative_path_if_below(path: str) -> str:
-    is_dir = os.path.isdir(path)
+    path = os.path.normpath(path)
     relpath = os.path.relpath(path)
     if relpath.startswith('../') or os.getcwd() == '/':
-        return os.path.abspath(path) + ('/' if is_dir else '')
+        return os.path.abspath(path)
     else:
         if not relpath == '.' and not relpath.startswith('./') and not relpath.startswith('/'):
-            return './' + relpath + ('/' if is_dir and relpath != '' else '')
+            return './' + relpath
         else:
             return relpath
 

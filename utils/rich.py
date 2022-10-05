@@ -14,7 +14,18 @@ import rich.tree
 from .common import run_compose
 
 
-def format_cmd_line(cmd: t.List[str]) -> rich.console.RenderableType:
+class Formatted:
+    def __init__(self, text: t.Union[str, 'Formatted'], already_formatted: bool = False):
+        if already_formatted or isinstance(text, Formatted):
+            self._text = str(text)
+        else:
+            self._text = rich.markup.escape(text)
+
+    def __str__(self):
+        return self._text
+
+
+def format_cmd_line(cmd: t.List[str]) -> Formatted:
     cmdline = rich.markup.escape(shlex.join(cmd))
     cmdline = re.sub(r' (--?[^ =-][^ =]*)', r' [/][dim dark_orange]\1[/][dim]', cmdline)
     cmdline = re.sub(r'([\'"\\])', r'[/][dark_orange]\1[/][dim]', cmdline)
@@ -24,7 +35,7 @@ def format_cmd_line(cmd: t.List[str]) -> rich.console.RenderableType:
         program = rich.markup.escape(cmd[0])
         if cmdline.startswith(f"[dim]{program} "):
             cmdline = f"[dark_orange]{program}[/][dim]" + cmdline[5 + len(program):]
-    return cmdline
+    return Formatted(cmdline, True)
 
 
 def rich_run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool,
@@ -36,4 +47,4 @@ def rich_run_compose(compose_dir, compose_file, command: t.List[str], dry_run: b
         dry_run=dry_run,
         cancelable=cancelable,
     )
-    rich_node.add(format_cmd_line(cmd))
+    rich_node.add(str(format_cmd_line(cmd)))

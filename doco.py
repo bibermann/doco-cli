@@ -6,11 +6,11 @@ import sys
 
 import argcomplete
 
-import commands.status
-import commands.restart
 import commands.down
-import commands.up
 import commands.log
+import commands.restart
+import commands.status
+import commands.up
 
 STATUS_COMMAND = 's'
 RESTART_COMMAND = 'r'

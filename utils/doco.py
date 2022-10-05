@@ -13,6 +13,7 @@ import rich.tree
 
 from .common import load_compose_config
 from .common import load_compose_ps
+from .rich import Formatted
 
 
 @dataclasses.dataclass
@@ -27,16 +28,16 @@ def do_project_cmd(compose_dir: str, compose_file: str, dry_run: bool,
     try:
         compose_config = load_compose_config(compose_dir, compose_file)
     except subprocess.CalledProcessError as e:
-        tree = rich.tree.Tree(f"[b]{rich.markup.escape(os.path.join(compose_dir, compose_file))}")
-        tree.add(f'[red]{rich.markup.escape(e.stderr.strip())}')
+        tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(compose_dir, compose_file))}")
+        tree.add(f'[red]{Formatted(e.stderr.strip())}')
         rich.print(tree)
         return
 
     compose_ps = load_compose_ps(compose_dir, compose_file)
 
     compose_name = compose_config['name']
-    compose_id = f"[b]{rich.markup.escape(compose_name)}[/]"
-    compose_id += f" [dim]{rich.markup.escape(os.path.join(compose_dir, compose_file))}[/]"
+    compose_id = f"[b]{Formatted(compose_name)}[/]"
+    compose_id += f" [dim]{Formatted(os.path.join(compose_dir, compose_file))}[/]"
 
     tree = rich.tree.Tree(compose_id)
 
@@ -52,7 +53,7 @@ def do_project_cmd(compose_dir: str, compose_file: str, dry_run: bool,
         if state != 'running':
             all_running = False
 
-        tree.add(f"[b]{rich.markup.escape(service_name)}[/] [i]{state}[/]")
+        tree.add(f"[b]{Formatted(service_name)}[/] [i]{Formatted(state)}[/]")
 
     run_node = rich.tree.Tree('[i]Would run[/]')
     if dry_run:
