@@ -1,7 +1,7 @@
 import argparse
 import dataclasses
 
-from utils.common import find_compose_projects
+from utils.compose import find_compose_projects
 from utils.doco import do_project_cmd
 from utils.doco import ProjectInfo
 from utils.rich import rich_run_compose

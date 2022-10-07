@@ -11,8 +11,8 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
-from .common import load_compose_config
-from .common import load_compose_ps
+from .compose import load_compose_config
+from .compose import load_compose_ps
 from .rich import Formatted
 
 

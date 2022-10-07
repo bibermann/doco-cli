@@ -11,7 +11,7 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
-from .common import run_compose
+from .compose import run_compose
 
 
 class Formatted:

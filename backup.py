@@ -19,14 +19,14 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
-from utils.common import find_compose_projects
-from utils.common import load_compose_config
-from utils.common import load_compose_ps
 from utils.common import relative_path_if_below
-from utils.common import run_rsync_backup_with_hardlinks
-from utils.common import run_rsync_without_delete
+from utils.compose import find_compose_projects
+from utils.compose import load_compose_config
+from utils.compose import load_compose_ps
 from utils.rich import Formatted
 from utils.rich import rich_run_compose
+from utils.rsync import run_rsync_backup_with_hardlinks
+from utils.rsync import run_rsync_without_delete
 
 LAST_BACKUP_DIR_FILENAME = '.last-backup-dir'
 

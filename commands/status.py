@@ -11,10 +11,10 @@ import rich.markup
 import rich.table
 import rich.tree
 
-from utils.common import find_compose_projects
-from utils.common import load_compose_config
-from utils.common import load_compose_ps
 from utils.common import relative_path_if_below
+from utils.compose import find_compose_projects
+from utils.compose import load_compose_config
+from utils.compose import load_compose_ps
 from utils.rich import Formatted
 
 
