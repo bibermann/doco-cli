@@ -1,9 +1,9 @@
+import getpass
 import grp
-import os
 import pwd
 
 
-def get_user_groups(user: str = os.getlogin()) -> list[str]:
+def get_user_groups(user: str = getpass.getuser()) -> list[str]:
     """Get a list of groups the given user belongs to.
 
     Source: https://stackoverflow.com/a/9324811/704821
