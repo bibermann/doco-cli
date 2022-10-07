@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 import argparse
 import dataclasses
 import datetime
 import os
 import re
-import sys
 import tempfile
 import typing as t
 
@@ -373,16 +371,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         rich.print(tree)
 
 
-def main() -> int:
-    if not (os.geteuid() == 0):
-        exit("You need to have root privileges to run this script.\n"
-             "Please try again, this time using 'sudo'. Exiting.")
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('projects', nargs='*', default=['.'],
-                        help='compose files and/or directories containing a docker-compose.y[a]ml')
-    parser.add_argument('--running', action='store_true',
-                        help='consider only projects with at least one running or restarting service')
+def add_to_parser(parser: argparse.ArgumentParser):
     parser.add_argument('-d', '--include-project-dir', action='store_true', help='include project directory')
     parser.add_argument('-r', '--include-ro', action='store_true',
                         help='also consider read-only volumes')
@@ -390,7 +379,12 @@ def main() -> int:
     parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually backup, only show what would be done')
-    args = parser.parse_args()
+
+
+def main(args) -> int:
+    if not (os.geteuid() == 0):
+        exit("You need to have root privileges to do a backup.\n"
+             "Please try again, this time using 'sudo'. Exiting.")
 
     for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
         backup_project(
@@ -405,7 +399,3 @@ def main() -> int:
         )
 
     return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())

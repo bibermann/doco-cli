@@ -12,6 +12,7 @@ import commands.log
 import commands.restart
 import commands.status
 import commands.up
+import commands.backup
 from utils.system import get_user_groups
 
 STATUS_COMMAND = 's'
@@ -19,6 +20,7 @@ RESTART_COMMAND = 'r'
 DOWN_COMMAND = 'd'
 UP_COMMAND = 'u'
 LOG_COMMAND = 'l'
+BACKUP_COMMAND = 'backup'
 
 
 def main() -> int:
@@ -41,6 +43,7 @@ def main() -> int:
     commands.down.add_to_parser(subparsers.add_parser(DOWN_COMMAND, help='down'))
     commands.up.add_to_parser(subparsers.add_parser(UP_COMMAND, help='up'))
     commands.log.add_to_parser(subparsers.add_parser(LOG_COMMAND, help='log'))
+    commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
 
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
@@ -55,6 +58,8 @@ def main() -> int:
         commands.up.main(args)
     elif args.command == LOG_COMMAND:
         commands.log.main(args)
+    elif args.command == BACKUP_COMMAND:
+        commands.backup.main(args)
 
     return 0
 
