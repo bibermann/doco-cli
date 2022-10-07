@@ -5,7 +5,6 @@ import datetime
 import os
 import re
 import shlex
-import subprocess
 import sys
 import tempfile
 import typing as t
@@ -20,10 +19,9 @@ import rich.pretty
 import rich.tree
 
 from utils.common import relative_path_if_below
-from utils.compose import find_compose_projects
-from utils.compose import load_compose_config
-from utils.compose import load_compose_ps
+from utils.rich import ComposeProject
 from utils.rich import Formatted
+from utils.rich import get_compose_projects
 from utils.rich import rich_run_compose
 from utils.rsync import run_rsync_backup_with_hardlinks
 from utils.rsync import run_rsync_without_delete
@@ -191,29 +189,19 @@ def create_target_structure(new_backup_dir: str, jobs: t.Iterable[BackupJob], dr
         rich_node.add(str(format_cmd_line(cmd)))
 
 
-def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
-    try:
-        compose_config = load_compose_config(compose_dir, compose_file)
-    except subprocess.CalledProcessError as e:
-        tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(compose_dir, compose_file))}")
-        tree.add(f'[red]{Formatted(e.stderr.strip())}')
-        rich.print(tree)
-        return
-
-    compose_ps = load_compose_ps(compose_dir, compose_file)
-
-    compose_name = compose_config['name']
+def backup_project(project: ComposeProject, options: BackupOptions):
+    compose_name = project.config['name']
     compose_id = f"[b]{Formatted(compose_name)}[/]"
-    compose_id += f" [dim]{Formatted(os.path.join(compose_dir, compose_file))}[/]"
+    compose_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
     compose_id = Formatted(compose_id, True)
 
     now = datetime.datetime.now()
     new_backup_dir = os.path.join(compose_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
-    old_backup_dir = load_last_backup_directory(compose_dir)
+    old_backup_dir = load_last_backup_directory(project.dir)
 
     config = BackupConfig(
-        project_path=os.path.abspath(compose_dir),
-        compose_file=compose_file,
+        project_path=os.path.abspath(project.dir),
+        compose_file=project.file,
         timestamp=now,
         backup_dir=new_backup_dir,
         last_backup_dir=old_backup_dir,
@@ -237,13 +225,13 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     backup_node.add(config_group)
 
     # Schedule compose.yaml
-    job = BackupJob(source_path=os.path.join(compose_dir, compose_file), target_path='compose.yaml',
+    job = BackupJob(source_path=os.path.join(project.dir, project.file), target_path='compose.yaml',
                     is_dir=False)
     jobs.append(job)
     backup_node.add(str(format_do_backup(job)))
 
     # Schedule project files
-    job = BackupJob(source_path=compose_dir, target_path='project-files', is_dir=True)
+    job = BackupJob(source_path=project.dir, target_path='project-files', is_dir=True)
     if options.include_project_dir:
         jobs.append(job)
         backup_node.add(str(format_do_backup(job)))
@@ -254,8 +242,8 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
 
     # Schedule volumes
     volumes_included: t.Set[str] = set()
-    for service_name, service in compose_config['services'].items():
-        state = next((s['State'] for s in compose_ps if s['Service'] == service_name), 'exited')
+    for service_name, service in project.config['services'].items():
+        state = next((s['State'] for s in project.ps if s['Service'] == service_name), 'exited')
         if state in ['running', 'restarting']:
             has_running_or_restarting = True
 
@@ -270,7 +258,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
                             is_dir=os.path.isdir(volume['source']))
 
             if options.include_project_dir and (
-                relative_path_if_below(job.rsync_source_path) + '/').startswith(compose_dir + '/'):
+                relative_path_if_below(job.rsync_source_path) + '/').startswith(project.dir + '/'):
                 s.add(str(format_no_backup(job, 'already included', emphasize=False)))
                 s_config.excluded_volumes.append(job.rsync_source_path)
                 continue
@@ -317,7 +305,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
     create_target_structure(new_backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
 
     if has_running_or_restarting:
-        rich_run_compose(compose_dir, compose_file,
+        rich_run_compose(project.dir, project.file,
                          command=['down'],
                          dry_run=options.dry_run, rich_node=run_node)
 
@@ -328,7 +316,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         do_backup_job(new_backup_dir, old_backup_dir, job, dry_run=options.dry_run, rich_node=run_node)
 
     if has_running_or_restarting:
-        rich_run_compose(compose_dir, compose_file,
+        rich_run_compose(project.dir, project.file,
                          command=['up', '-d'],
                          dry_run=options.dry_run, rich_node=run_node)
 
@@ -343,7 +331,7 @@ def backup_project(compose_dir: str, compose_file: str, options: BackupOptions):
         rich.print(tree)
 
     if not options.dry_run:
-        save_last_backup_directory(compose_dir, new_backup_dir)
+        save_last_backup_directory(project.dir, new_backup_dir)
 
 
 def main() -> int:
@@ -359,10 +347,9 @@ def main() -> int:
                         help='do not actually backup, only show what would be done')
     args = parser.parse_args()
 
-    for compose_dir, compose_file in find_compose_projects(args.projects):
+    for project in get_compose_projects(args.projects):
         backup_project(
-            compose_dir=compose_dir,
-            compose_file=compose_file,
+            project=project,
             options=BackupOptions(
                 include_project_dir=args.include_project_dir,
                 include_read_only_volumes=args.include_ro,

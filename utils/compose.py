@@ -49,7 +49,7 @@ def run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool =
     return cmd
 
 
-def find_compose_projects(paths: t.Iterable[str]) -> t.Generator[None, t.Tuple[str, str], None]:
+def find_compose_projects(paths: t.Iterable[str]) -> t.Generator[t.Tuple[str, str], None, None]:
     for project in paths:
         compose_dir = None
         compose_file = None

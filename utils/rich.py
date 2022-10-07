@@ -1,6 +1,8 @@
+import dataclasses
 import os
 import re
 import shlex
+import subprocess
 import typing as t
 
 import rich
@@ -11,6 +13,9 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
+from .compose import find_compose_projects
+from .compose import load_compose_config
+from .compose import load_compose_ps
 from .compose import run_compose
 
 
@@ -23,6 +28,14 @@ class Formatted:
 
     def __str__(self):
         return self._text
+
+
+@dataclasses.dataclass
+class ComposeProject:
+    dir: str
+    file: str
+    config: any
+    ps: any
 
 
 def format_cmd_line(cmd: t.List[str]) -> Formatted:
@@ -48,3 +61,23 @@ def rich_run_compose(compose_dir, compose_file, command: t.List[str], dry_run: b
         cancelable=cancelable,
     )
     rich_node.add(str(format_cmd_line(cmd)))
+
+
+def get_compose_projects(paths: t.Iterable[str]) -> t.Generator[ComposeProject, None, None]:
+    for compose_dir, compose_file in find_compose_projects(paths):
+        try:
+            compose_config = load_compose_config(compose_dir, compose_file)
+        except subprocess.CalledProcessError as e:
+            tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(compose_dir, compose_file))}")
+            tree.add(f'[red]{Formatted(e.stderr.strip())}')
+            rich.print(tree)
+            return
+
+        compose_ps = load_compose_ps(compose_dir, compose_file)
+
+        yield ComposeProject(
+            dir=compose_dir,
+            file=compose_file,
+            config=compose_config,
+            ps=compose_ps,
+        )

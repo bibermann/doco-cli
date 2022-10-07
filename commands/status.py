@@ -2,7 +2,6 @@ import argparse
 import dataclasses
 import os
 import re
-import subprocess
 import typing as t
 
 import rich
@@ -12,10 +11,9 @@ import rich.table
 import rich.tree
 
 from utils.common import relative_path_if_below
-from utils.compose import find_compose_projects
-from utils.compose import load_compose_config
-from utils.compose import load_compose_ps
+from utils.rich import ComposeProject
 from utils.rich import Formatted
+from utils.rich import get_compose_projects
 
 
 def create_table(alternate_bg: bool) -> rich.table.Table:
@@ -116,28 +114,18 @@ class PrintOptions:
     alternate_rows: bool
 
 
-def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
-    try:
-        compose_config = load_compose_config(compose_dir, compose_file)
-    except subprocess.CalledProcessError as e:
-        tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(compose_dir, compose_file))}")
-        tree.add(f'[red]{Formatted(e.stderr.strip())}')
-        rich.print(tree)
-        return
-
+def print_project(project: ComposeProject, options: PrintOptions):
     justify: rich.console.JustifyMethod = 'left'
     if options.align_right: justify = 'right'
 
-    compose_ps = load_compose_ps(compose_dir, compose_file)
-
-    compose_id = f"[b]{Formatted(compose_config['name'])}[/]"
+    compose_id = f"[b]{Formatted(project.config['name'])}[/]"
     if options.print_path:
-        compose_id += f" [dim]{Formatted(os.path.join(compose_dir, compose_file))}[/]"
+        compose_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
     compose_id = Formatted(compose_id, True)
     tree = rich.tree.Tree(str(compose_id))
 
-    for service_name, service in compose_config['services'].items():
-        state = next((s['State'] for s in compose_ps if s['Service'] == service_name), 'exited')
+    for service_name, service in project.config['services'].items():
+        state = next((s['State'] for s in project.ps if s['Service'] == service_name), 'exited')
         is_image = 'image' in service
         dockerfile_path = None
         if not is_image:
@@ -146,7 +134,7 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                              service['build']['dockerfile'])
             )
         source = colored_image(service['image']) if is_image \
-            else colored_dockerfile(dockerfile_path, compose_dir + '/')
+            else colored_dockerfile(dockerfile_path, project.dir + '/')
 
         ports = ''
         if 'ports' in service:
@@ -165,7 +153,7 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
         if options.output_build and not is_image:
             build_context = dim_path(
                 relative_path_if_below(service['build']['context']) + '/',
-                dimmed_prefix=compose_dir + '/')
+                dimmed_prefix=project.dir + '/')
             s.add(f'[i]Build context:[/] {build_context}')
 
         if options.output_build and not is_image and 'args' in service['build']:
@@ -207,7 +195,7 @@ def print_project(compose_dir: str, compose_file: str, options: PrintOptions):
                     is_dir = os.path.isdir(volume['source'])
                     source_volume = colored_path(
                         relative_path_if_below(volume['source']) + ('/' if is_dir else ''),
-                        dimmed_prefix=compose_dir)
+                        dimmed_prefix=project.dir)
                 else:
                     source_volume = Formatted(
                         f"{Formatted(volume['source'])} [dim]({Formatted(volume['type'])})[/]", True)
@@ -244,10 +232,9 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 
 def main(args) -> int:
-    for compose_dir, compose_file in find_compose_projects(args.projects):
+    for project in get_compose_projects(args.projects):
         print_project(
-            compose_dir=compose_dir,
-            compose_file=compose_file,
+            project=project,
             options=PrintOptions(
                 print_path=args.all >= 1 or args.path,
                 output_build=args.all >= 1 or args.build,

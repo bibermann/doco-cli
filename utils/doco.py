@@ -1,6 +1,5 @@
 import dataclasses
 import os
-import subprocess
 import typing as t
 
 import rich
@@ -11,8 +10,7 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
-from .compose import load_compose_config
-from .compose import load_compose_ps
+from .rich import ComposeProject
 from .rich import Formatted
 
 
@@ -23,29 +21,19 @@ class ProjectInfo:
     run_node: rich.tree.Tree
 
 
-def do_project_cmd(compose_dir: str, compose_file: str, dry_run: bool,
+def do_project_cmd(project: ComposeProject, dry_run: bool,
                    cmd_task: t.Callable[[ProjectInfo], None]):
-    try:
-        compose_config = load_compose_config(compose_dir, compose_file)
-    except subprocess.CalledProcessError as e:
-        tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(compose_dir, compose_file))}")
-        tree.add(f'[red]{Formatted(e.stderr.strip())}')
-        rich.print(tree)
-        return
-
-    compose_ps = load_compose_ps(compose_dir, compose_file)
-
-    compose_name = compose_config['name']
+    compose_name = project.config['name']
     compose_id = f"[b]{Formatted(compose_name)}[/]"
-    compose_id += f" [dim]{Formatted(os.path.join(compose_dir, compose_file))}[/]"
+    compose_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
 
     tree = rich.tree.Tree(compose_id)
 
     has_running_or_restarting = False
     all_running = True
 
-    for service_name, service in compose_config['services'].items():
-        state = next((s['State'] for s in compose_ps if s['Service'] == service_name), 'exited')
+    for service_name, service in project.config['services'].items():
+        state = next((s['State'] for s in project.ps if s['Service'] == service_name), 'exited')
 
         if state in ['running', 'restarting']:
             has_running_or_restarting = True
