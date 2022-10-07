@@ -112,23 +112,35 @@ def save_last_backup_directory(project_dir: str, value: str) -> None:
         f.write(value)
 
 
-class BackupServiceConfig(pydantic.BaseModel):
+class BackupConfigServiceTask(pydantic.BaseModel):
     name: str
-    included_volumes: t.List[t.Tuple[str, str]] = []
-    excluded_volumes: t.List[str] = []
+    backup_volumes: t.List[t.Tuple[str, str]] = []
+    exclude_volumes: t.List[str] = []
+
+
+class BackupConfigOptions(pydantic.BaseModel):
+    include_project_dir: bool
+    include_read_only_volumes: bool
+    volume_patterns: t.List[str]
+
+
+class BackupConfigTasks(pydantic.BaseModel):
+    restart_project: bool = False
+    create_last_backup_dir_file: bool
+    backup_config: bool
+    backup_compose_file: bool
+    backup_project_dir: bool
+    backup_services: t.List[BackupConfigServiceTask] = []
 
 
 class BackupConfig(pydantic.BaseModel):
     project_path: str
-    project_file: str
+    compose_file: str
     timestamp: datetime.datetime
     backup_dir: str
     last_backup_dir: t.Optional[str]
-    include_project_dir: bool
-    include_read_only_volumes: bool
-    volume_patterns: t.List[str]
-    services: t.List[BackupServiceConfig] = []
-    restarted_project: bool
+    options: BackupConfigOptions
+    tasks: BackupConfigTasks
 
 
 def do_backup_config(new_backup_dir: str, old_backup_dir: t.Optional[str], config: BackupConfig,
@@ -202,14 +214,21 @@ def backup_project(project: ComposeProject, options: BackupOptions):
 
     config = BackupConfig(
         project_path=os.path.abspath(project.dir),
-        project_file=project.file,
+        compose_file=project.file,
         timestamp=now,
         backup_dir=new_backup_dir,
         last_backup_dir=old_backup_dir,
-        include_project_dir=options.include_project_dir,
-        include_read_only_volumes=options.include_read_only_volumes,
-        volume_patterns=options.volumes,
-        restarted_project=False,  # updated later
+        options=BackupConfigOptions(
+            include_project_dir=options.include_project_dir,
+            include_read_only_volumes=options.include_read_only_volumes,
+            volume_patterns=options.volumes,
+        ),
+        tasks=BackupConfigTasks(
+            create_last_backup_dir_file=True,
+            backup_config=True,
+            backup_compose_file=True,
+            backup_project_dir=options.include_project_dir,
+        ),
     )
     jobs: t.List[BackupJob] = []
 
@@ -249,8 +268,8 @@ def backup_project(project: ComposeProject, options: BackupOptions):
             has_running_or_restarting = True
 
         s = backup_node.add(f"[b]{Formatted(service_name)}[/] [i]{Formatted(state)}[/]")
-        s_config = BackupServiceConfig(name=service_name)
-        config.services.append(s_config)
+        service_task = BackupConfigServiceTask(name=service_name)
+        config.tasks.backup_services.append(service_task)
 
         volumes = service.get('volumes', [])
         for volume in volumes:
@@ -261,23 +280,23 @@ def backup_project(project: ComposeProject, options: BackupOptions):
             if options.include_project_dir and (
                 relative_path_if_below(job.rsync_source_path) + '/').startswith(project.dir + '/'):
                 s.add(str(format_no_backup(job, 'already included', emphasize=False)))
-                s_config.excluded_volumes.append(job.rsync_source_path)
+                service_task.exclude_volumes.append(job.rsync_source_path)
                 continue
 
             if job.rsync_source_path in volumes_included:
                 s.add(str(format_no_backup(job, 'already included', emphasize=False)))
-                s_config.excluded_volumes.append(job.rsync_source_path)
+                service_task.exclude_volumes.append(job.rsync_source_path)
                 continue
 
             is_bind_mount = volume['type'] == 'bind'
             if not is_bind_mount:
                 s.add(str(format_no_backup(job, 'no bind mount')))
-                s_config.excluded_volumes.append(job.rsync_source_path)
+                service_task.exclude_volumes.append(job.rsync_source_path)
                 continue
             ro = volume.get('read_only', False)
             if ro and not options.include_read_only_volumes:
                 s.add(str(format_no_backup(job, 'read-only')))
-                s_config.excluded_volumes.append(job.rsync_source_path)
+                service_task.exclude_volumes.append(job.rsync_source_path)
                 continue
             found = False
             for volume_regex in options.volumes:
@@ -286,12 +305,12 @@ def backup_project(project: ComposeProject, options: BackupOptions):
                     break
             if not found:
                 s.add(str(format_no_backup(job, 'expressions don\'t match')))
-                s_config.excluded_volumes.append(job.rsync_source_path)
+                service_task.exclude_volumes.append(job.rsync_source_path)
                 continue
 
             jobs.append(job)
             s.add(str(format_do_backup(job)))
-            s_config.included_volumes.append((job.rsync_source_path, job.rsync_target_path))
+            service_task.backup_volumes.append((job.rsync_source_path, job.rsync_target_path))
             volumes_included.add(job.rsync_source_path)
 
         if len(volumes) == 0:
@@ -301,7 +320,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
     if options.dry_run_verbose:
         tree.add(run_node)
 
-    config.restarted_project = has_running_or_restarting
+    config.tasks.restart_project = has_running_or_restarting
 
     create_target_structure(new_backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
 
