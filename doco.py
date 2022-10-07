@@ -7,12 +7,12 @@ import sys
 
 import argcomplete
 
+import commands.backup
 import commands.down
 import commands.log
 import commands.restart
 import commands.status
 import commands.up
-import commands.backup
 from utils.system import get_user_groups
 
 STATUS_COMMAND = 's'

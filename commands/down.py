@@ -3,10 +3,10 @@ import dataclasses
 
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
+from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
 from utils.doco import do_project_cmd
 from utils.doco import ProjectInfo
-from utils.rich import ProjectSearchOptions
 
 
 @dataclasses.dataclass
@@ -44,7 +44,10 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 
 def main(args) -> int:
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
+    for project in get_compose_projects(args.projects, ProjectSearchOptions(
+        print_compose_errors=args.dry_run,
+        only_running=args.running,
+    )):
         do_project_cmd(
             project=project,
             dry_run=args.dry_run,

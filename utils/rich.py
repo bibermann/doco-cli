@@ -1,4 +1,3 @@
-import dataclasses
 import re
 import shlex
 import typing as t
@@ -21,11 +20,6 @@ class Formatted:
 
     def __str__(self):
         return self._text
-
-
-@dataclasses.dataclass
-class ProjectSearchOptions:
-    only_running: bool
 
 
 def format_cmd_line(cmd: t.List[str]) -> Formatted:

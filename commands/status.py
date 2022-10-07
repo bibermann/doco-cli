@@ -13,9 +13,9 @@ import rich.tree
 from utils.common import relative_path_if_below
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
+from utils.compose_rich import ProjectSearchOptions
 from utils.doco_config import TextSubstitutions
 from utils.rich import Formatted
-from utils.rich import ProjectSearchOptions
 
 
 def create_table(alternate_bg: bool) -> rich.table.Table:
@@ -237,7 +237,10 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 
 def main(args) -> int:
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
+    for project in get_compose_projects(args.projects, ProjectSearchOptions(
+        print_compose_errors=True,
+        only_running=args.running,
+    )):
         print_project(
             project=project,
             options=PrintOptions(

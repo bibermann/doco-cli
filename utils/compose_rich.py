@@ -14,7 +14,6 @@ from utils.doco_config import DocoConfig
 from utils.doco_config import load_doco_config
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
-from utils.rich import ProjectSearchOptions
 
 
 @dataclasses.dataclass
@@ -26,16 +25,23 @@ class ComposeProject:
     doco_config: DocoConfig
 
 
+@dataclasses.dataclass
+class ProjectSearchOptions:
+    print_compose_errors: bool
+    only_running: bool
+
+
 def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) \
     -> t.Generator[ComposeProject, None, None]:
     for project_dir, project_file in find_compose_projects(paths):
         try:
             project_config = load_compose_config(project_dir, project_file)
         except subprocess.CalledProcessError as e:
-            tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
-            tree.add(f'[red]{Formatted(e.stderr.strip())}')
-            rich.print(tree)
-            return
+            if options.print_compose_errors:
+                tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
+                tree.add(f'[red]{Formatted(e.stderr.strip())}')
+                rich.print(tree)
+            continue
 
         project_ps = load_compose_ps(project_dir, project_file)
 

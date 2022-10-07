@@ -18,10 +18,10 @@ import rich.tree
 from utils.common import relative_path_if_below
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
+from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
-from utils.rich import ProjectSearchOptions
 from utils.rsync import RsyncConfig
 from utils.rsync import run_rsync_backup_with_hardlinks
 from utils.rsync import run_rsync_without_delete
@@ -386,7 +386,10 @@ def main(args) -> int:
         exit("You need to have root privileges to do a backup.\n"
              "Please try again, this time using 'sudo'. Exiting.")
 
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
+    for project in get_compose_projects(args.projects, ProjectSearchOptions(
+        print_compose_errors=args.dry_run,
+        only_running=args.running,
+    )):
         backup_project(
             project=project,
             options=BackupOptions(
