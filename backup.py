@@ -4,7 +4,6 @@ import dataclasses
 import datetime
 import os
 import re
-import shlex
 import sys
 import tempfile
 import typing as t
@@ -20,6 +19,7 @@ import rich.tree
 
 from utils.common import relative_path_if_below
 from utils.rich import ComposeProject
+from utils.rich import format_cmd_line
 from utils.rich import Formatted
 from utils.rich import get_compose_projects
 from utils.rich import ProjectSearchOptions
@@ -75,19 +75,6 @@ def format_no_backup(job: BackupJob, reason: str, emphasize: bool = True) -> For
         return Formatted(f"[red]{Formatted(job.relative_source_path)} [dim]({Formatted(reason)})[/][/]", True)
     else:
         return Formatted(f"{Formatted(job.relative_source_path)} [dim]({Formatted(reason)})[/]", True)
-
-
-def format_cmd_line(cmd: t.List[str]) -> Formatted:
-    cmdline = str(Formatted(shlex.join(cmd)))
-    cmdline = re.sub(r' (--?[^ =-][^ =]*)', r' [/][dim dark_orange]\1[/][dim]', cmdline)
-    cmdline = re.sub(r'([\'"\\])', r'[/][dark_orange]\1[/][dim]', cmdline)
-    cmdline = re.sub(r' -- ', r'[/] [dark_orange]--[/] [dim]', cmdline)
-    cmdline = f"[dim]{cmdline}[/]"
-    if len(cmd) > 0:
-        program = str(Formatted(cmd[0]))
-        if cmdline.startswith(f"[dim]{program} "):
-            cmdline = f"[dark_orange]{program}[/][dim]" + cmdline[5 + len(program):]
-    return Formatted(cmdline, True)
 
 
 def dir_from_path(path: str) -> str:

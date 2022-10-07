@@ -44,13 +44,14 @@ class ComposeProject:
 
 
 def format_cmd_line(cmd: t.List[str]) -> Formatted:
-    cmdline = rich.markup.escape(shlex.join(cmd))
+    cmdline = str(Formatted(shlex.join(cmd)))
     cmdline = re.sub(r' (--?[^ =-][^ =]*)', r' [/][dim dark_orange]\1[/][dim]', cmdline)
-    cmdline = re.sub(r'([\'"\\])', r'[/][dark_orange]\1[/][dim]', cmdline)
+    cmdline = re.sub(r'([\'"@:])', r'[/][dark_orange]\1[/][dim]', cmdline)
+    cmdline = re.sub(r'((?<=[ \'":])/[^/]*)', r'[/][yellow]\1[/][dim]', cmdline)
     cmdline = re.sub(r' -- ', r'[/] [dark_orange]--[/] [dim]', cmdline)
     cmdline = f"[dim]{cmdline}[/]"
     if len(cmd) > 0:
-        program = rich.markup.escape(cmd[0])
+        program = str(Formatted(cmd[0]))
         if cmdline.startswith(f"[dim]{program} "):
             cmdline = f"[dark_orange]{program}[/][dim]" + cmdline[5 + len(program):]
     return Formatted(cmdline, True)
