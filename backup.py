@@ -18,12 +18,13 @@ import rich.pretty
 import rich.tree
 
 from utils.common import relative_path_if_below
-from utils.rich import ComposeProject
+from utils.compose_rich import ComposeProject
+from utils.compose_rich import get_compose_projects
+from utils.compose_rich import rich_run_compose
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
-from utils.rich import get_compose_projects
 from utils.rich import ProjectSearchOptions
-from utils.rich import rich_run_compose
+from utils.rsync import RsyncConfig
 from utils.rsync import run_rsync_backup_with_hardlinks
 from utils.rsync import run_rsync_without_delete
 
@@ -126,28 +127,37 @@ class BackupConfig(pydantic.BaseModel):
     timestamp: datetime.datetime
     backup_dir: str
     last_backup_dir: t.Optional[str]
+    rsync: RsyncConfig
     options: BackupConfigOptions
     tasks: BackupConfigTasks
 
 
-def do_backup_config(new_backup_dir: str, old_backup_dir: t.Optional[str], config: BackupConfig,
-                     target_file_name: str, dry_run: bool, rich_node: rich.tree.Tree):
+def do_backup_config(
+    rsync_config: RsyncConfig,
+    new_backup_dir: str, old_backup_dir: t.Optional[str], config: BackupConfig,
+    target_file_name: str, dry_run: bool,
+    rich_node: rich.tree.Tree
+):
     with tempfile.TemporaryDirectory() as tmp_dir:
         source = os.path.join(tmp_dir, target_file_name)
         with open(source, 'w', encoding='utf-8') as f:
             f.write(config.json(indent=4))
         cmd = run_rsync_backup_with_hardlinks(
+            config=rsync_config,
             source=source,
-            destination_root='services', new_backup=os.path.join(new_backup_dir, target_file_name),
+            new_backup=os.path.join(new_backup_dir, target_file_name),
             old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
             dry_run=dry_run
         )
         rich_node.add(str(format_cmd_line(cmd)))
 
 
-def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str],
-                  job: BackupJob, dry_run: bool,
-                  rich_node: rich.tree.Tree):
+def do_backup_job(
+    rsync_config: RsyncConfig,
+    new_backup_dir: str, old_backup_dir: t.Optional[str],
+    job: BackupJob, dry_run: bool,
+    rich_node: rich.tree.Tree
+):
     if old_backup_dir is not None:
         old_backup_path = os.path.normpath(os.path.join(old_backup_dir, job.rsync_target_path))
         if not job.is_dir:
@@ -155,8 +165,8 @@ def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str],
     else:
         old_backup_path = None
     cmd = run_rsync_backup_with_hardlinks(
+        config=rsync_config,
         source=job.rsync_source_path,
-        destination_root='services',
         new_backup=os.path.join(new_backup_dir, job.rsync_target_path),
         old_backup_dirs=[old_backup_path] if old_backup_path is not None else [],
         dry_run=dry_run
@@ -164,8 +174,11 @@ def do_backup_job(new_backup_dir: str, old_backup_dir: t.Optional[str],
     rich_node.add(str(format_cmd_line(cmd)))
 
 
-def create_target_structure(new_backup_dir: str, jobs: t.Iterable[BackupJob], dry_run: bool,
-                            rich_node: rich.tree.Tree):
+def create_target_structure(
+    rsync_config: RsyncConfig,
+    new_backup_dir: str, jobs: t.Iterable[BackupJob], dry_run: bool,
+    rich_node: rich.tree.Tree
+):
     """Create target directory structure at destination
 
     Required as long as remote rsync does not implement --mkpath
@@ -182,8 +195,9 @@ def create_target_structure(new_backup_dir: str, jobs: t.Iterable[BackupJob], dr
         for leaf in leafs:
             os.makedirs(os.path.join(tmp_dir, leaf))
         cmd = run_rsync_without_delete(
+            config=rsync_config,
             source=f"{tmp_dir}/",
-            destination_root='services', destination='',
+            destination='',
             dry_run=dry_run
         )
         rich_node.add(str(format_cmd_line(cmd)))
@@ -191,7 +205,9 @@ def create_target_structure(new_backup_dir: str, jobs: t.Iterable[BackupJob], dr
 
 def do_backup(project: ComposeProject, options: BackupOptions, config: BackupConfig, jobs: t.List[BackupJob],
               run_node: rich.tree.Tree):
-    create_target_structure(config.backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
+    create_target_structure(rsync_config=project.doco_config.backup.rsync,
+                            new_backup_dir=config.backup_dir, jobs=jobs, dry_run=options.dry_run,
+                            rich_node=run_node)
 
     if config.tasks.restart_project:
         rich_run_compose(project.dir, project.file,
@@ -200,13 +216,16 @@ def do_backup(project: ComposeProject, options: BackupOptions, config: BackupCon
 
     # Backup scheduled files
     if config.tasks.backup_config:
-        do_backup_config(config.backup_dir, config.last_backup_dir, config, 'config.json',
-                         dry_run=options.dry_run,
-                         rich_node=run_node)
+        do_backup_config(rsync_config=project.doco_config.backup.rsync,
+                         new_backup_dir=config.backup_dir, old_backup_dir=config.last_backup_dir,
+                         config=config,
+                         target_file_name='config.json',
+                         dry_run=options.dry_run, rich_node=run_node)
 
     for job in jobs:
-        do_backup_job(config.backup_dir, config.last_backup_dir, job, dry_run=options.dry_run,
-                      rich_node=run_node)
+        do_backup_job(rsync_config=project.doco_config.backup.rsync,
+                      new_backup_dir=config.backup_dir, old_backup_dir=config.last_backup_dir, job=job,
+                      dry_run=options.dry_run, rich_node=run_node)
 
     if config.tasks.restart_project:
         rich_run_compose(project.dir, project.file,
@@ -233,6 +252,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         timestamp=now,
         backup_dir=new_backup_dir,
         last_backup_dir=old_backup_dir,
+        rsync=project.doco_config.backup.rsync,
         options=BackupConfigOptions(
             include_project_dir=options.include_project_dir,
             include_read_only_volumes=options.include_read_only_volumes,

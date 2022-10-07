@@ -10,7 +10,7 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
-from .rich import ComposeProject
+from .compose_rich import ComposeProject
 from .rich import Formatted
 
 

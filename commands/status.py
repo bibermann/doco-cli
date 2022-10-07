@@ -11,9 +11,10 @@ import rich.table
 import rich.tree
 
 from utils.common import relative_path_if_below
-from utils.rich import ComposeProject
+from utils.compose_rich import ComposeProject
+from utils.compose_rich import get_compose_projects
+from utils.doco_config import TextSubstitutions
 from utils.rich import Formatted
-from utils.rich import get_compose_projects
 from utils.rich import ProjectSearchOptions
 
 
@@ -51,9 +52,11 @@ def dim_path(path: str, dimmed_prefix: str, bold: bool = False) -> Formatted:
             True)
 
 
-def colored_path(path: str, dimmed_prefix: t.Optional[str] = None) -> Formatted:
-    formatted = re.sub(r'^/disk/([^/]+)/volumes/([^/]+)(.*)$',
-                       r'[dim]/disk/[/][b]\1[/][dim]/volumes/[/][b]\2[/]\3', path)
+def colored_path(path: str, text_substitutions: t.Optional[list[TextSubstitutions]] = None,
+                 dimmed_prefix: t.Optional[str] = None) -> Formatted:
+    formatted = path
+    for text_substitution in text_substitutions if text_substitutions is not None else []:
+        formatted = re.sub(text_substitution.pattern, text_substitution.replace, formatted)
     if formatted != path:
         return Formatted(formatted, True)
     return dim_path(path, dimmed_prefix=dimmed_prefix, bold=True) \
@@ -196,6 +199,7 @@ def print_project(project: ComposeProject, options: PrintOptions):
                     is_dir = os.path.isdir(volume['source'])
                     source_volume = colored_path(
                         relative_path_if_below(volume['source']) + ('/' if is_dir else ''),
+                        text_substitutions=project.doco_config.output.text_substitutions.bind_mount_volume_path,
                         dimmed_prefix=project.dir)
                 else:
                     source_volume = Formatted(
