@@ -34,6 +34,7 @@ class BackupOptions:
     include_project_dir: bool
     include_read_only_volumes: bool
     volumes: t.List[str]
+    live: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -105,6 +106,7 @@ class BackupConfigServiceTask(pydantic.BaseModel):
 
 
 class BackupConfigOptions(pydantic.BaseModel):
+    live: bool
     include_project_dir: bool
     include_read_only_volumes: bool
     volume_patterns: t.List[str]
@@ -252,6 +254,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         last_backup_dir=old_backup_dir,
         rsync=project.doco_config.backup.rsync,
         options=BackupConfigOptions(
+            live=options.live,
             include_project_dir=options.include_project_dir,
             include_read_only_volumes=options.include_read_only_volumes,
             volume_patterns=options.volumes,
@@ -356,7 +359,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
     if options.dry_run_verbose:
         tree.add(run_node)
 
-    config.tasks.restart_project = has_running_or_restarting
+    config.tasks.restart_project = not options.live and has_running_or_restarting
 
     do_backup(project=project, options=options, config=config, jobs=jobs, run_node=run_node)
 
@@ -376,6 +379,7 @@ def add_to_parser(parser: argparse.ArgumentParser):
     parser.add_argument('-r', '--include-ro', action='store_true',
                         help='also consider read-only volumes')
     parser.add_argument('-v', '--volume', action='append', default=[], help='regex for volume selection')
+    parser.add_argument('--live', action='store_true', help='do not stop the services before backup')
     parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually backup, only show what would be done')
@@ -396,6 +400,7 @@ def main(args) -> int:
                 include_project_dir=args.include_project_dir,
                 include_read_only_volumes=args.include_ro,
                 volumes=args.volume,
+                live=args.live,
                 dry_run=args.dry_run,
                 dry_run_verbose=args.verbose,
             )
