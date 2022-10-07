@@ -2,6 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 
 import argparse
+import os
 import sys
 
 import argcomplete
@@ -11,6 +12,7 @@ import commands.log
 import commands.restart
 import commands.status
 import commands.up
+from utils.system import get_user_groups
 
 STATUS_COMMAND = 's'
 RESTART_COMMAND = 'r'
@@ -20,6 +22,10 @@ LOG_COMMAND = 'l'
 
 
 def main() -> int:
+    if not (os.geteuid() == 0 or 'docker' in get_user_groups()):
+        exit("You need to belong to the docker group or have root privileges to run this script.\n"
+             "Please try again, this time using 'sudo'. Exiting.")
+
     main_parser = argparse.ArgumentParser()
     parser = main_parser
 

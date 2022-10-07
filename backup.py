@@ -354,6 +354,10 @@ def backup_project(project: ComposeProject, options: BackupOptions):
 
 
 def main() -> int:
+    if not (os.geteuid() == 0):
+        exit("You need to have root privileges to run this script.\n"
+             "Please try again, this time using 'sudo'. Exiting.")
+
     parser = argparse.ArgumentParser()
     parser.add_argument('projects', nargs='*', default=['.'],
                         help='compose files and/or directories containing a docker-compose.y[a]ml')
