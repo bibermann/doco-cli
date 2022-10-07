@@ -14,6 +14,7 @@ from utils.common import relative_path_if_below
 from utils.rich import ComposeProject
 from utils.rich import Formatted
 from utils.rich import get_compose_projects
+from utils.rich import ProjectSearchOptions
 
 
 def create_table(alternate_bg: bool) -> rich.table.Table:
@@ -232,7 +233,7 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 
 def main(args) -> int:
-    for project in get_compose_projects(args.projects):
+    for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
         print_project(
             project=project,
             options=PrintOptions(

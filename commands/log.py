@@ -5,6 +5,7 @@ from utils.doco import do_project_cmd
 from utils.doco import ProjectInfo
 from utils.rich import ComposeProject
 from utils.rich import get_compose_projects
+from utils.rich import ProjectSearchOptions
 from utils.rich import rich_run_compose
 
 
@@ -32,7 +33,7 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 
 def main(args) -> int:
-    for project in get_compose_projects(args.projects):
+    for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
         do_project_cmd(
             project=project,
             dry_run=args.dry_run,

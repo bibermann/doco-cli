@@ -31,6 +31,11 @@ class Formatted:
 
 
 @dataclasses.dataclass
+class ProjectSearchOptions:
+    only_running: bool
+
+
+@dataclasses.dataclass
 class ComposeProject:
     dir: str
     file: str
@@ -63,7 +68,8 @@ def rich_run_compose(compose_dir, compose_file, command: t.List[str], dry_run: b
     rich_node.add(str(format_cmd_line(cmd)))
 
 
-def get_compose_projects(paths: t.Iterable[str]) -> t.Generator[ComposeProject, None, None]:
+def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) -> t.Generator[
+    ComposeProject, None, None]:
     for compose_dir, compose_file in find_compose_projects(paths):
         try:
             compose_config = load_compose_config(compose_dir, compose_file)
@@ -75,9 +81,23 @@ def get_compose_projects(paths: t.Iterable[str]) -> t.Generator[ComposeProject, 
 
         compose_ps = load_compose_ps(compose_dir, compose_file)
 
-        yield ComposeProject(
+        project = ComposeProject(
             dir=compose_dir,
             file=compose_file,
             config=compose_config,
             ps=compose_ps,
         )
+
+        if options.only_running:
+            has_running_or_restarting = False
+            for service_name in project.config['services'].keys():
+                state = next((s['State'] for s in project.ps if s['Service'] == service_name), 'exited')
+
+                if state in ['running', 'restarting']:
+                    has_running_or_restarting = True
+                    break
+
+            if not has_running_or_restarting:
+                continue
+
+        yield project

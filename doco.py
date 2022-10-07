@@ -25,6 +25,8 @@ def main() -> int:
 
     parser.add_argument('projects', nargs='*', default=['.'],
                         help='compose files and/or directories containing a docker-compose.y[a]ml')
+    parser.add_argument('--running', action='store_true',
+                        help='consider only projects with at least one running or restarting service')
 
     subparsers = parser.add_subparsers(dest='command')
 

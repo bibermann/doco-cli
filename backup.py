@@ -22,6 +22,7 @@ from utils.common import relative_path_if_below
 from utils.rich import ComposeProject
 from utils.rich import Formatted
 from utils.rich import get_compose_projects
+from utils.rich import ProjectSearchOptions
 from utils.rich import rich_run_compose
 from utils.rsync import run_rsync_backup_with_hardlinks
 from utils.rsync import run_rsync_without_delete
@@ -338,6 +339,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('projects', nargs='*', default=['.'],
                         help='compose files and/or directories containing a docker-compose.y[a]ml')
+    parser.add_argument('--running', action='store_true',
+                        help='consider only projects with at least one running or restarting service')
     parser.add_argument('-d', '--include-project-dir', action='store_true', help='include project directory')
     parser.add_argument('-r', '--include-ro', action='store_true',
                         help='also consider read-only volumes')
@@ -347,7 +350,7 @@ def main() -> int:
                         help='do not actually backup, only show what would be done')
     args = parser.parse_args()
 
-    for project in get_compose_projects(args.projects):
+    for project in get_compose_projects(args.projects, ProjectSearchOptions(only_running=args.running)):
         backup_project(
             project=project,
             options=BackupOptions(
