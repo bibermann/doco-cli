@@ -97,8 +97,8 @@ def dir_from_path(path: str) -> str:
     return result
 
 
-def load_last_backup_directory(compose_dir: str) -> t.Optional[str]:
-    path = os.path.join(compose_dir, LAST_BACKUP_DIR_FILENAME)
+def load_last_backup_directory(project_dir: str) -> t.Optional[str]:
+    path = os.path.join(project_dir, LAST_BACKUP_DIR_FILENAME)
     if os.path.isfile(path):
         with open(path, encoding='utf-8') as f:
             value = f.readline().strip()
@@ -106,8 +106,8 @@ def load_last_backup_directory(compose_dir: str) -> t.Optional[str]:
                 return value
 
 
-def save_last_backup_directory(compose_dir: str, value: str) -> None:
-    path = os.path.join(compose_dir, LAST_BACKUP_DIR_FILENAME)
+def save_last_backup_directory(project_dir: str, value: str) -> None:
+    path = os.path.join(project_dir, LAST_BACKUP_DIR_FILENAME)
     with open(path, 'w', encoding='utf-8') as f:
         f.write(value)
 
@@ -120,7 +120,7 @@ class BackupServiceConfig(pydantic.BaseModel):
 
 class BackupConfig(pydantic.BaseModel):
     project_path: str
-    compose_file: str
+    project_file: str
     timestamp: datetime.datetime
     backup_dir: str
     last_backup_dir: t.Optional[str]
@@ -191,18 +191,18 @@ def create_target_structure(new_backup_dir: str, jobs: t.Iterable[BackupJob], dr
 
 
 def backup_project(project: ComposeProject, options: BackupOptions):
-    compose_name = project.config['name']
-    compose_id = f"[b]{Formatted(compose_name)}[/]"
-    compose_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
-    compose_id = Formatted(compose_id, True)
+    project_name = project.config['name']
+    project_id = f"[b]{Formatted(project_name)}[/]"
+    project_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
+    project_id = Formatted(project_id, True)
 
     now = datetime.datetime.now()
-    new_backup_dir = os.path.join(compose_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
+    new_backup_dir = os.path.join(project_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
     old_backup_dir = load_last_backup_directory(project.dir)
 
     config = BackupConfig(
         project_path=os.path.abspath(project.dir),
-        compose_file=project.file,
+        project_file=project.file,
         timestamp=now,
         backup_dir=new_backup_dir,
         last_backup_dir=old_backup_dir,
@@ -213,7 +213,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
     )
     jobs: t.List[BackupJob] = []
 
-    tree = rich.tree.Tree(str(compose_id))
+    tree = rich.tree.Tree(str(project_id))
     if old_backup_dir is None:
         tree.add(f"[i]Backup directory:[/] [b]{Formatted(new_backup_dir)}[/]")
     else:

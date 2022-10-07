@@ -56,11 +56,11 @@ def format_cmd_line(cmd: t.List[str]) -> Formatted:
     return Formatted(cmdline, True)
 
 
-def rich_run_compose(compose_dir, compose_file, command: t.List[str], dry_run: bool,
+def rich_run_compose(project_dir, project_file, command: t.List[str], dry_run: bool,
                      rich_node: rich.tree.Tree, cancelable: bool = False):
     cmd = run_compose(
-        compose_dir=os.path.abspath(compose_dir),
-        compose_file=compose_file,
+        project_dir=os.path.abspath(project_dir),
+        project_file=project_file,
         command=command,
         dry_run=dry_run,
         cancelable=cancelable,
@@ -70,22 +70,22 @@ def rich_run_compose(compose_dir, compose_file, command: t.List[str], dry_run: b
 
 def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) -> t.Generator[
     ComposeProject, None, None]:
-    for compose_dir, compose_file in find_compose_projects(paths):
+    for project_dir, project_file in find_compose_projects(paths):
         try:
-            compose_config = load_compose_config(compose_dir, compose_file)
+            project_config = load_compose_config(project_dir, project_file)
         except subprocess.CalledProcessError as e:
-            tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(compose_dir, compose_file))}")
+            tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
             tree.add(f'[red]{Formatted(e.stderr.strip())}')
             rich.print(tree)
             return
 
-        compose_ps = load_compose_ps(compose_dir, compose_file)
+        project_ps = load_compose_ps(project_dir, project_file)
 
         project = ComposeProject(
-            dir=compose_dir,
-            file=compose_file,
-            config=compose_config,
-            ps=compose_ps,
+            dir=project_dir,
+            file=project_file,
+            config=project_config,
+            ps=project_ps,
         )
 
         if options.only_running:

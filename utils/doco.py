@@ -23,11 +23,11 @@ class ProjectInfo:
 
 def do_project_cmd(project: ComposeProject, dry_run: bool,
                    cmd_task: t.Callable[[ProjectInfo], None]):
-    compose_name = project.config['name']
-    compose_id = f"[b]{Formatted(compose_name)}[/]"
-    compose_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
+    project_name = project.config['name']
+    project_id = f"[b]{Formatted(project_name)}[/]"
+    project_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
 
-    tree = rich.tree.Tree(compose_id)
+    tree = rich.tree.Tree(project_id)
 
     has_running_or_restarting = False
     all_running = True

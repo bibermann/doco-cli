@@ -119,11 +119,11 @@ def print_project(project: ComposeProject, options: PrintOptions):
     justify: rich.console.JustifyMethod = 'left'
     if options.align_right: justify = 'right'
 
-    compose_id = f"[b]{Formatted(project.config['name'])}[/]"
+    project_id = f"[b]{Formatted(project.config['name'])}[/]"
     if options.print_path:
-        compose_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
-    compose_id = Formatted(compose_id, True)
-    tree = rich.tree.Tree(str(compose_id))
+        project_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
+    project_id = Formatted(project_id, True)
+    tree = rich.tree.Tree(str(project_id))
 
     for service_name, service in project.config['services'].items():
         state = next((s['State'] for s in project.ps if s['Service'] == service_name), 'exited')
