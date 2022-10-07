@@ -202,6 +202,34 @@ def create_target_structure(new_backup_dir: str, jobs: t.Iterable[BackupJob], dr
         rich_node.add(str(format_cmd_line(cmd)))
 
 
+def do_backup(project: ComposeProject, options: BackupOptions, config: BackupConfig, jobs: t.List[BackupJob],
+              run_node: rich.tree.Tree):
+    create_target_structure(config.backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
+
+    if config.tasks.restart_project:
+        rich_run_compose(project.dir, project.file,
+                         command=['down'],
+                         dry_run=options.dry_run, rich_node=run_node)
+
+    # Backup scheduled files
+    if config.tasks.backup_config:
+        do_backup_config(config.backup_dir, config.last_backup_dir, config, 'config.json',
+                         dry_run=options.dry_run,
+                         rich_node=run_node)
+
+    for job in jobs:
+        do_backup_job(config.backup_dir, config.last_backup_dir, job, dry_run=options.dry_run,
+                      rich_node=run_node)
+
+    if config.tasks.restart_project:
+        rich_run_compose(project.dir, project.file,
+                         command=['up', '-d'],
+                         dry_run=options.dry_run, rich_node=run_node)
+
+    if not options.dry_run and config.tasks.create_last_backup_dir_file:
+        save_last_backup_directory(project.dir, config.backup_dir)
+
+
 def backup_project(project: ComposeProject, options: BackupOptions):
     project_name = project.config['name']
     project_id = f"[b]{Formatted(project_name)}[/]"
@@ -226,7 +254,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         tasks=BackupConfigTasks(
             create_last_backup_dir_file=True,
             backup_config=True,
-            backup_compose_file=True,
+            backup_compose_file=not options.include_project_dir,
             backup_project_dir=options.include_project_dir,
         ),
     )
@@ -247,12 +275,15 @@ def backup_project(project: ComposeProject, options: BackupOptions):
     # Schedule compose.yaml
     job = BackupJob(source_path=os.path.join(project.dir, project.file), target_path='compose.yaml',
                     is_dir=False)
-    jobs.append(job)
-    backup_node.add(str(format_do_backup(job)))
+    if config.tasks.backup_compose_file:
+        jobs.append(job)
+        backup_node.add(str(format_do_backup(job)))
+    else:
+        backup_node.add(str(format_no_backup(job, 'already included', emphasize=False)))
 
     # Schedule project files
     job = BackupJob(source_path=project.dir, target_path='project-files', is_dir=True)
-    if options.include_project_dir:
+    if config.tasks.backup_project_dir:
         jobs.append(job)
         backup_node.add(str(format_do_backup(job)))
     else:
@@ -322,23 +353,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
 
     config.tasks.restart_project = has_running_or_restarting
 
-    create_target_structure(new_backup_dir, jobs, dry_run=options.dry_run, rich_node=run_node)
-
-    if has_running_or_restarting:
-        rich_run_compose(project.dir, project.file,
-                         command=['down'],
-                         dry_run=options.dry_run, rich_node=run_node)
-
-    # Backup scheduled files
-    do_backup_config(new_backup_dir, old_backup_dir, config, 'config.json', dry_run=options.dry_run,
-                     rich_node=run_node)
-    for job in jobs:
-        do_backup_job(new_backup_dir, old_backup_dir, job, dry_run=options.dry_run, rich_node=run_node)
-
-    if has_running_or_restarting:
-        rich_run_compose(project.dir, project.file,
-                         command=['up', '-d'],
-                         dry_run=options.dry_run, rich_node=run_node)
+    do_backup(project=project, options=options, config=config, jobs=jobs, run_node=run_node)
 
     if options.dry_run:
         if options.dry_run_verbose:
@@ -349,9 +364,6 @@ def backup_project(project: ComposeProject, options: BackupOptions):
             )
 
         rich.print(tree)
-
-    if not options.dry_run:
-        save_last_backup_directory(project.dir, new_backup_dir)
 
 
 def main() -> int:
