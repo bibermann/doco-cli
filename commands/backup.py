@@ -96,7 +96,7 @@ def load_last_backup_directory(project_dir: str) -> t.Optional[str]:
 def save_last_backup_directory(project_dir: str, value: str) -> None:
     path = os.path.join(project_dir, LAST_BACKUP_DIR_FILENAME)
     with open(path, 'w', encoding='utf-8') as f:
-        f.write(value)
+        f.write(value + '\n')
 
 
 class BackupConfigServiceTask(pydantic.BaseModel):
