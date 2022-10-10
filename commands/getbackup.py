@@ -6,6 +6,7 @@ import rich
 import rich.pretty
 import rich.tree
 
+from utils.backup import get_backup_directory
 from utils.backup_rich import list_backups
 from utils.backup_rich import list_services
 from utils.doco_config import load_doco_config
@@ -24,14 +25,7 @@ class DownloadOptions:
 
 def download_backup(options: DownloadOptions):
     doco_config = load_doco_config('.')
-    if options.backup.isnumeric():
-        _, file_list = run_rsync_list(doco_config.backup.rsync, target=f"{options.service}/",
-                                      dry_run=False)
-        backup_dir = sorted(
-            [file for file in file_list if file.startswith('backup-')], reverse=True
-        )[int(options.backup)]
-    else:
-        backup_dir = f"backup-{options.backup}"
+    backup_dir = get_backup_directory(doco_config.backup.rsync, service=options.service, backup_id=options.backup)
 
     if not options.dry_run and os.path.exists(options.destination):
         if not os.path.isdir(options.destination):
@@ -68,14 +62,18 @@ def main(args) -> int:
         exit("You must specify a project directory to load the backup to.\n"
              "Exiting.")
 
+    if args.running:
+        exit("--running is not supported for loading a backup.\n"
+             "Exiting.")
+
     if args.list:
         if args.service is None:
             exit("You need to specify a service to get the backups from.\n"
                  "Exiting.")
         list_backups(service=args.service, dry_run=args.dry_run)
+    elif args.service is None:
+        list_services(dry_run=args.dry_run)
     else:
-        if args.service is None:
-            list_services(dry_run=args.dry_run)
         download_backup(DownloadOptions(
             service=args.service,
             backup=args.backup,

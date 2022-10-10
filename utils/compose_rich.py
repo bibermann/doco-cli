@@ -29,33 +29,38 @@ class ComposeProject:
 class ProjectSearchOptions:
     print_compose_errors: bool
     only_running: bool
+    allow_empty: bool = False
 
 
 def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) \
     -> t.Generator[ComposeProject, None, None]:
-    for project_dir, project_file in find_compose_projects(paths):
-        try:
-            project_config = load_compose_config(project_dir, project_file)
-        except subprocess.CalledProcessError as e:
-            if options.print_compose_errors:
-                tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
-                tree.add(f'[red]{Formatted(e.stderr.strip())}')
-                rich.print(tree)
-            continue
-
-        project_ps = load_compose_ps(project_dir, project_file)
-
-        if options.only_running:
-            has_running_or_restarting = False
-            for service_name in project_config['services'].keys():
-                state = next((s['State'] for s in project_ps if s['Service'] == service_name), 'exited')
-
-                if state in ['running', 'restarting']:
-                    has_running_or_restarting = True
-                    break
-
-            if not has_running_or_restarting:
+    for project_dir, project_file in find_compose_projects(paths, options.allow_empty):
+        if not (options.allow_empty and project_file == ''):
+            try:
+                project_config = load_compose_config(project_dir, project_file)
+            except subprocess.CalledProcessError as e:
+                if options.print_compose_errors:
+                    tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
+                    tree.add(f'[red]{Formatted(e.stderr.strip())}')
+                    rich.print(tree)
                 continue
+
+            project_ps = load_compose_ps(project_dir, project_file)
+
+            if options.only_running:
+                has_running_or_restarting = False
+                for service_name in project_config['services'].keys():
+                    state = next((s['State'] for s in project_ps if s['Service'] == service_name), 'exited')
+
+                    if state in ['running', 'restarting']:
+                        has_running_or_restarting = True
+                        break
+
+                if not has_running_or_restarting:
+                    continue
+        else:
+            project_config = None
+            project_ps = None
 
         yield ComposeProject(
             dir=project_dir,

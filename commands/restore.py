@@ -1,85 +1,71 @@
 import argparse
 import dataclasses
 import os
-
-import rich
-import rich.pretty
-import rich.tree
+import typing as t
 
 from utils.backup_rich import list_backups
 from utils.backup_rich import list_services
-from utils.doco_config import load_doco_config
-from utils.rich import format_cmd_line
-from utils.rsync import run_rsync_download_incremental
-from utils.rsync import run_rsync_list
+from utils.compose_rich import ComposeProject
+from utils.compose_rich import get_compose_projects
+from utils.compose_rich import ProjectSearchOptions
 
 
 @dataclasses.dataclass
-class DownloadOptions:
-    service: str
+class RestoreOptions:
+    service: t.Optional[str]
     backup: str
+    live: bool
     dry_run: bool
+    dry_run_verbose: bool
 
 
-def download_backup(options: DownloadOptions):
-    doco_config = load_doco_config('.')
-    destination = options.service
-    if options.backup.isnumeric():
-        _, file_list = run_rsync_list(doco_config.backup.rsync, target=f"{options.service}/",
-                                      dry_run=False)
-        backup_dir = sorted(
-            [file for file in file_list if file.startswith('backup-')], reverse=True
-        )[int(options.backup)]
-    else:
-        backup_dir = f"backup-{options.backup}"
-
-    if not options.dry_run and os.path.exists(destination):
-        if not os.path.isdir(destination):
-            exit(f"Destination {destination} is not a directory.\n"
-                 "Exiting.")
-        answer = input(f"The directory {os.path.abspath(destination)} already exists.\n"
-                       f"Enter '{options.service}' to overwrite (files may get deleted): ")
-        if answer != options.service:
-            exit('Cancelled.')
-
-    cmd = run_rsync_download_incremental(doco_config.backup.rsync,
-                                         source=f"{options.service}/{backup_dir}/",
-                                         destination=f"{destination}/",
-                                         dry_run=options.dry_run)
-
-    if options.dry_run:
-        rich.print(rich.tree.Tree(str(format_cmd_line(cmd))))
+def restore_project(project: ComposeProject, options: RestoreOptions):
+    print("restoring project")
 
 
 def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-s', '--service', nargs='?', help='target service to retrieve backups from')
+    parser.add_argument('-s', '--service', nargs='?',
+                        help='target service to retrieve backups from; using directory name if empty')
     parser.add_argument('-l', '--list', action='store_true', help='list backups')
     parser.add_argument('-b', '--backup', default='0', help='backup index or name, default to 0')
+    parser.add_argument('--live', action='store_true', help='do not stop the services before backup')
+    parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually backup, only show what would be done')
+                        help='do not actually restore a backup, only show what would be done')
 
 
 def main(args) -> int:
     if not (os.geteuid() == 0):
-        exit("You need to have root privileges to load a backup.\n"
+        exit("You need to have root privileges to restore a backup.\n"
              "Please try again, this time using 'sudo'. Exiting.")
 
-    if args.projects != ['.']:
-        exit("You must not specify any project for restoring a backup.\n"
+    projects = list(get_compose_projects(args.projects, ProjectSearchOptions(
+        print_compose_errors=args.dry_run,
+        only_running=args.running,
+        allow_empty=True,
+    )))
+
+    if args.service is not None and len(projects) != 1:
+        exit("You cannot specify --service when restoring more than one project.\n"
              "Exiting.")
 
     if args.list:
-        if args.service is None:
-            exit("You need to specify a service to get the backups from.\n"
-                 "Exiting.")
-        list_backups(service=args.service, dry_run=args.dry_run)
+        for project in projects:
+            list_backups(service=project.config['name'] if args.service is None else args.service,
+                         dry_run=args.dry_run)
+    elif len(projects) == 0:
+        list_services(dry_run=args.dry_run)
     else:
-        if args.service is None:
-            list_services(dry_run=args.dry_run)
-        download_backup(DownloadOptions(
-            service=args.service,
-            backup=args.backup,
-            dry_run=args.dry_run,
-        ))
+        for project in projects:
+            restore_project(
+                project=project,
+                options=RestoreOptions(
+                    service=args.service,
+                    backup=args.backup,
+                    live=args.live,
+                    dry_run=args.dry_run,
+                    dry_run_verbose=args.verbose,
+                )
+            )
 
     return 0

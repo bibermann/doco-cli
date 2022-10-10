@@ -49,7 +49,9 @@ def run_compose(project_dir, project_file, command: t.List[str], dry_run: bool =
     return cmd
 
 
-def find_compose_projects(paths: t.Iterable[str]) -> t.Generator[t.Tuple[str, str], None, None]:
+def find_compose_projects(
+    paths: t.Iterable[str], allow_empty: bool
+) -> t.Generator[t.Tuple[str, str], None, None]:
     for project in paths:
         project_dir = None
         project_file = None
@@ -64,7 +66,9 @@ def find_compose_projects(paths: t.Iterable[str]) -> t.Generator[t.Tuple[str, st
                     project_dir, project_file = project, file
                     break
         if project_dir is None or project_file is None:
-            continue
-
-        project_dir = relative_path_if_below(project_dir)
-        yield project_dir, project_file
+            if allow_empty and os.path.isdir(project):
+                project_dir = relative_path_if_below(project)
+                yield project_dir, ''
+        else:
+            project_dir = relative_path_if_below(project_dir)
+            yield project_dir, project_file
