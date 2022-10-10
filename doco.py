@@ -12,6 +12,7 @@ import commands.down
 import commands.getbackup
 import commands.log
 import commands.restart
+import commands.restore
 import commands.status
 import commands.up
 from utils.system import get_user_groups
@@ -23,6 +24,7 @@ UP_COMMAND = 'u'
 LOG_COMMAND = 'l'
 BACKUP_COMMAND = 'backup'
 GET_BACKUP_COMMAND = 'getbackup'
+RESTORE_COMMAND = 'restore'
 
 
 def main() -> int:
@@ -48,6 +50,7 @@ def main() -> int:
     commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
     commands.getbackup.add_to_parser(
         subparsers.add_parser(GET_BACKUP_COMMAND, help='get backup for local analysis'))
+    commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
 
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
@@ -66,6 +69,8 @@ def main() -> int:
         commands.backup.main(args)
     elif args.command == GET_BACKUP_COMMAND:
         commands.getbackup.main(args)
+    elif args.command == RESTORE_COMMAND:
+        commands.restore.main(args)
 
     return 0
 
