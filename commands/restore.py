@@ -4,7 +4,7 @@ import os
 import typing as t
 
 from utils.backup_rich import list_backups
-from utils.backup_rich import list_services
+from utils.backup_rich import list_projects
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
@@ -12,7 +12,7 @@ from utils.compose_rich import ProjectSearchOptions
 
 @dataclasses.dataclass
 class RestoreOptions:
-    service: t.Optional[str]
+    project_name: t.Optional[str]
     backup: str
     live: bool
     dry_run: bool
@@ -24,8 +24,8 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
 
 
 def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-s', '--service', nargs='?',
-                        help='target service to retrieve backups from; using directory name if empty')
+    parser.add_argument('-p', '--project', nargs='?',
+                        help='target projects to retrieve backups from; using directory name if empty')
     parser.add_argument('-l', '--list', action='store_true', help='list backups')
     parser.add_argument('-b', '--backup', default='0', help='backup index or name, default to 0')
     parser.add_argument('--live', action='store_true', help='do not stop the services before backup')
@@ -45,22 +45,22 @@ def main(args) -> int:
         allow_empty=True,
     )))
 
-    if args.service is not None and len(projects) != 1:
-        exit("You cannot specify --service when restoring more than one project.\n"
+    if args.project is not None and len(projects) != 1:
+        exit("You cannot specify --project when restoring more than one project.\n"
              "Exiting.")
 
     if args.list:
         for project in projects:
-            list_backups(service=project.config['name'] if args.service is None else args.service,
+            list_backups(project_name=project.config['name'] if args.project is None else args.project,
                          dry_run=args.dry_run)
     elif len(projects) == 0:
-        list_services(dry_run=args.dry_run)
+        list_projects(dry_run=args.dry_run)
     else:
         for project in projects:
             restore_project(
                 project=project,
                 options=RestoreOptions(
-                    service=args.service,
+                    project_name=args.project,
                     backup=args.backup,
                     live=args.live,
                     dry_run=args.dry_run,
