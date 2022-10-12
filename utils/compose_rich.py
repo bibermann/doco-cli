@@ -20,8 +20,8 @@ from utils.rich import Formatted
 class ComposeProject:
     dir: str
     file: str
-    config: any
-    ps: any
+    config: t.Mapping[str, any]
+    ps: t.Mapping[str, any]
     doco_config: DocoConfig
 
 
@@ -59,8 +59,8 @@ def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) 
                 if not has_running_or_restarting:
                     continue
         else:
-            project_config = None
-            project_ps = None
+            project_config = {}
+            project_ps = {}
 
         yield ComposeProject(
             dir=project_dir,
