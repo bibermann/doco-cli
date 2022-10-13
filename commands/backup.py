@@ -58,9 +58,9 @@ class BackupJob:
                 self.is_dir = os.path.isdir(source_path)
             else:
                 self.is_dir = source_path.endswith('/')
-        self.relative_source_path = relative_path_if_below(source_path) + ('/' if is_dir else '')
-        self.relative_target_path = os.path.normpath(target_path) + ('/' if is_dir else '')
-        self.absolute_source_path = os.path.abspath(source_path) + ('/' if is_dir else '')
+        self.relative_source_path = relative_path_if_below(source_path) + ('/' if self.is_dir else '')
+        self.relative_target_path = os.path.normpath(target_path) + ('/' if self.is_dir else '')
+        self.absolute_source_path = os.path.abspath(source_path) + ('/' if self.is_dir else '')
         self.rsync_source_path = self.absolute_source_path
         self.rsync_target_path = os.path.normpath(target_path)
 
@@ -315,7 +315,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         for volume in volumes:
             job = BackupJob(source_path=volume['source'],
                             target_path=os.path.join('volumes', service_name, dir_from_path(volume['target'])),
-                            is_dir=os.path.isdir(volume['source']))
+                            check_is_dir=True)
 
             if options.include_project_dir and (
                 relative_path_if_below(job.rsync_source_path) + '/').startswith(project.dir + '/'):

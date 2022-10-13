@@ -46,9 +46,9 @@ class RestoreJob:
             self.is_dir = is_dir
         else:
             self.is_dir = target_path.endswith('/')
-        self.relative_target_path = relative_path_if_below(target_path) + ('/' if is_dir else '')
-        self.relative_source_path = os.path.normpath(source_path) + ('/' if is_dir else '')
-        self.absolute_target_path = os.path.abspath(target_path) + ('/' if is_dir else '')
+        self.relative_target_path = relative_path_if_below(target_path) + ('/' if self.is_dir else '')
+        self.relative_source_path = os.path.normpath(source_path) + ('/' if self.is_dir else '')
+        self.absolute_target_path = os.path.abspath(target_path) + ('/' if self.is_dir else '')
         self.rsync_target_path = self.absolute_target_path
         self.rsync_source_path = os.path.normpath(source_path)
 
