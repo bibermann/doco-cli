@@ -27,6 +27,7 @@ from utils.rsync import run_rsync_backup_with_hardlinks
 from utils.rsync import run_rsync_without_delete
 
 LAST_BACKUP_DIR_FILENAME = '.last-backup-dir'
+BACKUP_CONFIG_JSON = 'config.json'
 
 
 @dataclasses.dataclass
@@ -41,13 +42,15 @@ class BackupOptions:
 
 @dataclasses.dataclass
 class BackupJob:
+    display_source_path: str
+    display_target_path: str
     relative_source_path: str
     relative_target_path: str
     rsync_source_path: str
     rsync_target_path: str
     is_dir: bool
 
-    def __init__(self, source_path: str, target_path: str,
+    def __init__(self, source_path: str, target_path: str, project_dir: str,
                  is_dir: t.Optional[bool] = None, check_is_dir: bool = False):
         if is_dir is not None:
             if check_is_dir:
@@ -58,8 +61,18 @@ class BackupJob:
                 self.is_dir = os.path.isdir(source_path)
             else:
                 self.is_dir = source_path.endswith('/')
-        self.relative_source_path = relative_path_if_below(source_path) + ('/' if self.is_dir else '')
-        self.relative_target_path = os.path.normpath(target_path) + ('/' if self.is_dir else '')
+        self.display_source_path = \
+            relative_path_if_below(os.path.join(project_dir, source_path)) \
+            + ('/' if self.is_dir else '')
+        self.display_target_path = \
+            relative_path_if_below(os.path.join(project_dir, target_path)) \
+            + ('/' if self.is_dir else '')
+        self.relative_source_path = \
+            relative_path_if_below(os.path.join(project_dir, source_path), project_dir) \
+            + ('/' if self.is_dir else '')
+        self.relative_target_path = \
+            relative_path_if_below(os.path.join(project_dir, target_path), project_dir) \
+            + ('/' if self.is_dir else '')
         self.absolute_source_path = os.path.abspath(source_path) + ('/' if self.is_dir else '')
         self.rsync_source_path = self.absolute_source_path
         self.rsync_target_path = os.path.normpath(target_path)
@@ -67,15 +80,15 @@ class BackupJob:
 
 def format_do_backup(job: BackupJob) -> Formatted:
     return Formatted(
-        f"[green][b]{Formatted(job.relative_source_path)}[/] [dim]as[/] {Formatted(job.relative_target_path)}[/]",
+        f"[green][b]{Formatted(job.display_source_path)}[/] [dim]as[/] {Formatted(job.display_target_path)}[/]",
         True)
 
 
 def format_no_backup(job: BackupJob, reason: str, emphasize: bool = True) -> Formatted:
     if emphasize:
-        return Formatted(f"[red]{Formatted(job.relative_source_path)} [dim]({Formatted(reason)})[/][/]", True)
+        return Formatted(f"[red]{Formatted(job.display_source_path)} [dim]({Formatted(reason)})[/][/]", True)
     else:
-        return Formatted(f"{Formatted(job.relative_source_path)} [dim]({Formatted(reason)})[/]", True)
+        return Formatted(f"{Formatted(job.display_source_path)} [dim]({Formatted(reason)})[/]", True)
 
 
 def dir_from_path(path: str) -> str:
@@ -115,10 +128,10 @@ class BackupConfigOptions(pydantic.BaseModel):
 
 class BackupConfigTasks(pydantic.BaseModel):
     restart_project: bool = False
-    create_last_backup_dir_file: bool
-    backup_config: bool
-    backup_compose_file: bool
-    backup_project_dir: bool
+    create_last_backup_dir_file: t.Union[bool, str]
+    backup_config: t.Union[bool, str]
+    backup_compose_file: t.Union[bool, t.Tuple[str, str]]
+    backup_project_dir: t.Union[bool, t.Tuple[str, str]]
     backup_services: t.List[BackupConfigServiceTask] = []
 
 
@@ -220,7 +233,7 @@ def do_backup(project: ComposeProject, options: BackupOptions, config: BackupCon
         do_backup_config(rsync_config=project.doco_config.backup.rsync,
                          new_backup_dir=config.backup_dir, old_backup_dir=config.last_backup_dir,
                          config=config,
-                         target_file_name='config.json',
+                         target_file_name=BACKUP_CONFIG_JSON,
                          dry_run=options.dry_run, rich_node=run_node)
 
     for job in jobs:
@@ -261,8 +274,8 @@ def backup_project(project: ComposeProject, options: BackupOptions):
             volume_patterns=options.volumes,
         ),
         tasks=BackupConfigTasks(
-            create_last_backup_dir_file=True,
-            backup_config=True,
+            create_last_backup_dir_file=LAST_BACKUP_DIR_FILENAME,
+            backup_config=BACKUP_CONFIG_JSON,
             backup_compose_file=not options.include_project_dir,
             backup_project_dir=options.include_project_dir,
         ),
@@ -278,23 +291,30 @@ def backup_project(project: ComposeProject, options: BackupOptions):
     backup_node = tree.add('[i]Backup items[/]')
 
     # Schedule config.json
-    config_group = rich.console.Group('[green]config.json[/]')
+    config_group = rich.console.Group(f"[green]{Formatted(BACKUP_CONFIG_JSON)}[/]")
     backup_node.add(config_group)
 
     # Schedule compose.yaml
-    job = BackupJob(source_path=os.path.join(project.dir, project.file), target_path='compose.yaml',
+    job = BackupJob(source_path=project.file, target_path='compose.yaml',
+                    project_dir=project.dir,
                     is_dir=False)
     if config.tasks.backup_compose_file:
         jobs.append(job)
         backup_node.add(str(format_do_backup(job)))
+        config.tasks.backup_compose_file = [job.relative_source_path,
+                                            job.relative_target_path]
     else:
         backup_node.add(str(format_no_backup(job, 'already included', emphasize=False)))
 
     # Schedule project files
-    job = BackupJob(source_path=project.dir, target_path='project-files', is_dir=True)
+    job = BackupJob(source_path='.', target_path='project-files',
+                    project_dir=project.dir,
+                    is_dir=True)
     if config.tasks.backup_project_dir:
         jobs.append(job)
         backup_node.add(str(format_do_backup(job)))
+        config.tasks.backup_project_dir = [job.relative_source_path,
+                                           job.relative_target_path]
     else:
         backup_node.add(str(format_no_backup(job, 'project dir')))
 
@@ -315,6 +335,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         for volume in volumes:
             job = BackupJob(source_path=volume['source'],
                             target_path=os.path.join('volumes', service_name, dir_from_path(volume['target'])),
+                            project_dir=project.dir,
                             check_is_dir=True)
 
             if options.include_project_dir and (
@@ -350,7 +371,8 @@ def backup_project(project: ComposeProject, options: BackupOptions):
 
             jobs.append(job)
             s.add(str(format_do_backup(job)))
-            service_task.backup_volumes.append((job.absolute_source_path, job.relative_target_path))
+            service_task.backup_volumes.append(
+                (job.relative_source_path, job.relative_target_path))
             volumes_included.add(job.rsync_source_path)
 
         if len(volumes) == 0:

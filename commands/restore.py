@@ -34,20 +34,32 @@ class RestoreOptions:
 
 @dataclasses.dataclass
 class RestoreJob:
+    display_source_path: str
+    display_target_path: str
     relative_source_path: str
     relative_target_path: str
     rsync_source_path: str
     rsync_target_path: str
     is_dir: bool
 
-    def __init__(self, source_path: str, target_path: str,
+    def __init__(self, source_path: str, target_path: str, project_dir: str,
                  is_dir: t.Optional[bool] = None):
         if is_dir is not None:
             self.is_dir = is_dir
         else:
             self.is_dir = target_path.endswith('/')
-        self.relative_target_path = relative_path_if_below(target_path) + ('/' if self.is_dir else '')
-        self.relative_source_path = os.path.normpath(source_path) + ('/' if self.is_dir else '')
+        self.display_target_path = \
+            relative_path_if_below(os.path.join(project_dir, target_path)) \
+            + ('/' if self.is_dir else '')
+        self.display_source_path = \
+            relative_path_if_below(os.path.join(project_dir, source_path)) \
+            + ('/' if self.is_dir else '')
+        self.relative_target_path = \
+            relative_path_if_below(os.path.join(project_dir, target_path), project_dir) \
+            + ('/' if self.is_dir else '')
+        self.relative_source_path = \
+            relative_path_if_below(os.path.join(project_dir, source_path), project_dir) \
+            + ('/' if self.is_dir else '')
         self.absolute_target_path = os.path.abspath(target_path) + ('/' if self.is_dir else '')
         self.rsync_target_path = self.absolute_target_path
         self.rsync_source_path = os.path.normpath(source_path)
@@ -162,11 +174,16 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
     )
     jobs: t.List[RestoreJob] = []
 
-    if backup_config.get('tasks', {}).get('backup_project_dir', True):
-        jobs.append(RestoreJob('project_files', project.dir))
+    backup_project_dir = backup_config.get('tasks', {}).get('backup_project_dir', True)
+    if backup_project_dir:
+        jobs.append(RestoreJob(
+            source_path='project_files' if type(backup_project_dir) == bool else backup_project_dir[1],
+            target_path='.' if type(backup_project_dir) == bool else backup_project_dir[0],
+            project_dir=project.dir))
 
     for backup_volumes_item in backup_volumes:
-        jobs.append(RestoreJob(backup_volumes_item[1], backup_volumes_item[0]))
+        jobs.append(RestoreJob(source_path=backup_volumes_item[1], target_path=backup_volumes_item[0],
+                               project_dir=project.dir))
 
     for job in jobs:
         if os.path.exists(job.absolute_target_path):
@@ -174,7 +191,7 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
         else:
             action = '(create)'
         backup_node.add(
-            f"{job.relative_source_path} [dim]->[/] [dark_orange]{job.relative_target_path}[/] {action}")
+            f"{job.display_source_path} [dim]->[/] [dark_orange]{job.display_target_path}[/] {action}")
 
     run_node = rich.tree.Tree('[i]Would run[/]')
     if options.dry_run_verbose:
