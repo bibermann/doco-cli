@@ -8,7 +8,7 @@ import yaml
 from utils.common import relative_path_if_below
 
 
-def load_compose_config(cwd: str, file: str):
+def load_compose_config(cwd: str, file: str) -> (t.Mapping[str, any], str):
     result = subprocess.run(
         ['docker', 'compose', '-f', file, 'config'],
         cwd=cwd,
@@ -17,10 +17,10 @@ def load_compose_config(cwd: str, file: str):
         universal_newlines=True,
         check=True,
     )
-    return yaml.safe_load(result.stdout)
+    return yaml.safe_load(result.stdout), result.stdout
 
 
-def load_compose_ps(cwd: str, file: str):
+def load_compose_ps(cwd: str, file: str) -> t.Mapping[str, any]:
     result = subprocess.run(
         ['docker', 'compose', '-f', file, 'ps', '--format', 'json'],
         cwd=cwd,

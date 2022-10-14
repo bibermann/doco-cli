@@ -21,6 +21,7 @@ class ComposeProject:
     dir: str
     file: str
     config: t.Mapping[str, any]
+    config_yaml: str
     ps: t.Mapping[str, any]
     doco_config: DocoConfig
 
@@ -37,7 +38,7 @@ def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) 
     for project_dir, project_file in find_compose_projects(paths, options.allow_empty):
         if not (options.allow_empty and project_file == ''):
             try:
-                project_config = load_compose_config(project_dir, project_file)
+                project_config, project_config_yaml = load_compose_config(project_dir, project_file)
             except subprocess.CalledProcessError as e:
                 if options.print_compose_errors:
                     tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
@@ -60,12 +61,14 @@ def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) 
                     continue
         else:
             project_config = {}
+            project_config_yaml = str
             project_ps = {}
 
         yield ComposeProject(
             dir=project_dir,
             file=project_file,
             config=project_config,
+            config_yaml=project_config_yaml,
             ps=project_ps,
             doco_config=load_doco_config(project_dir)
         )

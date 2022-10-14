@@ -29,6 +29,7 @@ from utils.rsync import run_rsync_without_delete
 
 LAST_BACKUP_DIR_FILENAME = '.last-backup-dir'
 BACKUP_CONFIG_JSON = 'config.json'
+COMPOSE_CONFIG_YAML = 'compose.yaml'
 
 
 @dataclasses.dataclass
@@ -135,7 +136,7 @@ class BackupConfigTasks(pydantic.BaseModel):
     restart_project: bool = False
     create_last_backup_dir_file: t.Union[bool, str]
     backup_config: t.Union[bool, str]
-    backup_compose_file: t.Union[bool, t.Tuple[str, str]]
+    backup_compose_config: t.Union[bool, str]
     backup_project_dir: t.Union[bool, t.Tuple[str, str]]
     backup_services: t.List[BackupConfigServiceTask] = []
 
@@ -151,16 +152,16 @@ class BackupConfig(pydantic.BaseModel):
     tasks: BackupConfigTasks
 
 
-def do_backup_config(
+def do_backup_content(
     rsync_config: RsyncConfig,
-    new_backup_dir: str, old_backup_dir: t.Optional[str], config: BackupConfig,
+    new_backup_dir: str, old_backup_dir: t.Optional[str], content: str,
     target_file_name: str, dry_run: bool,
     rich_node: rich.tree.Tree
 ):
     with tempfile.TemporaryDirectory() as tmp_dir:
         source = os.path.join(tmp_dir, target_file_name)
         with open(source, 'w', encoding='utf-8') as f:
-            f.write(config.json(indent=4))
+            f.write(content)
         cmd = run_rsync_backup_with_hardlinks(
             config=rsync_config,
             source=source,
@@ -233,13 +234,19 @@ def do_backup(project: ComposeProject, options: BackupOptions, config: BackupCon
                          command=['down'],
                          dry_run=options.dry_run, rich_node=run_node)
 
-    # Backup scheduled files
     if config.tasks.backup_config:
-        do_backup_config(rsync_config=project.doco_config.backup.rsync,
-                         new_backup_dir=config.backup_dir, old_backup_dir=config.last_backup_dir,
-                         config=config,
-                         target_file_name=BACKUP_CONFIG_JSON,
-                         dry_run=options.dry_run, rich_node=run_node)
+        do_backup_content(rsync_config=project.doco_config.backup.rsync,
+                          new_backup_dir=config.backup_dir, old_backup_dir=config.last_backup_dir,
+                          content=config.json(indent=4),
+                          target_file_name=BACKUP_CONFIG_JSON,
+                          dry_run=options.dry_run, rich_node=run_node)
+
+    if config.tasks.backup_compose_config:
+        do_backup_content(rsync_config=project.doco_config.backup.rsync,
+                          new_backup_dir=config.backup_dir, old_backup_dir=config.last_backup_dir,
+                          content=project.config_yaml,
+                          target_file_name=COMPOSE_CONFIG_YAML,
+                          dry_run=options.dry_run, rich_node=run_node)
 
     for job in jobs:
         do_backup_job(rsync_config=project.doco_config.backup.rsync,
@@ -281,7 +288,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         tasks=BackupConfigTasks(
             create_last_backup_dir_file=LAST_BACKUP_DIR_FILENAME,
             backup_config=BACKUP_CONFIG_JSON,
-            backup_compose_file=not options.include_project_dir,
+            backup_compose_config=COMPOSE_CONFIG_YAML,
             backup_project_dir=options.include_project_dir,
         ),
     )
@@ -300,16 +307,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
     backup_node.add(config_group)
 
     # Schedule compose.yaml
-    job = BackupJob(source_path=project.file, target_path='compose.yaml',
-                    project_dir=project.dir,
-                    is_dir=False)
-    if config.tasks.backup_compose_file:
-        jobs.append(job)
-        backup_node.add(str(format_do_backup(job)))
-        config.tasks.backup_compose_file = [job.relative_source_path,
-                                            job.relative_target_path]
-    else:
-        backup_node.add(str(format_no_backup(job, 'already included', emphasize=False)))
+    backup_node.add(f"[green]{Formatted(COMPOSE_CONFIG_YAML)}[/]")
 
     # Schedule project files
     job = BackupJob(source_path='.', target_path='project-files',
