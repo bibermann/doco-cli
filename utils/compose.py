@@ -32,7 +32,7 @@ def load_compose_ps(cwd: str, file: str) -> t.Mapping[str, any]:
     return json.loads(result.stdout)
 
 
-def run_compose(project_dir, project_file, command: t.List[str], dry_run: bool = False,
+def run_compose(project_dir, project_file, command: list[str], dry_run: bool = False,
                 cancelable: bool = False):
     cmd = [
         'docker', 'compose', '-f', project_file,

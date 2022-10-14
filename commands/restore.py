@@ -122,7 +122,7 @@ def create_target_structure(
 
 
 def do_restore(project: ComposeProject, options: RestoreOptions, config: RestoreConfig,
-               jobs: t.List[RestoreJob],
+               jobs: list[RestoreJob],
                run_node: rich.tree.Tree):
     create_target_structure(jobs=jobs, dry_run=options.dry_run, rich_node=run_node)
 
@@ -178,7 +178,7 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
     config = RestoreConfig(
         tasks=RestoreConfigTasks(),
     )
-    jobs: t.List[RestoreJob] = []
+    jobs: list[RestoreJob] = []
 
     backup_project_dir = backup_config.get('tasks', {}).get('backup_project_dir', True)
     if backup_project_dir:

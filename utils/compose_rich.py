@@ -74,7 +74,7 @@ def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) 
         )
 
 
-def rich_run_compose(project_dir, project_file, command: t.List[str], dry_run: bool,
+def rich_run_compose(project_dir, project_file, command: list[str], dry_run: bool,
                      rich_node: rich.tree.Tree, cancelable: bool = False):
     cmd = run_compose(
         project_dir=os.path.abspath(project_dir),

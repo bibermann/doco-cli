@@ -36,7 +36,7 @@ COMPOSE_CONFIG_YAML = 'compose.yaml'
 class BackupOptions:
     include_project_dir: bool
     include_read_only_volumes: bool
-    volumes: t.List[str]
+    volumes: list[str]
     live: bool
     dry_run: bool
     dry_run_verbose: bool
@@ -121,15 +121,15 @@ def save_last_backup_directory(project_dir: str, value: str) -> None:
 
 class BackupConfigServiceTask(pydantic.BaseModel):
     name: str
-    backup_volumes: t.List[t.Tuple[str, str]] = []
-    exclude_volumes: t.List[str] = []
+    backup_volumes: list[t.Tuple[str, str]] = []
+    exclude_volumes: list[str] = []
 
 
 class BackupConfigOptions(pydantic.BaseModel):
     live: bool
     include_project_dir: bool
     include_read_only_volumes: bool
-    volume_patterns: t.List[str]
+    volume_patterns: list[str]
 
 
 class BackupConfigTasks(pydantic.BaseModel):
@@ -138,7 +138,7 @@ class BackupConfigTasks(pydantic.BaseModel):
     backup_config: t.Union[bool, str]
     backup_compose_config: t.Union[bool, str]
     backup_project_dir: t.Union[bool, t.Tuple[str, str]]
-    backup_services: t.List[BackupConfigServiceTask] = []
+    backup_services: list[BackupConfigServiceTask] = []
 
 
 class BackupConfig(pydantic.BaseModel):
@@ -223,7 +223,7 @@ def create_target_structure(
         rich_node.add(str(format_cmd_line(cmd)))
 
 
-def do_backup(project: ComposeProject, options: BackupOptions, config: BackupConfig, jobs: t.List[BackupJob],
+def do_backup(project: ComposeProject, options: BackupOptions, config: BackupConfig, jobs: list[BackupJob],
               run_node: rich.tree.Tree):
     create_target_structure(rsync_config=project.doco_config.backup.rsync,
                             new_backup_dir=config.backup_dir, jobs=jobs, dry_run=options.dry_run,
@@ -292,7 +292,7 @@ def backup_project(project: ComposeProject, options: BackupOptions):
             backup_project_dir=options.include_project_dir,
         ),
     )
-    jobs: t.List[BackupJob] = []
+    jobs: list[BackupJob] = []
 
     tree = rich.tree.Tree(str(project_id))
     if old_backup_dir is None:

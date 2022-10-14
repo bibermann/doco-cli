@@ -22,7 +22,7 @@ class Formatted:
         return self._text
 
 
-def format_cmd_line(cmd: t.List[str]) -> Formatted:
+def format_cmd_line(cmd: list[str]) -> Formatted:
     cmdline = str(Formatted(shlex.join(cmd)))
     cmdline = re.sub(r' (--?[^ =-][^ =]*)', r' [/][dim dark_orange]\1[/][dim]', cmdline)
     cmdline = re.sub(r'([\'"@:])', r'[/][dark_orange]\1[/][dim]', cmdline)

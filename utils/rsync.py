@@ -67,7 +67,7 @@ class RsyncListOptions(RsyncBaseOptions):
 def run_rsync_without_delete(
     config: RsyncConfig, source: str, destination: str,
     dry_run: bool = False,
-) -> t.List[str]:
+) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=False)
     cmd = [
         'rsync', *opt.OPTS,
@@ -84,7 +84,7 @@ def run_rsync_without_delete(
 def run_rsync_backup_incremental(
     config: RsyncConfig, source: str, destination: str, backup_dir: str,
     dry_run: bool = False,
-) -> t.List[str]:
+) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
         'rsync', *opt.OPTS,
@@ -101,9 +101,9 @@ def run_rsync_backup_incremental(
 
 def run_rsync_backup_with_hardlinks(
     config: RsyncConfig,
-    source: str, new_backup: str, old_backup_dirs: t.List[str],
+    source: str, new_backup: str, old_backup_dirs: list[str],
     dry_run: bool = False,
-) -> t.List[str]:
+) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     for old_backup_dir in old_backup_dirs:
         opt.OPTS.extend(['--link-dest', f"{opt.ROOT}/{old_backup_dir}"])
@@ -122,7 +122,7 @@ def run_rsync_backup_with_hardlinks(
 def run_rsync_download_incremental(
     config: RsyncConfig, source: str, destination: str,
     dry_run: bool = False,
-) -> t.List[str]:
+) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
         'rsync', *opt.OPTS,
@@ -140,7 +140,7 @@ def run_rsync_list(
     config: RsyncConfig,
     target: str,
     dry_run: bool = False,
-) -> t.Tuple[t.List[str], t.List[str]]:
+) -> t.Tuple[list[str], list[str]]:
     opt = RsyncListOptions(config=config)
     cmd = [
         'rsync', *opt.OPTS,
