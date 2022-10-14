@@ -63,6 +63,10 @@ def main(args) -> int:
         exit("You must specify a project directory to load the backup to.\n"
              "Exiting.")
 
+    if args.project is not None and '/' in args.project or args.project == '.' or args.project == '':
+        exit("Project name is invalid.\n"
+             "Please check your -p argument. Exiting.")
+
     project_dir = args.projects[0]
     doco_config = load_doco_config(project_dir)
 
