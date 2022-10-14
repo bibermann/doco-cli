@@ -403,10 +403,15 @@ def backup_project(project: ComposeProject, options: BackupOptions):
 
 
 def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-d', '--include-project-dir', action='store_true', help='include project directory')
+    parser.add_argument('-e', '--exclude-project-dir', action='store_true', help='exclude project directory')
     parser.add_argument('-r', '--include-ro', action='store_true',
                         help='also consider read-only volumes')
-    parser.add_argument('-v', '--volume', action='append', default=[], help='regex for volume selection')
+    parser.add_argument('-v', '--volume', action='append',
+                        default=[r'^(?!/(bin|boot|dev|etc|lib\w*|proc|run|sbin|sys|tmp|usr|var)/)'],
+                        help='regex for volume selection, can be specified multiple times, '
+                             'defaults to exclude many system directories, '
+                             'use -v \'(?!)\' to exclude all volumes, '
+                             'use -v ^/path/ to only allow specified paths')
     parser.add_argument('--live', action='store_true', help='do not stop the services before backup')
     parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
@@ -425,7 +430,7 @@ def main(args) -> int:
         backup_project(
             project=project,
             options=BackupOptions(
-                include_project_dir=args.include_project_dir,
+                include_project_dir=not args.exclude_project_dir,
                 include_read_only_volumes=args.include_ro,
                 volumes=args.volume,
                 live=args.live,
