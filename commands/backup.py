@@ -15,6 +15,7 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
+from utils.common import relative_path
 from utils.common import relative_path_if_below
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
@@ -52,6 +53,10 @@ class BackupJob:
 
     def __init__(self, source_path: str, target_path: str, project_dir: str,
                  is_dir: t.Optional[bool] = None, check_is_dir: bool = False):
+        source_path = os.path.normpath(os.path.join(project_dir, source_path))
+        target_path = os.path.normpath(target_path)
+        if target_path.startswith('/') or target_path.startswith('../'):
+            raise ValueError('target_path cannot be absolute or go upwards.')
         if is_dir is not None:
             if check_is_dir:
                 raise ValueError('check_is_dir cannot be True if is_dir is not None.')
@@ -62,20 +67,20 @@ class BackupJob:
             else:
                 self.is_dir = source_path.endswith('/')
         self.display_source_path = \
-            relative_path_if_below(os.path.join(project_dir, source_path)) \
+            relative_path_if_below(source_path) \
             + ('/' if self.is_dir else '')
         self.display_target_path = \
-            relative_path_if_below(os.path.join(project_dir, target_path)) \
+            relative_path(target_path) \
             + ('/' if self.is_dir else '')
         self.relative_source_path = \
-            relative_path_if_below(os.path.join(project_dir, source_path), project_dir) \
+            relative_path_if_below(source_path, project_dir) \
             + ('/' if self.is_dir else '')
         self.relative_target_path = \
-            relative_path_if_below(os.path.join(project_dir, target_path), project_dir) \
+            relative_path(target_path) \
             + ('/' if self.is_dir else '')
         self.absolute_source_path = os.path.abspath(source_path) + ('/' if self.is_dir else '')
         self.rsync_source_path = self.absolute_source_path
-        self.rsync_target_path = os.path.normpath(target_path)
+        self.rsync_target_path = target_path
 
 
 def format_do_backup(job: BackupJob) -> Formatted:

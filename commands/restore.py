@@ -13,6 +13,7 @@ import rich.tree
 from utils.backup import get_backup_directory
 from utils.backup_rich import list_backups
 from utils.backup_rich import list_projects
+from utils.common import relative_path
 from utils.common import relative_path_if_below
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
@@ -45,25 +46,29 @@ class RestoreJob:
 
     def __init__(self, source_path: str, target_path: str, project_dir: str,
                  is_dir: t.Optional[bool] = None):
+        target_path = os.path.normpath(os.path.join(project_dir, target_path))
+        source_path = os.path.normpath(source_path)
+        if source_path.startswith('/') or source_path.startswith('../'):
+            raise ValueError('source_path cannot be absolute or go upwards.')
         if is_dir is not None:
             self.is_dir = is_dir
         else:
             self.is_dir = target_path.endswith('/')
         self.display_target_path = \
-            relative_path_if_below(os.path.join(project_dir, target_path)) \
+            relative_path_if_below(target_path) \
             + ('/' if self.is_dir else '')
         self.display_source_path = \
-            relative_path_if_below(os.path.join(project_dir, source_path)) \
+            relative_path(source_path) \
             + ('/' if self.is_dir else '')
         self.relative_target_path = \
-            relative_path_if_below(os.path.join(project_dir, target_path), project_dir) \
+            relative_path_if_below(target_path, project_dir) \
             + ('/' if self.is_dir else '')
         self.relative_source_path = \
-            relative_path_if_below(os.path.join(project_dir, source_path), project_dir) \
+            relative_path(source_path) \
             + ('/' if self.is_dir else '')
         self.absolute_target_path = os.path.abspath(target_path) + ('/' if self.is_dir else '')
         self.rsync_target_path = self.absolute_target_path
-        self.rsync_source_path = os.path.normpath(source_path)
+        self.rsync_source_path = source_path
 
 
 @dataclasses.dataclass
