@@ -24,6 +24,7 @@ class RestoreJob:
 
     def __init__(self, source_path: str, target_path: str, project_dir: str,
                  is_dir: t.Optional[bool] = None):
+        target_path_seems_dir = target_path.endswith('/')
         target_path = os.path.normpath(os.path.join(project_dir, target_path))
         source_path = os.path.normpath(source_path)
         if source_path.startswith('/') or source_path.startswith('../'):
@@ -31,7 +32,7 @@ class RestoreJob:
         if is_dir is not None:
             self.is_dir = is_dir
         else:
-            self.is_dir = target_path.endswith('/')
+            self.is_dir = target_path_seems_dir
         self.display_target_path = \
             relative_path_if_below(target_path) \
             + ('/' if self.is_dir else '')

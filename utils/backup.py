@@ -27,6 +27,7 @@ class BackupJob:
 
     def __init__(self, source_path: str, target_path: str, project_dir: str,
                  is_dir: t.Optional[bool] = None, check_is_dir: bool = False):
+        source_path_seems_dir = source_path.endswith('/')
         source_path = os.path.normpath(os.path.join(project_dir, source_path))
         target_path = os.path.normpath(target_path)
         if target_path.startswith('/') or target_path.startswith('../'):
@@ -39,7 +40,7 @@ class BackupJob:
             if check_is_dir:
                 self.is_dir = os.path.isdir(source_path)
             else:
-                self.is_dir = source_path.endswith('/')
+                self.is_dir = source_path_seems_dir
         self.display_source_path = \
             relative_path_if_below(source_path) \
             + ('/' if self.is_dir else '')
@@ -54,7 +55,7 @@ class BackupJob:
             + ('/' if self.is_dir else '')
         self.absolute_source_path = os.path.abspath(source_path) + ('/' if self.is_dir else '')
         self.rsync_source_path = self.absolute_source_path
-        self.rsync_target_path = target_path
+        self.rsync_target_path = target_path + ('/' if self.is_dir else '')
 
 
 def load_last_backup_directory(project_dir: str) -> t.Optional[str]:
