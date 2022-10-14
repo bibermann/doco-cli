@@ -18,6 +18,7 @@ from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
+from utils.doco_config import load_doco_config
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
 from utils.rsync import RsyncConfig
@@ -243,9 +244,11 @@ def main(args) -> int:
     if args.list:
         for project in projects:
             list_backups(project_name=project.config['name'] if args.project is None else args.project,
-                         dry_run=args.dry_run)
+                         dry_run=args.dry_run,
+                         doco_config=project.doco_config)
     elif len(projects) == 0:
-        list_projects(dry_run=args.dry_run)
+        list_projects(dry_run=args.dry_run,
+                      doco_config=load_doco_config('.'))
     else:
         for project in projects:
             restore_project(

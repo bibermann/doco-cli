@@ -9,6 +9,7 @@ import rich.tree
 from utils.backup import get_backup_directory
 from utils.backup_rich import list_backups
 from utils.backup_rich import list_projects
+from utils.doco_config import DocoConfig
 from utils.doco_config import load_doco_config
 from utils.rich import format_cmd_line
 from utils.rsync import run_rsync_download_incremental
@@ -22,8 +23,7 @@ class DownloadOptions:
     dry_run: bool
 
 
-def download_backup(options: DownloadOptions):
-    doco_config = load_doco_config('.')
+def download_backup(options: DownloadOptions, doco_config: DocoConfig):
     backup_dir = get_backup_directory(doco_config.backup.rsync,
                                       project_name=options.project_name,
                                       backup_id=options.backup)
@@ -63,6 +63,9 @@ def main(args) -> int:
         exit("You must specify a project directory to load the backup to.\n"
              "Exiting.")
 
+    project_dir = args.projects[0]
+    doco_config = load_doco_config(project_dir)
+
     if args.running:
         exit("--running is not supported for loading a backup.\n"
              "Exiting.")
@@ -71,15 +74,18 @@ def main(args) -> int:
         if args.project is None:
             exit("You need to specify a project to get the backups from.\n"
                  "Exiting.")
-        list_backups(project_name=args.project, dry_run=args.dry_run)
+        list_backups(project_name=args.project, dry_run=args.dry_run, doco_config=doco_config)
     elif args.project is None:
-        list_projects(dry_run=args.dry_run)
+        list_projects(dry_run=args.dry_run, doco_config=doco_config)
     else:
-        download_backup(DownloadOptions(
-            project_name=args.project,
-            backup=args.backup,
-            destination=args.projects[0],
-            dry_run=args.dry_run,
-        ))
+        download_backup(
+            DownloadOptions(
+                project_name=args.project,
+                backup=args.backup,
+                destination=project_dir,
+                dry_run=args.dry_run,
+            ),
+            doco_config=doco_config,
+        )
 
     return 0

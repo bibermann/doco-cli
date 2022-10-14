@@ -2,14 +2,13 @@ import rich
 import rich.pretty
 import rich.tree
 
-from utils.doco_config import load_doco_config
+from utils.doco_config import DocoConfig
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
 from utils.rsync import run_rsync_list
 
 
-def list_projects(dry_run: bool):
-    doco_config = load_doco_config('.')
+def list_projects(dry_run: bool, doco_config: DocoConfig):
     cmd, file_list = run_rsync_list(doco_config.backup.rsync, target="", dry_run=dry_run)
     if dry_run:
         rich.print(rich.tree.Tree(str(format_cmd_line(cmd))))
@@ -21,8 +20,7 @@ def list_projects(dry_run: bool):
         rich.print(tree)
 
 
-def list_backups(project_name: str, dry_run: bool):
-    doco_config = load_doco_config('.')
+def list_backups(project_name: str, dry_run: bool, doco_config: DocoConfig):
     cmd, file_list = run_rsync_list(doco_config.backup.rsync, target=f"{project_name}/",
                                     dry_run=dry_run)
     if dry_run:
