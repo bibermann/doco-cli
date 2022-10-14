@@ -6,11 +6,11 @@ import rich
 import rich.pretty
 import rich.tree
 
-from utils.backup import get_backup_directory
-from utils.backup_rich import list_backups
-from utils.backup_rich import list_projects
 from utils.doco_config import DocoConfig
 from utils.doco_config import load_doco_config
+from utils.restore import get_backup_directory
+from utils.restore_rich import list_backups
+from utils.restore_rich import list_projects
 from utils.rich import format_cmd_line
 from utils.rsync import run_rsync_download_incremental
 

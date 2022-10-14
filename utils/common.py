@@ -7,6 +7,13 @@ def load_env_file():
     return dotenv.dotenv_values('.env')
 
 
+def dir_from_path(path: str) -> str:
+    if path.startswith('/'):
+        path = path[1:]
+    result = path.replace('/', '__')
+    return result
+
+
 def relative_path(path: str) -> str:
     path = os.path.normpath(path)
     if path.startswith('../') or path.startswith('/'):
