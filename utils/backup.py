@@ -68,7 +68,8 @@ def load_last_backup_directory(project_dir: str, file_name: str = LAST_BACKUP_DI
                 return value
 
 
-def save_last_backup_directory(project_dir: str, value: str, file_name: str = LAST_BACKUP_DIR_FILENAME) -> None:
+def save_last_backup_directory(project_dir: str, value: str,
+                               file_name: str = LAST_BACKUP_DIR_FILENAME) -> None:
     path = os.path.join(project_dir, file_name)
     with open(path, 'w', encoding='utf-8') as f:
         f.write(value + '\n')

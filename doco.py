@@ -7,13 +7,13 @@ import sys
 
 import argcomplete
 
-import commands.backup
-import commands.down
-import commands.log
-import commands.restart
-import commands.restore
-import commands.status
-import commands.up
+import doco_cmd.backup
+import doco_cmd.down
+import doco_cmd.log
+import doco_cmd.restart
+import doco_cmd.restore
+import doco_cmd.status
+import doco_cmd.up
 from utils.system import get_user_groups
 
 STATUS_COMMAND = 's'
@@ -40,31 +40,31 @@ def main() -> int:
 
     subparsers = parser.add_subparsers(dest='command')
 
-    commands.status.add_to_parser(subparsers.add_parser(STATUS_COMMAND, help='status'))
-    commands.restart.add_to_parser(subparsers.add_parser(RESTART_COMMAND, help='restart (down and up)'))
-    commands.down.add_to_parser(subparsers.add_parser(DOWN_COMMAND, help='down'))
-    commands.up.add_to_parser(subparsers.add_parser(UP_COMMAND, help='up'))
-    commands.log.add_to_parser(subparsers.add_parser(LOG_COMMAND, help='log'))
-    commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
-    commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
+    doco_cmd.status.add_to_parser(subparsers.add_parser(STATUS_COMMAND, help='status'))
+    doco_cmd.restart.add_to_parser(subparsers.add_parser(RESTART_COMMAND, help='restart (down and up)'))
+    doco_cmd.down.add_to_parser(subparsers.add_parser(DOWN_COMMAND, help='down'))
+    doco_cmd.up.add_to_parser(subparsers.add_parser(UP_COMMAND, help='up'))
+    doco_cmd.log.add_to_parser(subparsers.add_parser(LOG_COMMAND, help='log'))
+    doco_cmd.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
+    doco_cmd.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
 
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
 
     if args.command == STATUS_COMMAND:
-        commands.status.main(args)
+        doco_cmd.status.main(args)
     elif args.command == RESTART_COMMAND:
-        commands.restart.main(args)
+        doco_cmd.restart.main(args)
     elif args.command == DOWN_COMMAND:
-        commands.down.main(args)
+        doco_cmd.down.main(args)
     elif args.command == UP_COMMAND:
-        commands.up.main(args)
+        doco_cmd.up.main(args)
     elif args.command == LOG_COMMAND:
-        commands.log.main(args)
+        doco_cmd.log.main(args)
     elif args.command == BACKUP_COMMAND:
-        commands.backup.main(args)
+        doco_cmd.backup.main(args)
     elif args.command == RESTORE_COMMAND:
-        commands.restore.main(args)
+        doco_cmd.restore.main(args)
 
     return 0
 

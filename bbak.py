@@ -7,10 +7,10 @@ import sys
 
 import argcomplete
 
-import bbak_commands.backup
-import bbak_commands.get_backup
-import bbak_commands.list
-import bbak_commands.restore
+import bbak_cmd.backup
+import bbak_cmd.get_backup
+import bbak_cmd.list
+import bbak_cmd.restore
 from utils.doco_config import load_doco_config
 
 LIST_COMMAND = 'ls'
@@ -29,11 +29,11 @@ def main() -> int:
 
     subparsers = parser.add_subparsers(dest='command')
 
-    bbak_commands.list.add_to_parser(subparsers.add_parser(LIST_COMMAND, help='list'))
-    bbak_commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
-    bbak_commands.get_backup.add_to_parser(
+    bbak_cmd.list.add_to_parser(subparsers.add_parser(LIST_COMMAND, help='list'))
+    bbak_cmd.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
+    bbak_cmd.get_backup.add_to_parser(
         subparsers.add_parser(GET_BACKUP_COMMAND, help='get backup for local analysis'))
-    bbak_commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
+    bbak_cmd.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
 
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
@@ -51,13 +51,13 @@ def main() -> int:
             os.path.normpath(os.path.join(doco_config.backup.rsync.root, args.root))
 
     if args.command == LIST_COMMAND:
-        bbak_commands.list.main(args, doco_config)
+        bbak_cmd.list.main(args, doco_config)
     elif args.command == BACKUP_COMMAND:
-        bbak_commands.backup.main(args, doco_config)
+        bbak_cmd.backup.main(args, doco_config)
     elif args.command == GET_BACKUP_COMMAND:
-        bbak_commands.get_backup.main(args, doco_config)
+        bbak_cmd.get_backup.main(args, doco_config)
     elif args.command == RESTORE_COMMAND:
-        bbak_commands.restore.main(args, doco_config)
+        bbak_cmd.restore.main(args, doco_config)
 
     return 0
 
