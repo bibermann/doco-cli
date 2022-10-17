@@ -15,13 +15,11 @@ from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
-from utils.doco_config import load_doco_config
 from utils.restore import create_target_structure
 from utils.restore import do_restore_job
 from utils.restore import get_backup_directory
 from utils.restore import RestoreJob
 from utils.restore_rich import list_backups
-from utils.restore_rich import list_projects
 from utils.rich import Formatted
 from utils.rsync import run_rsync_download_incremental
 
@@ -169,10 +167,25 @@ def add_to_parser(parser: argparse.ArgumentParser):
                         help='do not actually restore a backup, only show what would be done')
 
 
+def get_project_name(project_name: t.Optional[str], project: ComposeProject) -> str:
+    if project_name is not None:
+        return project_name
+    if 'name' in project.config:
+        return project.config['name']
+    return os.path.basename(os.path.abspath(project.dir))
+
+
 def main(args) -> int:
     if not (os.geteuid() == 0):
         exit("You need to have root privileges to restore a backup.\n"
              "Please try again, this time using 'sudo'. Exiting.")
+
+    if args.project is not None:
+        if args.project.endswith('/'):
+            args.project = args.project[:-1]
+        if '/' in args.project or args.project == '.' or args.project == '':
+            exit("Project name is invalid.\n"
+                 "Please check your -p argument. Exiting.")
 
     projects = list(get_compose_projects(args.projects, ProjectSearchOptions(
         print_compose_errors=args.dry_run,
@@ -186,18 +199,15 @@ def main(args) -> int:
 
     if args.list:
         for project in projects:
-            list_backups(project_name=project.config['name'] if args.project is None else args.project,
+            list_backups(project_name=get_project_name(args.project, project),
                          dry_run=args.dry_run,
                          doco_config=project.doco_config)
-    elif len(projects) == 0:
-        list_projects(dry_run=args.dry_run,
-                      doco_config=load_doco_config('.'))
     else:
         for project in projects:
             restore_project(
                 project=project,
                 options=RestoreOptions(
-                    project_name=project.config['name'] if args.project is None else args.project,
+                    project_name=get_project_name(args.project, project),
                     backup=args.backup,
                     dry_run=args.dry_run,
                     dry_run_verbose=args.verbose,
