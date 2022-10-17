@@ -32,7 +32,7 @@ def main() -> int:
     bbak_cmd.list.add_to_parser(subparsers.add_parser(LIST_COMMAND, help='list'))
     bbak_cmd.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
     bbak_cmd.get_backup.add_to_parser(
-        subparsers.add_parser(GET_BACKUP_COMMAND, help='get backup for local analysis'))
+        subparsers.add_parser(GET_BACKUP_COMMAND, help='download backup for local analysis'))
     bbak_cmd.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
 
     argcomplete.autocomplete(main_parser)
