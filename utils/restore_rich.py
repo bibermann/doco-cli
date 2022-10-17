@@ -12,7 +12,7 @@ def list_projects(dry_run: bool, doco_config: DocoConfig):
     if dry_run:
         rich.print(rich.tree.Tree(str(format_cmd_line(cmd))))
     else:
-        tree = rich.tree.Tree(f"[b]Services[/]")
+        tree = rich.tree.Tree(f"[b]{Formatted(doco_config.backup.rsync.root)}[/]")
         files = sorted([file for file in file_list if file != '.'])
         for i, file in enumerate(files):
             tree.add(f"[yellow]{Formatted(file)}[/]")
@@ -25,7 +25,8 @@ def list_backups(project_name: str, dry_run: bool, doco_config: DocoConfig):
     if dry_run:
         rich.print(rich.tree.Tree(str(format_cmd_line(cmd))))
     else:
-        tree = rich.tree.Tree(f"[b]{Formatted(project_name)}[/]")
+        tree = rich.tree.Tree(
+            f"[dim]{Formatted(doco_config.backup.rsync.root)}/[/][b]{Formatted(project_name)}[/]")
         files = sorted([file[7:] for file in file_list if file.startswith('backup-')], reverse=True)
         for i, file in enumerate(files):
             tree.add(f"[yellow]{i}[/][dim]:[/] {Formatted(file)}")

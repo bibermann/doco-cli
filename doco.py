@@ -9,7 +9,6 @@ import argcomplete
 
 import commands.backup
 import commands.down
-import commands.get_backup
 import commands.log
 import commands.restart
 import commands.restore
@@ -23,7 +22,6 @@ DOWN_COMMAND = 'd'
 UP_COMMAND = 'u'
 LOG_COMMAND = 'l'
 BACKUP_COMMAND = 'backup'
-GET_BACKUP_COMMAND = 'get-backup'
 RESTORE_COMMAND = 'restore'
 
 
@@ -48,8 +46,6 @@ def main() -> int:
     commands.up.add_to_parser(subparsers.add_parser(UP_COMMAND, help='up'))
     commands.log.add_to_parser(subparsers.add_parser(LOG_COMMAND, help='log'))
     commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
-    commands.get_backup.add_to_parser(
-        subparsers.add_parser(GET_BACKUP_COMMAND, help='get backup for local analysis'))
     commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
 
     argcomplete.autocomplete(main_parser)
@@ -67,8 +63,6 @@ def main() -> int:
         commands.log.main(args)
     elif args.command == BACKUP_COMMAND:
         commands.backup.main(args)
-    elif args.command == GET_BACKUP_COMMAND:
-        commands.get_backup.main(args)
     elif args.command == RESTORE_COMMAND:
         commands.restore.main(args)
 
