@@ -10,6 +10,7 @@ import rich.json
 import rich.panel
 import rich.tree
 
+from utils.backup import BACKUP_CONFIG_JSON
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
@@ -71,10 +72,10 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
 
     backup_config: any = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
-        config_path = os.path.join(tmp_dir, 'config.json')
+        config_path = os.path.join(tmp_dir, BACKUP_CONFIG_JSON)
         run_rsync_download_incremental(project.doco_config.backup.rsync,
-                                       source=f"{options.project_name}/{backup_dir}/config.json",
-                                       destination=os.path.join(tmp_dir, 'config.json'),
+                                       source=f"{options.project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
+                                       destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
                                        dry_run=False)
         with open(config_path, encoding='utf-8') as f:
             backup_config = json.load(f)
@@ -131,7 +132,7 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
 
     if options.dry_run:
         if options.dry_run_verbose:
-            config_group = rich.console.Group('[green]config.json[/]')
+            config_group = rich.console.Group(f"[green]{Formatted(BACKUP_CONFIG_JSON)}[/]")
             backup_dir_node.add(config_group)
 
             config_group.renderables.append(

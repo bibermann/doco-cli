@@ -7,7 +7,7 @@ import sys
 
 import argcomplete
 
-# import bbak_commands.backup
+import bbak_commands.backup
 import bbak_commands.get_backup
 import bbak_commands.list
 from utils.doco_config import load_doco_config
@@ -31,7 +31,7 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest='command')
 
     bbak_commands.list.add_to_parser(subparsers.add_parser(LIST_COMMAND, help='list'))
-    # bbak_commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
+    bbak_commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
     bbak_commands.get_backup.add_to_parser(
         subparsers.add_parser(GET_BACKUP_COMMAND, help='get backup for local analysis'))
     # bbak_commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
@@ -53,8 +53,8 @@ def main() -> int:
 
     if args.command == LIST_COMMAND:
         bbak_commands.list.main(args, doco_config)
-    # elif args.command == BACKUP_COMMAND:
-    #     bbak_commands.backup.main(args, doco_config)
+    elif args.command == BACKUP_COMMAND:
+        bbak_commands.backup.main(args, doco_config)
     elif args.command == GET_BACKUP_COMMAND:
         bbak_commands.get_backup.main(args, doco_config)
     # elif args.command == RESTORE_COMMAND:

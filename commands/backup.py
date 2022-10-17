@@ -14,6 +14,7 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
+from utils.backup import BACKUP_CONFIG_JSON
 from utils.backup import BackupJob
 from utils.backup import create_target_structure
 from utils.backup import do_backup_content
@@ -32,7 +33,6 @@ from utils.compose_rich import rich_run_compose
 from utils.rich import Formatted
 from utils.rsync import RsyncConfig
 
-BACKUP_CONFIG_JSON = 'config.json'
 COMPOSE_CONFIG_YAML = 'compose.yaml'
 
 

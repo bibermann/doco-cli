@@ -12,6 +12,7 @@ from utils.rsync import RsyncConfig
 from utils.rsync import run_rsync_backup_with_hardlinks
 from utils.rsync import run_rsync_without_delete
 
+BACKUP_CONFIG_JSON = 'config.json'
 LAST_BACKUP_DIR_FILENAME = '.last-backup-dir'
 
 
@@ -58,8 +59,8 @@ class BackupJob:
         self.rsync_target_path = target_path + ('/' if self.is_dir else '')
 
 
-def load_last_backup_directory(project_dir: str) -> t.Optional[str]:
-    path = os.path.join(project_dir, LAST_BACKUP_DIR_FILENAME)
+def load_last_backup_directory(project_dir: str, file_name: str = LAST_BACKUP_DIR_FILENAME) -> t.Optional[str]:
+    path = os.path.join(project_dir, file_name)
     if os.path.isfile(path):
         with open(path, encoding='utf-8') as f:
             value = f.readline().strip()
@@ -67,8 +68,8 @@ def load_last_backup_directory(project_dir: str) -> t.Optional[str]:
                 return value
 
 
-def save_last_backup_directory(project_dir: str, value: str) -> None:
-    path = os.path.join(project_dir, LAST_BACKUP_DIR_FILENAME)
+def save_last_backup_directory(project_dir: str, value: str, file_name: str = LAST_BACKUP_DIR_FILENAME) -> None:
+    path = os.path.join(project_dir, file_name)
     with open(path, 'w', encoding='utf-8') as f:
         f.write(value + '\n')
 
