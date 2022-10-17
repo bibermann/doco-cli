@@ -87,6 +87,21 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
 
     tree = rich.tree.Tree(str(project_id))
     backup_dir_node = tree.add(f"[i]Backup directory:[/] [b]{Formatted(backup_dir)}[/]")
+
+    if backup_config.get('backup_tool', '') != 'doco':
+        config_group = rich.console.Group(f"[green]{Formatted(BACKUP_CONFIG_JSON)}[/]")
+        backup_dir_node.add(config_group)
+
+        config_group.renderables.append(
+            rich.panel.Panel(rich.json.JSON(json.dumps(backup_config, indent=4)),
+                             expand=False,
+                             border_style='green')
+        )
+
+        tree.add('[red][b]Error:[/] The config does not look like a doco config.[/]')
+        rich.print(tree)
+        exit(1)
+
     backup_node = tree.add('[i]Backup items[/]')
 
     backup_volumes = list(itertools.chain(*[service.get('backup_volumes', []) for service in

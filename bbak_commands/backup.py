@@ -43,6 +43,7 @@ class BackupConfigTasks(pydantic.BaseModel):
 
 
 class BackupConfig(pydantic.BaseModel):
+    backup_tool: str = 'bbak'
     work_dir: str
     timestamp: datetime.datetime
     backup_dir: str

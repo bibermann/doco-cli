@@ -69,6 +69,7 @@ class BackupConfigTasks(pydantic.BaseModel):
 
 
 class BackupConfig(pydantic.BaseModel):
+    backup_tool: str = 'doco'
     project_path: str
     compose_file: str
     timestamp: datetime.datetime
