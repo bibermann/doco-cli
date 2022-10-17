@@ -10,9 +10,8 @@ import argcomplete
 import bbak_commands.backup
 import bbak_commands.get_backup
 import bbak_commands.list
+import bbak_commands.restore
 from utils.doco_config import load_doco_config
-
-# import bbak_commands.restore
 
 LIST_COMMAND = 'ls'
 BACKUP_COMMAND = 'backup'
@@ -34,7 +33,7 @@ def main() -> int:
     bbak_commands.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
     bbak_commands.get_backup.add_to_parser(
         subparsers.add_parser(GET_BACKUP_COMMAND, help='get backup for local analysis'))
-    # bbak_commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
+    bbak_commands.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
 
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
@@ -57,8 +56,8 @@ def main() -> int:
         bbak_commands.backup.main(args, doco_config)
     elif args.command == GET_BACKUP_COMMAND:
         bbak_commands.get_backup.main(args, doco_config)
-    # elif args.command == RESTORE_COMMAND:
-    #     bbak_commands.restore.main(args, doco_config)
+    elif args.command == RESTORE_COMMAND:
+        bbak_commands.restore.main(args, doco_config)
 
     return 0
 
