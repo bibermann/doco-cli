@@ -50,7 +50,7 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 
 def main(args, doco_config: DocoConfig) -> int:
-    if not (os.geteuid() == 0):
+    if not (args.dry_run or os.geteuid() == 0):
         exit("You need to have root privileges to load a backup.\n"
              "Please try again, this time using 'sudo'. Exiting.")
 
