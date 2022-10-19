@@ -109,7 +109,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
 
     # Schedule paths
     for path in options.paths:
-        job = BackupJob(source_path=path,
+        job = BackupJob(source_path=os.path.abspath(path),
                         target_path=os.path.join('files', dir_from_path(os.path.abspath(path))),
                         project_dir=options.workdir,
                         check_is_dir=True)
@@ -137,7 +137,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
 
 
 def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('paths', nargs='+', help='paths to backup')
+    parser.add_argument('paths', nargs='+', help='paths to backup (not relative to --workdir but to the caller\'s CWD)')
     parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually backup, only show what would be done')
