@@ -15,12 +15,13 @@ from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
-from utils.restore import create_target_structure
-from utils.restore import do_restore_job
+from utils.restore_rich import create_target_structure
+from utils.restore_rich import do_restore_job
 from utils.restore import get_backup_directory
 from utils.restore import RestoreJob
 from utils.restore_rich import list_backups
 from utils.rich import Formatted
+from utils.rich import rich_print_cmd
 from utils.rsync import run_rsync_download_incremental
 
 
@@ -66,7 +67,8 @@ def do_restore(project: ComposeProject, options: RestoreOptions, config: Restore
 def restore_project(project: ComposeProject, options: RestoreOptions):
     backup_dir = get_backup_directory(project.doco_config.backup.rsync,
                                       project_name=options.project_name,
-                                      backup_id=options.backup)
+                                      backup_id=options.backup,
+                                      print_cmd_callback=rich_print_cmd)
 
     backup_config: any = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -74,7 +76,8 @@ def restore_project(project: ComposeProject, options: RestoreOptions):
         run_rsync_download_incremental(project.doco_config.backup.rsync,
                                        source=f"{options.project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
                                        destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
-                                       dry_run=False)
+                                       dry_run=False,
+                                       print_cmd_callback=rich_print_cmd)
         with open(config_path, encoding='utf-8') as f:
             backup_config = json.load(f)
 

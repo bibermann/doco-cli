@@ -9,6 +9,7 @@ import rich.tree
 from utils.doco_config import DocoConfig
 from utils.restore import get_backup_directory
 from utils.rich import format_cmd_line
+from utils.rich import rich_print_cmd
 from utils.rsync import run_rsync_download_incremental
 
 
@@ -23,7 +24,8 @@ class DownloadOptions:
 def download_backup(options: DownloadOptions, doco_config: DocoConfig):
     backup_dir = get_backup_directory(doco_config.backup.rsync,
                                       project_name=options.project_name,
-                                      backup_id=options.backup)
+                                      backup_id=options.backup,
+                                      print_cmd_callback=rich_print_cmd)
 
     if not options.dry_run and os.path.exists(options.destination):
         if not os.path.isdir(options.destination):
@@ -37,10 +39,13 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
     cmd = run_rsync_download_incremental(doco_config.backup.rsync,
                                          source=f"{options.project_name}/{backup_dir}/",
                                          destination=f"{options.destination}/",
-                                         dry_run=options.dry_run)
+                                         dry_run=options.dry_run,
+                                         print_cmd_callback=rich_print_cmd)
 
     if options.dry_run:
-        rich.print(rich.tree.Tree(str(format_cmd_line(cmd))))
+        run_node = rich.tree.Tree('[i]Would run[/]')
+        run_node.add(str(format_cmd_line(cmd)))
+        rich.print(run_node)
 
 
 def add_to_parser(parser: argparse.ArgumentParser):

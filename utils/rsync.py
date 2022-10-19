@@ -3,6 +3,9 @@ import typing as t
 
 import pydantic
 
+from utils.common import print_cmd
+from utils.common import PrintCmdCallable
+
 
 class RsyncConfig(pydantic.BaseModel):
     rsh: t.Optional[str] = None
@@ -67,6 +70,7 @@ class RsyncListOptions(RsyncBaseOptions):
 def run_rsync_without_delete(
     config: RsyncConfig, source: str, destination: str,
     dry_run: bool = False,
+    print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=False)
     cmd = [
@@ -76,7 +80,7 @@ def run_rsync_without_delete(
         f"{opt.HOST}::{opt.MODULE}{opt.ROOT}/{destination}",
     ]
     if not dry_run:
-        print(f"Running {cmd}")
+        print_cmd_callback(cmd, None)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -84,6 +88,7 @@ def run_rsync_without_delete(
 def run_rsync_backup_incremental(
     config: RsyncConfig, source: str, destination: str, backup_dir: str,
     dry_run: bool = False,
+    print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
@@ -94,7 +99,7 @@ def run_rsync_backup_incremental(
         f"{opt.HOST}::{opt.MODULE}{opt.ROOT}/{destination}",
     ]
     if not dry_run:
-        print(f"Running {cmd}")
+        print_cmd_callback(cmd, None)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -103,6 +108,7 @@ def run_rsync_backup_with_hardlinks(
     config: RsyncConfig,
     source: str, new_backup: str, old_backup_dirs: list[str],
     dry_run: bool = False,
+    print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     for old_backup_dir in old_backup_dirs:
@@ -114,7 +120,7 @@ def run_rsync_backup_with_hardlinks(
         f"{opt.HOST}::{opt.MODULE}{opt.ROOT}/{new_backup}",
     ]
     if not dry_run:
-        print(f"Running {cmd}")
+        print_cmd_callback(cmd, None)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -122,6 +128,7 @@ def run_rsync_backup_with_hardlinks(
 def run_rsync_download_incremental(
     config: RsyncConfig, source: str, destination: str,
     dry_run: bool = False,
+    print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
@@ -131,7 +138,7 @@ def run_rsync_download_incremental(
         destination,
     ]
     if not dry_run:
-        print(f"Running {cmd}")
+        print_cmd_callback(cmd, None)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -140,6 +147,7 @@ def run_rsync_list(
     config: RsyncConfig,
     target: str,
     dry_run: bool = False,
+    print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> t.Tuple[list[str], list[str]]:
     opt = RsyncListOptions(config=config)
     cmd = [
@@ -149,7 +157,7 @@ def run_rsync_list(
     ]
     file_list = []
     if not dry_run:
-        print(f"Running {cmd}")
+        print_cmd_callback(cmd, None)
         result = subprocess.run(
             cmd,
             capture_output=True,

@@ -14,6 +14,7 @@ from utils.doco_config import DocoConfig
 from utils.doco_config import load_doco_config
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
+from utils.rich import rich_print_cmd
 
 
 @dataclasses.dataclass
@@ -82,5 +83,6 @@ def rich_run_compose(project_dir, project_file, command: list[str], dry_run: boo
         command=command,
         dry_run=dry_run,
         cancelable=cancelable,
+        print_cmd_callback=rich_print_cmd,
     )
     rich_node.add(str(format_cmd_line(cmd)))

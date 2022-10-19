@@ -34,3 +34,10 @@ def format_cmd_line(cmd: list[str]) -> Formatted:
         if cmdline.startswith(f"[dim]{program} "):
             cmdline = f"[dark_orange]{program}[/][dim]" + cmdline[5 + len(program):]
     return Formatted(cmdline, True)
+
+
+def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
+    if cwd:
+        rich.print(rich.tree.Tree(f"[i]Running in [/]{cwd}[i]:[/] {format_cmd_line(cmd)}"))
+    else:
+        rich.print(rich.tree.Tree(f"[i]Running:[/] {format_cmd_line(cmd)}"))

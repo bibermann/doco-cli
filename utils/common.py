@@ -1,6 +1,9 @@
 import os
-
+import typing as t
 import dotenv
+
+
+PrintCmdCallable = t.Callable[[list[str], t.Optional[str]], None]
 
 
 def load_env_file():
@@ -34,3 +37,10 @@ def relative_path_if_below(path: str, base: str = os.getcwd()) -> str:
             return './' + relpath
         else:
             return relpath
+
+
+def print_cmd(cmd: list[str], cwd: t.Optional[str])->None:
+    if cwd:
+        print(f"Running {cmd} in {cwd}")
+    else:
+        print(f"Running {cmd}")

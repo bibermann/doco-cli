@@ -5,6 +5,8 @@ import typing as t
 
 import yaml
 
+from utils.common import print_cmd
+from utils.common import PrintCmdCallable
 from utils.common import relative_path_if_below
 
 
@@ -33,13 +35,14 @@ def load_compose_ps(cwd: str, file: str) -> t.Mapping[str, any]:
 
 
 def run_compose(project_dir, project_file, command: list[str], dry_run: bool = False,
-                cancelable: bool = False):
+                cancelable: bool = False,
+                print_cmd_callback: PrintCmdCallable = print_cmd):
     cmd = [
         'docker', 'compose', '-f', project_file,
         *command,
     ]
     if not dry_run:
-        print(f"Running {cmd} in {project_dir}")
+        print_cmd_callback(cmd, project_dir)
         try:
             subprocess.run(cmd, cwd=project_dir, check=True)
         except KeyboardInterrupt:

@@ -2,13 +2,11 @@ import dataclasses
 import os
 import typing as t
 
-import rich.tree
-
+from utils.common import print_cmd
+from utils.common import PrintCmdCallable
 from utils.common import relative_path
 from utils.common import relative_path_if_below
-from utils.rich import format_cmd_line
 from utils.rsync import RsyncConfig
-from utils.rsync import run_rsync_download_incremental
 from utils.rsync import run_rsync_list
 
 
@@ -50,50 +48,14 @@ class RestoreJob:
         self.rsync_source_path = source_path
 
 
-def do_restore_job(
-    rsync_config: RsyncConfig,
-    job: RestoreJob, dry_run: bool,
-    rich_node: rich.tree.Tree
-):
-    cmd = run_rsync_download_incremental(
-        config=rsync_config,
-        source=job.rsync_source_path,
-        destination=job.rsync_target_path,
-        dry_run=dry_run
-    )
-    rich_node.add(str(format_cmd_line(cmd)))
-
-
-def create_target_structure(
-    jobs: t.Iterable[RestoreJob], dry_run: bool,
-    rich_node: rich.tree.Tree
-):
-    """Create target directory structure at local machine
-
-    Required as long as (remote?) rsync does not implement --mkpath
-    """
-
-    paths = set(
-        os.path.dirname(os.path.normpath(job.absolute_target_path))
-        for job in jobs
-    )
-    leafs = [leaf for leaf in paths if
-             leaf != '' and next((path for path in paths if path.startswith(f"{leaf}/")), None) is None]
-
-    for leaf in leafs:
-        if not os.path.isdir(leaf):
-            if os.path.exists(leaf):
-                raise RuntimeError(f"Error: {leaf} was assumed to be a directory.")
-            if not dry_run:
-                os.makedirs(leaf)
-            else:
-                rich_node.add(f"[dim]Create directory[/] {leaf}")
-
-
-def get_backup_directory(rsync_config: RsyncConfig, project_name: str, backup_id: str) -> str:
+def get_backup_directory(
+    rsync_config: RsyncConfig, project_name: str, backup_id: str,
+    print_cmd_callback: PrintCmdCallable = print_cmd,
+) -> str:
     if backup_id.isnumeric():
         _, file_list = run_rsync_list(rsync_config, target=f"{project_name}/",
-                                      dry_run=False)
+                                      dry_run=False,
+                                      print_cmd_callback=print_cmd_callback)
         return sorted(
             [file for file in file_list if file.startswith('backup-')], reverse=True
         )[int(backup_id)]
