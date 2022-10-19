@@ -14,6 +14,7 @@ import doco_cmd.restart
 import doco_cmd.restore
 import doco_cmd.status
 import doco_cmd.up
+from completers import ComposeProjectCompleter
 from utils.system import get_user_groups
 
 STATUS_COMMAND = 's'
@@ -34,7 +35,8 @@ def main() -> int:
     parser = main_parser
 
     parser.add_argument('projects', nargs='*', default=['.'],
-                        help='compose files and/or directories containing a docker-compose.y[a]ml')
+                        help='compose files and/or directories containing a docker-compose.y[a]ml'
+                        ).completer = ComposeProjectCompleter()
     parser.add_argument('--running', action='store_true',
                         help='consider only projects with at least one running or restarting service')
 

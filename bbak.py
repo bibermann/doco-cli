@@ -6,6 +6,7 @@ import os
 import sys
 
 import argcomplete
+from argcomplete.completers import DirectoriesCompleter
 
 import bbak_cmd.backup
 import bbak_cmd.get_backup
@@ -23,7 +24,8 @@ def main() -> int:
     main_parser = argparse.ArgumentParser()
     parser = main_parser
 
-    parser.add_argument('-w', '--workdir', default='.', help='change working directory')
+    parser.add_argument('-w', '--workdir', default='.', help='change working directory'
+                        ).completer = DirectoriesCompleter()
     parser.add_argument('-r', '--root', nargs='?', help='change root')
     parser.add_argument('-p', '--project', nargs='?', help='target project to retrieve backups from')
 
