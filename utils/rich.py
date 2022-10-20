@@ -10,6 +10,8 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
+from utils.common import relative_path_if_below
+
 
 class Formatted:
     def __init__(self, text: t.Union[str, 'Formatted'], already_formatted: bool = False):
@@ -38,6 +40,6 @@ def format_cmd_line(cmd: list[str]) -> Formatted:
 
 def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
     if cwd:
-        rich.print(rich.tree.Tree(f"[i]Running in [/]{cwd}[i]:[/] {format_cmd_line(cmd)}"))
+        rich.print(rich.tree.Tree(f"[i]Running[/] {format_cmd_line(cmd)} [i]in[/] [yellow]{relative_path_if_below(cwd)}[/]"))
     else:
-        rich.print(rich.tree.Tree(f"[i]Running:[/] {format_cmd_line(cmd)}"))
+        rich.print(rich.tree.Tree(f"[i]Running[/] {format_cmd_line(cmd)}"))

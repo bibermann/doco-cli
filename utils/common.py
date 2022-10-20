@@ -41,6 +41,6 @@ def relative_path_if_below(path: str, base: str = os.getcwd()) -> str:
 
 def print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
     if cwd:
-        print(f"Running {cmd} in {cwd}")
+        print(f"Running {cmd} in {relative_path_if_below(cwd)}")
     else:
         print(f"Running {cmd}")
