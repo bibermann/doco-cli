@@ -16,12 +16,12 @@ import rich.tree
 
 from utils.backup import BACKUP_CONFIG_JSON
 from utils.backup import BackupJob
-from utils.backup_rich import create_target_structure
-from utils.backup_rich import do_backup_content
-from utils.backup_rich import do_backup_job
 from utils.backup import LAST_BACKUP_DIR_FILENAME
 from utils.backup import load_last_backup_directory
 from utils.backup import save_last_backup_directory
+from utils.backup_rich import create_target_structure
+from utils.backup_rich import do_backup_content
+from utils.backup_rich import do_backup_job
 from utils.backup_rich import format_do_backup
 from utils.backup_rich import format_no_backup
 from utils.common import dir_from_path

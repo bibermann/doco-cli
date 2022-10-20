@@ -10,10 +10,10 @@ import rich.tree
 
 from utils.backup import BACKUP_CONFIG_JSON
 from utils.doco_config import DocoConfig
-from utils.restore_rich import create_target_structure
-from utils.restore_rich import do_restore_job
 from utils.restore import get_backup_directory
 from utils.restore import RestoreJob
+from utils.restore_rich import create_target_structure
+from utils.restore_rich import do_restore_job
 from utils.rich import Formatted
 from utils.rich import rich_print_cmd
 from utils.rsync import run_rsync_download_incremental
@@ -50,7 +50,7 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
                                        source=f"{project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
                                        destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
                                        dry_run=False,
-                                         print_cmd_callback=rich_print_cmd)
+                                       print_cmd_callback=rich_print_cmd)
         with open(config_path, encoding='utf-8') as f:
             backup_config = json.load(f)
 

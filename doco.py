@@ -14,7 +14,7 @@ import doco_cmd.restart
 import doco_cmd.restore
 import doco_cmd.status
 import doco_cmd.up
-from completers import ComposeProjectCompleter
+from utils.completers import ComposeProjectCompleter
 from utils.system import get_user_groups
 
 STATUS_COMMAND = 's'

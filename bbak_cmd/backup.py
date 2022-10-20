@@ -15,12 +15,12 @@ import rich.tree
 
 from utils.backup import BACKUP_CONFIG_JSON
 from utils.backup import BackupJob
-from utils.backup_rich import create_target_structure
-from utils.backup_rich import do_backup_content
-from utils.backup_rich import do_backup_job
 from utils.backup import LAST_BACKUP_DIR_FILENAME
 from utils.backup import load_last_backup_directory
 from utils.backup import save_last_backup_directory
+from utils.backup_rich import create_target_structure
+from utils.backup_rich import do_backup_content
+from utils.backup_rich import do_backup_job
 from utils.backup_rich import format_do_backup
 from utils.common import dir_from_path
 from utils.doco_config import DocoConfig
@@ -137,7 +137,8 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
 
 
 def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('paths', nargs='+', help='paths to backup (not relative to --workdir but to the caller\'s CWD)')
+    parser.add_argument('paths', nargs='+',
+                        help='paths to backup (not relative to --workdir but to the caller\'s CWD)')
     parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually backup, only show what would be done')

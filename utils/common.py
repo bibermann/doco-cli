@@ -1,7 +1,7 @@
 import os
 import typing as t
-import dotenv
 
+import dotenv
 
 PrintCmdCallable = t.Callable[[list[str], t.Optional[str]], None]
 
@@ -39,7 +39,7 @@ def relative_path_if_below(path: str, base: str = os.getcwd()) -> str:
             return relpath
 
 
-def print_cmd(cmd: list[str], cwd: t.Optional[str])->None:
+def print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
     if cwd:
         print(f"Running {cmd} in {cwd}")
     else:

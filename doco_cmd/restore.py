@@ -15,10 +15,10 @@ from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
-from utils.restore_rich import create_target_structure
-from utils.restore_rich import do_restore_job
 from utils.restore import get_backup_directory
 from utils.restore import RestoreJob
+from utils.restore_rich import create_target_structure
+from utils.restore_rich import do_restore_job
 from utils.restore_rich import list_backups
 from utils.rich import Formatted
 from utils.rich import rich_print_cmd
