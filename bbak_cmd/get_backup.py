@@ -5,6 +5,7 @@ import os
 import rich
 import rich.pretty
 import rich.tree
+from argcomplete.completers import DirectoriesCompleter
 
 from utils.doco_config import DocoConfig
 from utils.restore import get_backup_directory
@@ -51,7 +52,8 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
 def add_to_parser(parser: argparse.ArgumentParser):
     parser.add_argument('-b', '--backup', default='0', help='backup index or name, defaults to 0')
     parser.add_argument('-d', '--destination',
-                        help='destination (not relative to --workdir but to the caller\'s CWD), defaults to --project within --workdir')
+                        help='destination (not relative to --workdir but to the caller\'s CWD), defaults to --project within --workdir'
+                        ).completer = DirectoriesCompleter()
     parser.add_argument('-n', '--dry-run', action='store_true',
                         help='do not actually download, only show what would be done')
 
