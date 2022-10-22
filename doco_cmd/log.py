@@ -15,7 +15,7 @@ class Options:
     dry_run: bool
 
 
-def restart_project(project: ComposeProject, options: Options, info: ProjectInfo):
+def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
     rich_run_compose(
         project.dir, project.file,
         command=[
@@ -40,7 +40,7 @@ def main(args) -> int:
         do_project_cmd(
             project=project,
             dry_run=args.dry_run,
-            cmd_task=lambda info: restart_project(project, options=Options(
+            cmd_task=lambda info: log_project(project, options=Options(
                 follow=args.follow,
                 dry_run=args.dry_run,
             ), info=info)
