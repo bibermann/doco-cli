@@ -12,7 +12,6 @@ from utils.doco import ProjectInfo
 @dataclasses.dataclass
 class Options:
     follow: bool
-    dry_run: bool
 
 
 def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
@@ -22,19 +21,17 @@ def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
             'logs',
             *(['-f'] if options.follow else []),
         ],
-        dry_run=options.dry_run, rich_node=info.run_node, cancelable=options.follow,
+        dry_run=False, rich_node=info.run_node, cancelable=options.follow,
     )
 
 
 def add_to_parser(parser: argparse.ArgumentParser):
     parser.add_argument('-f', '--follow', action='store_true', help='follow (adds -f)')
-    parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually call log, only show what would be done')
 
 
 def main(args) -> int:
     for project in get_compose_projects(args.projects, ProjectSearchOptions(
-        print_compose_errors=args.dry_run,
+        print_compose_errors=False,
         only_running=args.running,
     )):
         do_project_cmd(
@@ -42,7 +39,6 @@ def main(args) -> int:
             dry_run=args.dry_run,
             cmd_task=lambda info: log_project(project, options=Options(
                 follow=args.follow,
-                dry_run=args.dry_run,
             ), info=info)
         )
 

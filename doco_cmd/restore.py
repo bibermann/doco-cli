@@ -203,7 +203,6 @@ def main(args) -> int:
     if args.list:
         for project in projects:
             list_backups(project_name=get_project_name(args.project, project),
-                         dry_run=args.dry_run,
                          doco_config=project.doco_config)
     else:
         for project in projects:
