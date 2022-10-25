@@ -11,8 +11,8 @@ def add_to_parser(parser: argparse.ArgumentParser):
 
 def main(args, doco_config: DocoConfig) -> int:
     if args.project is None:
-        list_projects(dry_run=False, doco_config=doco_config)
+        list_projects(doco_config=doco_config)
     else:
-        list_backups(project_name=args.project, dry_run=False, doco_config=doco_config)
+        list_backups(project_name=args.project, doco_config=doco_config)
 
     return 0

@@ -36,7 +36,7 @@ def main(args) -> int:
     )):
         do_project_cmd(
             project=project,
-            dry_run=args.dry_run,
+            dry_run=False,
             cmd_task=lambda info: log_project(project, options=Options(
                 follow=args.follow,
             ), info=info)
