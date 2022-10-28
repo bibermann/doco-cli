@@ -28,7 +28,7 @@ from utils.rich import Formatted
 from utils.rich import rich_print_cmd
 from utils.rsync import RsyncConfig
 from utils.rsync import run_rsync_download_incremental
-from utils.validators import project_id_callback
+from utils.validators import project_name_callback
 
 
 @dataclasses.dataclass
@@ -175,11 +175,11 @@ def get_project_name(project_name: t.Optional[str], project: ComposeProject) -> 
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    project_id: t.Optional[str] = typer.Option(None, '-p', '--project',
-                                               callback=project_id_callback,
-                                               help='Target projects to retrieve backups from; using directory name if empty.'),
+    name: t.Optional[str] = typer.Option(None,
+                                         callback=project_name_callback,
+                                         help='Override project name. Using directory name if not given.'),
     do_list: bool = typer.Option(False, '-l', '--list',
-                                 help='List backups.'),
+                                 help='List backups instead of restoring a backup.'),
     backup: str = typer.Option('0', '--backup', '-b',
                                help='Backup index or name.'),
     verbose: bool = typer.Option(False, '--verbose',
@@ -201,7 +201,7 @@ def main(
         allow_empty=True,
     )))
 
-    if project_id is not None and len(projects) != 1:
+    if name is not None and len(projects) != 1:
         raise DocoError(
             "You cannot specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' when restoring more than one project.",
             formatted=True)

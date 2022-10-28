@@ -30,6 +30,7 @@ from utils.doco_config import DocoConfig
 from utils.exceptions_rich import DocoError
 from utils.rich import Formatted
 from utils.rsync import RsyncConfig
+from utils.validators import project_name_callback
 
 
 @dataclasses.dataclass
@@ -142,6 +143,9 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
 
 def main(
     ctx: typer.Context,
+    project: str = typer.Argument(...,
+                                  callback=project_name_callback,
+                                  help='Target project to write backups to.'),
     paths: list[pathlib.Path] = typer.Argument(...,
                                                autocompletion=PathCompleter().__call__, exists=True,
                                                help='Paths to backup (not relative to --workdir but to the caller\'s CWD).',
@@ -161,19 +165,13 @@ def main(
         raise DocoError("You need to have root privileges to do a backup.\n"
                         "Please try again, this time using 'sudo'.")
 
-    if obj.project_id is None:
-        raise DocoError(
-            "You must specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' before the '[b bright_cyan]backup[/]' command.",
-            formatted=True,
-        )
-
     if obj.doco_config.backup.rsync.host == '' or obj.doco_config.backup.rsync.module == '':
         raise DocoError("You need to configure rsync to get a backup.\n"
                         "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
                         "Please see documentation for 'doco.config.json'.", formatted=True)
 
     backup_files(
-        project_name=obj.project_id,
+        project_name=project,
         options=BackupOptions(
             workdir=obj.workdir,
             paths=list(map(str, paths)),

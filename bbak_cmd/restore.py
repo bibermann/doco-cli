@@ -19,6 +19,7 @@ from utils.restore_rich import do_restore_job
 from utils.rich import Formatted
 from utils.rich import rich_print_cmd
 from utils.rsync import run_rsync_download_incremental
+from utils.validators import project_name_callback
 
 
 @dataclasses.dataclass
@@ -113,6 +114,9 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
 
 def main(
     ctx: typer.Context,
+    project: str = typer.Argument(...,
+                                  callback=project_name_callback,
+                                  help='Source project to retrieve backups from.'),
     backup: str = typer.Option('0', '--backup', '-b',
                                help='Backup index or name.'),
     verbose: bool = typer.Option(False, '--verbose',
@@ -131,19 +135,13 @@ def main(
         raise DocoError("You need to have root privileges to restore a backup.\n"
                         "Please try again, this time using 'sudo'.")
 
-    if obj.project_id is None:
-        raise DocoError(
-            "You must specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' before the '[b bright_cyan]restore[/]' command.",
-            formatted=True,
-        )
-
     if obj.doco_config.backup.rsync.host == '' or obj.doco_config.backup.rsync.module == '':
         raise DocoError("You need to configure rsync to get a backup.\n"
                         "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
                         "Please see documentation for 'doco.config.json'.", formatted=True)
 
     restore_files(
-        project_name=obj.project_id,
+        project_name=project,
         options=RestoreOptions(
             workdir=obj.workdir,
             backup=backup,

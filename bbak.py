@@ -13,7 +13,6 @@ import bbak_cmd.restore
 from utils.bbak import BbakContextObject
 from utils.completers import DirectoryCompleter
 from utils.doco_config import load_doco_config
-from utils.validators import project_id_callback
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
@@ -42,9 +41,6 @@ def main(
                                          help='Change working directory.'),
     root: t.Optional[str] = typer.Option(None, '--root', '-r',
                                          help='Change root.'),
-    project_id: t.Optional[str] = typer.Option(None, '--project', '-p',
-                                               callback=project_id_callback,
-                                               help='Target project to retrieve backups from.'),
 ):
     """
     [b]bbak[/] ([b]b[/]iber [b]ba[/]c[b]k[/]up tool) is a command line tool for listing and downloading (not restoring) backups created by [i]doco[/].
@@ -56,7 +52,7 @@ def main(
         doco_config.backup.rsync.root = \
             os.path.normpath(os.path.join(doco_config.backup.rsync.root, root))
 
-    ctx.obj = BbakContextObject(workdir=str(workdir), project_id=project_id, doco_config=doco_config)
+    ctx.obj = BbakContextObject(workdir=str(workdir), doco_config=doco_config)
 
 
 if __name__ == "__main__":

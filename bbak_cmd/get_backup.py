@@ -16,6 +16,7 @@ from utils.restore import get_backup_directory
 from utils.rich import format_cmd_line
 from utils.rich import rich_print_cmd
 from utils.rsync import run_rsync_download_incremental
+from utils.validators import project_name_callback
 
 
 @dataclasses.dataclass
@@ -52,6 +53,9 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
 
 def main(
     ctx: typer.Context,
+    project: str = typer.Argument(...,
+                                  callback=project_name_callback,
+                                  help='Source project to retrieve backups from.'),
     backup: str = typer.Option('0', '--backup', '-b',
                                help='Backup index or name.'),
     destination: t.Optional[pathlib.Path] = typer.Option(None, '--destination', '-d',
@@ -71,12 +75,6 @@ def main(
         raise DocoError("You need to have root privileges to load a backup.\n"
                         "Please try again, this time using 'sudo'.")
 
-    if obj.project_id is None:
-        raise DocoError(
-            "You must specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' before the '[b bright_cyan]get[/]' command.",
-            formatted=True,
-        )
-
     if obj.doco_config.backup.rsync.host == '' or obj.doco_config.backup.rsync.module == '':
         raise DocoError("You need to configure rsync to get a backup.\n"
                         "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
@@ -84,11 +82,11 @@ def main(
 
     download_backup(
         DownloadOptions(
-            project_name=obj.project_id,
+            project_name=project,
             backup=backup,
             destination=os.path.normpath(
                 str(destination) if destination is not None
-                else os.path.join(obj.workdir, obj.project_id)
+                else os.path.join(obj.workdir, project)
             ),
             dry_run=dry_run,
         ),
