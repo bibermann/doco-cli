@@ -1,7 +1,7 @@
-import argparse
 import dataclasses
 import datetime
 import os
+import pathlib
 import re
 import typing as t
 
@@ -13,6 +13,7 @@ import rich.markup
 import rich.panel
 import rich.pretty
 import rich.tree
+import typer
 
 from utils.backup import BACKUP_CONFIG_JSON
 from utils.backup import BackupJob
@@ -24,12 +25,15 @@ from utils.backup_rich import do_backup_content
 from utils.backup_rich import do_backup_job
 from utils.backup_rich import format_do_backup
 from utils.backup_rich import format_no_backup
+from utils.cli import PROJECTS_ARGUMENT
+from utils.cli import RUNNING_OPTION
 from utils.common import dir_from_path
 from utils.common import relative_path_if_below
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
+from utils.exceptions_rich import DocoError
 from utils.rich import Formatted
 from utils.rsync import RsyncConfig
 
@@ -257,41 +261,64 @@ def backup_project(project: ComposeProject, options: BackupOptions):
         rich.print(tree)
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-e', '--exclude-project-dir', action='store_true', help='exclude project directory')
-    parser.add_argument('-r', '--include-ro', action='store_true',
-                        help='also consider read-only volumes')
-    parser.add_argument('-v', '--volume', action='append',
-                        default=[r'^(?!/(bin|boot|dev|etc|lib\w*|proc|run|sbin|sys|tmp|usr|var)/)'],
-                        help='regex for volume selection, can be specified multiple times, '
-                             'defaults to exclude many system directories, '
-                             'use -v \'(?!)\' to exclude all volumes, '
-                             'use -v ^/path/ to only allow specified paths')
-    parser.add_argument('--live', action='store_true', help='do not stop the services before backup')
-    parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
-    parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually backup, only show what would be done')
+def volumes_callback(ctx: typer.Context, volumes: list[str]) -> list[str]:
+    if ctx.resilient_parsing:
+        return volumes
+    try:
+        [re.compile(pattern) for pattern in volumes]
+    except re.error as e:
+        raise typer.BadParameter(f"Invalid regex pattern '{e.pattern}': {e}")
+    return volumes
 
 
-def main(args) -> int:
-    if not (args.dry_run or os.geteuid() == 0):
-        exit("You need to have root privileges to do a backup.\n"
-             "Please try again, this time using 'sudo'. Exiting.")
+def main(
+    projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    running: bool = RUNNING_OPTION,
+    exclude_project_dir: bool = typer.Option(False, '-e', '--exclude-project-dir',
+                                             help='Exclude project directory.'),
+    include_ro: bool = typer.Option(False, '-r', '--include-ro',
+                                    help='Also consider read-only volumes.'),
+    volume: list[str] = typer.Option([r'^(?!/(bin|boot|dev|etc|lib\w*|proc|run|sbin|sys|tmp|usr|var)/)'],
+                                     '--volume', '-v',
+                                     callback=volumes_callback,
+                                     help='Regex for volume selection, can be specified multiple times. '
+                                          'Use -v [b yellow]\'(?!)\'[/] to exclude all volumes. '
+                                          'Use -v [b yellow]^/path/[/] to only allow specified paths. '
+                                          '[d]\[default: (exclude many system directories)][/]',
+                                     show_default=False),
+    live: bool = typer.Option(False, '--live',
+                              help='Do not stop the services before backup.'),
+    verbose: bool = typer.Option(False, '--verbose',
+                                 help='Print more details if --dry-run.'),
+    dry_run: bool = typer.Option(False, '--dry-run', '-n',
+                                 help='Do not actually backup, only show what would be done.'),
+):
+    """
+    Backup [i]docker compose[/] projects.
+    """
 
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(
-        print_compose_errors=args.dry_run,
-        only_running=args.running,
+    if not (dry_run or os.geteuid() == 0):
+        raise DocoError("You need to have root privileges to do a backup.\n"
+                        "Please try again, this time using 'sudo'.")
+
+    def check_rsync_config(rsync_config: RsyncConfig):
+        if rsync_config.host == '' or rsync_config.module == '':
+            raise DocoError("You need to configure rsync to get a backup.\n"
+                            "Please see documentation for 'doco.config.json'.")
+
+    for project in get_compose_projects(projects, ProjectSearchOptions(
+        print_compose_errors=dry_run,
+        only_running=running,
     )):
+        check_rsync_config(project.doco_config.backup.rsync)
         backup_project(
             project=project,
             options=BackupOptions(
-                include_project_dir=not args.exclude_project_dir,
-                include_read_only_volumes=args.include_ro,
-                volumes=args.volume,
-                live=args.live,
-                dry_run=args.dry_run,
-                dry_run_verbose=args.verbose,
+                include_project_dir=not exclude_project_dir,
+                include_read_only_volumes=include_ro,
+                volumes=volume,
+                live=live,
+                dry_run=dry_run,
+                dry_run_verbose=verbose,
             )
         )
-
-    return 0

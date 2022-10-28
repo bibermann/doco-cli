@@ -1,6 +1,10 @@
-import argparse
 import dataclasses
+import pathlib
 
+import typer
+
+from utils.cli import PROJECTS_ARGUMENT
+from utils.cli import RUNNING_OPTION
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
@@ -25,21 +29,24 @@ def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
     )
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-f', '--follow', action='store_true', help='follow (adds -f)')
+def main(
+    projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    running: bool = RUNNING_OPTION,
+    follow: bool = typer.Option(False, '--follow', '-f',
+                                help='Follow (adds -f).'),
+):
+    """
+    Print logs of [i]docker compose[/] projects.
+    """
 
-
-def main(args) -> int:
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(
+    for project in get_compose_projects(projects, ProjectSearchOptions(
         print_compose_errors=False,
-        only_running=args.running,
+        only_running=running,
     )):
         do_project_cmd(
             project=project,
             dry_run=False,
             cmd_task=lambda info: log_project(project, options=Options(
-                follow=args.follow,
+                follow=follow,
             ), info=info)
         )
-
-    return 0

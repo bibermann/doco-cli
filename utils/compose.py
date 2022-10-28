@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import subprocess
 import typing as t
 
@@ -53,9 +54,9 @@ def run_compose(project_dir, project_file, command: list[str], dry_run: bool = F
 
 
 def find_compose_projects(
-    paths: t.Iterable[str], allow_empty: bool
+    paths: t.Iterable[pathlib.Path], allow_empty: bool
 ) -> t.Generator[t.Tuple[str, str], None, None]:
-    for project in paths:
+    for project in map(str, paths):
         project_dir = None
         project_file = None
         if os.path.isfile(project) and 'docker-compose' in project and (

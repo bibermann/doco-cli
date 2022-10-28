@@ -1,7 +1,7 @@
-import argparse
 import dataclasses
 import datetime
 import os
+import pathlib
 import typing as t
 
 import pydantic
@@ -12,6 +12,7 @@ import rich.markup
 import rich.panel
 import rich.pretty
 import rich.tree
+import typer
 
 from utils.backup import BACKUP_CONFIG_JSON
 from utils.backup import BackupJob
@@ -22,8 +23,11 @@ from utils.backup_rich import create_target_structure
 from utils.backup_rich import do_backup_content
 from utils.backup_rich import do_backup_job
 from utils.backup_rich import format_do_backup
+from utils.bbak import BbakContextObject
 from utils.common import dir_from_path
+from utils.completers import PathCompleter
 from utils.doco_config import DocoConfig
+from utils.exceptions_rich import DocoError
 from utils.rich import Formatted
 from utils.rsync import RsyncConfig
 
@@ -136,32 +140,45 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
         rich.print(tree)
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('paths', nargs='+',
-                        help='paths to backup (not relative to --workdir but to the caller\'s CWD)')
-    parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
-    parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually backup, only show what would be done')
+def main(
+    ctx: typer.Context,
+    paths: list[pathlib.Path] = typer.Argument(...,
+                                               autocompletion=PathCompleter().__call__, exists=True,
+                                               help='Paths to backup (not relative to --workdir but to the caller\'s CWD).',
+                                               show_default=False),
+    verbose: bool = typer.Option(False, '--verbose',
+                                 help='Print more details if --dry-run.'),
+    dry_run: bool = typer.Option(False, '--dry-run', '-n',
+                                 help='Do not actually backup, only show what would be done.'),
+):
+    """
+    Backup files and directories.
+    """
 
+    obj: BbakContextObject = ctx.obj
 
-def main(args, doco_config: DocoConfig) -> int:
-    if not (args.dry_run or os.geteuid() == 0):
-        exit("You need to have root privileges to do a backup.\n"
-             "Please try again, this time using 'sudo'. Exiting.")
+    if not (dry_run or os.geteuid() == 0):
+        raise DocoError("You need to have root privileges to do a backup.\n"
+                        "Please try again, this time using 'sudo'.")
 
-    if args.project is None:
-        exit("You must specify --project for 'backup' command.\n"
-             "Exiting.")
+    if obj.project_id is None:
+        raise DocoError(
+            "You must specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' before the '[b bright_cyan]backup[/]' command.",
+            formatted=True,
+        )
+
+    if obj.doco_config.backup.rsync.host == '' or obj.doco_config.backup.rsync.module == '':
+        raise DocoError("You need to configure rsync to get a backup.\n"
+                        "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
+                        "Please see documentation for 'doco.config.json'.", formatted=True)
 
     backup_files(
-        project_name=args.project,
+        project_name=obj.project_id,
         options=BackupOptions(
-            workdir=args.workdir,
-            paths=args.paths,
-            dry_run=args.dry_run,
-            dry_run_verbose=args.verbose,
+            workdir=obj.workdir,
+            paths=list(map(str, paths)),
+            dry_run=dry_run,
+            dry_run_verbose=verbose,
         ),
-        doco_config=doco_config,
+        doco_config=obj.doco_config,
     )
-
-    return 0

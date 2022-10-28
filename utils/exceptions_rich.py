@@ -1,0 +1,11 @@
+import rich.panel
+import typer
+
+from utils.rich import Formatted
+
+
+class DocoError(Exception):
+    def __init__(self, message: str, formatted: bool = False):
+        rich.print(rich.panel.Panel(str(Formatted(message)) if not formatted else message,
+                                    title='Error', title_align='left', border_style='red'))
+        raise typer.Exit(1)

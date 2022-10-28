@@ -1,13 +1,17 @@
-import argparse
 import dataclasses
 import os
+import pathlib
+import typing as t
 
 import rich
 import rich.pretty
 import rich.tree
-from argcomplete.completers import DirectoriesCompleter
+import typer
 
+from utils.bbak import BbakContextObject
+from utils.completers import DirectoryCompleter
 from utils.doco_config import DocoConfig
+from utils.exceptions_rich import DocoError
 from utils.restore import get_backup_directory
 from utils.rich import format_cmd_line
 from utils.rich import rich_print_cmd
@@ -29,9 +33,6 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
                                       print_cmd_callback=rich_print_cmd)
 
     if not options.dry_run and os.path.exists(options.destination):
-        if not os.path.isdir(options.destination):
-            exit(f"Destination {options.destination} is not a directory.\n"
-                 "Exiting.")
         answer = input(f"The directory {os.path.abspath(options.destination)} already exists.\n"
                        f"Enter '{options.destination}' to overwrite (files may get deleted): ")
         if answer != options.destination:
@@ -49,35 +50,49 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
         rich.print(run_node)
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-b', '--backup', default='0', help='backup index or name, defaults to 0')
-    parser.add_argument('-d', '--destination',
-                        help='destination (not relative to --workdir but to the caller\'s CWD), defaults to --project within --workdir'
-                        ).completer = DirectoriesCompleter()
-    parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually download, only show what would be done')
+def main(
+    ctx: typer.Context,
+    backup: str = typer.Option('0', '--backup', '-b',
+                               help='Backup index or name.'),
+    destination: t.Optional[pathlib.Path] = typer.Option(None, '--destination', '-d',
+                                                         autocompletion=DirectoryCompleter().__call__,
+                                                         file_okay=False,
+                                                         help='Destination (not relative to --workdir but to the caller\'s CWD), defaults to --project within --workdir.'),
+    dry_run: bool = typer.Option(False, '--dry-run', '-n',
+                                 help='Do not actually download, only show what would be done.'),
+):
+    """
+    Download a backup for local analysis.
+    """
 
+    obj: BbakContextObject = ctx.obj
 
-def main(args, doco_config: DocoConfig) -> int:
-    if not (args.dry_run or os.geteuid() == 0):
-        exit("You need to have root privileges to load a backup.\n"
-             "Please try again, this time using 'sudo'. Exiting.")
+    if not (dry_run or os.geteuid() == 0):
+        raise DocoError("You need to have root privileges to load a backup.\n"
+                        "Please try again, this time using 'sudo'.")
 
-    if args.project is None:
-        exit("You must specify --project for 'get' command.\n"
-             "Exiting.")
+    if obj.project_id is None:
+        raise DocoError(
+            "You must specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' before the '[b bright_cyan]get[/]' command.",
+            formatted=True,
+        )
+
+    if obj.doco_config.backup.rsync.host == '' or obj.doco_config.backup.rsync.module == '':
+        raise DocoError("You need to configure rsync to get a backup.\n"
+                        "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
+                        "Please see documentation for 'doco.config.json'.", formatted=True)
 
     download_backup(
         DownloadOptions(
-            project_name=args.project,
-            backup=args.backup,
+            project_name=obj.project_id,
+            backup=backup,
             destination=os.path.normpath(
-                args.destination if args.destination is not None
-                else os.path.join(args.workdir, args.project)
+                str(destination) if destination is not None
+                else os.path.join(obj.workdir, obj.project_id)
             ),
-            dry_run=args.dry_run,
+            dry_run=dry_run,
         ),
-        doco_config=doco_config,
+        doco_config=obj.doco_config,
     )
 
     return 0

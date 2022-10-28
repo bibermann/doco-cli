@@ -1,6 +1,6 @@
-import argparse
 import dataclasses
 import os
+import pathlib
 import re
 import typing as t
 
@@ -9,7 +9,10 @@ import rich.box
 import rich.markup
 import rich.table
 import rich.tree
+import typer
 
+from utils.cli import PROJECTS_ARGUMENT
+from utils.cli import RUNNING_OPTION
 from utils.common import relative_path_if_below
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
@@ -223,34 +226,44 @@ def print_project(project: ComposeProject, options: PrintOptions):
     rich.print(tree)
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    group = parser.add_argument_group(title='details')
-    group.add_argument('-p', '--path', action='store_true', help='print path of compose file')
-    group.add_argument('-b', '--build', action='store_true', help='output build context and arguments')
-    group.add_argument('-e', '--envs', action='store_true', help='list environment variables')
-    group.add_argument('-v', '--volumes', action='count', default=0,
-                       help='list volumes (use -vv to also list content)')
-    group.add_argument('-a', '--all', action='count', default=0, help='like -pbev (use -aa for -pbevv)')
-    group = parser.add_argument_group(title='formatting')
-    group.add_argument('-r', '--align-right', action='store_true', help='right-align variable names')
-    group.add_argument('--alternate-rows', action='store_true', help='alternate row colors in tables')
+DETAILS_GROUP = {'rich_help_panel': 'Content detail Options'}
+FORMATTING_GROUP = {'rich_help_panel': 'Formatting Options'}
 
 
-def main(args) -> int:
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(
+def main(
+    projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    running: bool = RUNNING_OPTION,
+    path: bool = typer.Option(False, '--path', '-p',
+                              **DETAILS_GROUP, help='Print path of compose file.'),
+    build: bool = typer.Option(False, '--build', '-b',
+                               **DETAILS_GROUP, help='Output build context and arguments.'),
+    envs: bool = typer.Option(False, '--envs', '-e',
+                              **DETAILS_GROUP, help='List environment variables.'),
+    volumes: int = typer.Option(0, '--volumes', '-v', count=True,
+                                **DETAILS_GROUP, help='List volumes (use -vv to also list content).'),
+    all_details: int = typer.Option(0, '--all', '-a', count=True,
+                                    **DETAILS_GROUP, help='Like -pbev (use -aa for -pbevv).'),
+    align_right: bool = typer.Option(False, '--right',
+                                     **FORMATTING_GROUP, help='Right-align variable names.'),
+    alternate_rows: bool = typer.Option(False, '--zebra',
+                                        **FORMATTING_GROUP, help='Alternate row colors in tables.'),
+):
+    """
+    Print status of [i]docker compose[/] projects.
+    """
+
+    for project in get_compose_projects(projects, ProjectSearchOptions(
         print_compose_errors=True,
-        only_running=args.running,
+        only_running=running,
     )):
         print_project(
             project=project,
             options=PrintOptions(
-                print_path=args.all >= 1 or args.path,
-                output_build=args.all >= 1 or args.build,
-                list_environment=args.all >= 1 or args.envs,
-                list_volumes=max(args.all, args.volumes),
-                align_right=args.align_right,
-                alternate_rows=args.alternate_rows,
+                print_path=all_details >= 1 or path,
+                output_build=all_details >= 1 or build,
+                list_environment=all_details >= 1 or envs,
+                list_volumes=max(all_details, volumes),
+                align_right=align_right,
+                alternate_rows=alternate_rows,
             )
         )
-
-    return 0

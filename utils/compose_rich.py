@@ -1,5 +1,6 @@
 import dataclasses
 import os
+import pathlib
 import subprocess
 import typing as t
 
@@ -12,9 +13,11 @@ from utils.compose import load_compose_ps
 from utils.compose import run_compose
 from utils.doco_config import DocoConfig
 from utils.doco_config import load_doco_config
+from utils.exceptions_rich import DocoError
 from utils.rich import format_cmd_line
 from utils.rich import Formatted
 from utils.rich import rich_print_cmd
+from utils.system import get_user_groups
 
 
 @dataclasses.dataclass
@@ -34,8 +37,12 @@ class ProjectSearchOptions:
     allow_empty: bool = False
 
 
-def get_compose_projects(paths: t.Iterable[str], options: ProjectSearchOptions) \
+def get_compose_projects(paths: t.Iterable[pathlib.Path], options: ProjectSearchOptions) \
     -> t.Generator[ComposeProject, None, None]:
+    if not (os.geteuid() == 0 or 'docker' in get_user_groups()):
+        raise DocoError("You need to belong to the docker group or have root privileges to run this script.\n"
+                        "Please try again, this time using 'sudo'.")
+
     for project_dir, project_file in find_compose_projects(paths, options.allow_empty):
         if not (options.allow_empty and project_file == ''):
             try:

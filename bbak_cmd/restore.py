@@ -1,4 +1,3 @@
-import argparse
 import dataclasses
 import json
 import os
@@ -7,9 +6,12 @@ import tempfile
 import rich.json
 import rich.panel
 import rich.tree
+import typer
 
 from utils.backup import BACKUP_CONFIG_JSON
+from utils.bbak import BbakContextObject
 from utils.doco_config import DocoConfig
+from utils.exceptions_rich import DocoError
 from utils.restore import get_backup_directory
 from utils.restore import RestoreJob
 from utils.restore_rich import create_target_structure
@@ -69,9 +71,7 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
                              border_style='green')
         )
 
-        tree.add('[red][b]Error:[/] The config does not look like a bbak config.[/]')
-        rich.print(tree)
-        exit(1)
+        raise DocoError('The config does not look like a bbak config.')
 
     backup_node = tree.add('[i]Backup items[/]')
 
@@ -111,31 +111,46 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
         rich.print(tree)
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-b', '--backup', default='0', help='backup index or name, defaults to 0')
-    parser.add_argument('--verbose', action='store_true', help='print more details if --dry-run')
-    parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually restore a backup, only show what would be done')
+def main(
+    ctx: typer.Context,
+    backup: str = typer.Option('0', '--backup', '-b',
+                               help='Backup index or name.'),
+    verbose: bool = typer.Option(False, '--verbose',
+                                 help='Print more details if --dry-run.'),
+    dry_run: bool = typer.Option(False, '--dry-run', '-n',
+                                 help='Do not actually restore a backup, only show what would be done.'),
 
+):
+    """
+    Restore a backup.
+    """
 
-def main(args, doco_config: DocoConfig) -> int:
-    if not (args.dry_run or os.geteuid() == 0):
-        exit("You need to have root privileges to restore a backup.\n"
-             "Please try again, this time using 'sudo'. Exiting.")
+    obj: BbakContextObject = ctx.obj
 
-    if args.project is None:
-        exit("You must specify --project for 'restore' command.\n"
-             "Exiting.")
+    if not (dry_run or os.geteuid() == 0):
+        raise DocoError("You need to have root privileges to restore a backup.\n"
+                        "Please try again, this time using 'sudo'.")
+
+    if obj.project_id is None:
+        raise DocoError(
+            "You must specify '[b green]-p[/]' / '[b bright_cyan]--project[/]' before the '[b bright_cyan]restore[/]' command.",
+            formatted=True,
+        )
+
+    if obj.doco_config.backup.rsync.host == '' or obj.doco_config.backup.rsync.module == '':
+        raise DocoError("You need to configure rsync to get a backup.\n"
+                        "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
+                        "Please see documentation for 'doco.config.json'.", formatted=True)
 
     restore_files(
-        project_name=args.project,
+        project_name=obj.project_id,
         options=RestoreOptions(
-            workdir=args.workdir,
-            backup=args.backup,
-            dry_run=args.dry_run,
-            dry_run_verbose=args.verbose,
+            workdir=obj.workdir,
+            backup=backup,
+            dry_run=dry_run,
+            dry_run_verbose=verbose,
         ),
-        doco_config=doco_config,
+        doco_config=obj.doco_config,
     )
 
     return 0

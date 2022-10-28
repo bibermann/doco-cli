@@ -1,6 +1,10 @@
-import argparse
 import dataclasses
+import pathlib
 
+import typer
+
+from utils.cli import PROJECTS_ARGUMENT
+from utils.cli import RUNNING_OPTION
 from utils.compose_rich import ComposeProject
 from utils.compose_rich import get_compose_projects
 from utils.compose_rich import ProjectSearchOptions
@@ -23,22 +27,24 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
         )
 
 
-def add_to_parser(parser: argparse.ArgumentParser):
-    parser.add_argument('-n', '--dry-run', action='store_true',
-                        help='do not actually start anything, only show what would be done')
+def main(
+    projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    running: bool = RUNNING_OPTION,
+    dry_run: bool = typer.Option(False, '--dry-run', '-n',
+                                 help='Do not actually start anything, only show what would be done.'),
+):
+    """
+    Start [i]docker compose[/] projects.
+    """
 
-
-def main(args) -> int:
-    for project in get_compose_projects(args.projects, ProjectSearchOptions(
-        print_compose_errors=args.dry_run,
-        only_running=args.running,
+    for project in get_compose_projects(projects, ProjectSearchOptions(
+        print_compose_errors=dry_run,
+        only_running=running,
     )):
         do_project_cmd(
             project=project,
-            dry_run=args.dry_run,
+            dry_run=dry_run,
             cmd_task=lambda info: up_project(project, options=Options(
-                dry_run=args.dry_run,
+                dry_run=dry_run,
             ), info=info)
         )
-
-    return 0

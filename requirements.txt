@@ -1,5 +1,5 @@
-argcomplete
 pydantic
 python-dotenv
 pyyaml
 rich
+typer[all]

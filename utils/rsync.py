@@ -19,8 +19,7 @@ class RsyncBaseOptions:
         self, config: RsyncConfig,
     ):
         if config.host == '' or config.module == '':
-            exit("You need to configure rsync to do a backup.\n"
-                 "Please see documentation for 'doco.config.json'. Exiting.")
+            raise Exception("You need to configure rsync.")
 
         SSH_OPTS = ['-e', config.rsh] if config.rsh is not None else []
         self.OPTS = [*SSH_OPTS]

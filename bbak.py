@@ -1,68 +1,63 @@
 #!/usr/bin/env python3
-# PYTHON_ARGCOMPLETE_OK
 
-import argparse
 import os
-import sys
+import pathlib
+import typing as t
 
-import argcomplete
-from argcomplete.completers import DirectoriesCompleter
+import typer.core
 
 import bbak_cmd.backup
 import bbak_cmd.get_backup
 import bbak_cmd.list
 import bbak_cmd.restore
+from utils.bbak import BbakContextObject
+from utils.completers import DirectoryCompleter
 from utils.doco_config import load_doco_config
-
-LIST_COMMAND = 'ls'
-BACKUP_COMMAND = 'backup'
-GET_BACKUP_COMMAND = 'get'
-RESTORE_COMMAND = 'restore'
+from utils.validators import project_id_callback
 
 
-def main() -> int:
-    main_parser = argparse.ArgumentParser()
-    parser = main_parser
+class NaturalOrderGroup(typer.core.TyperGroup):
+    def list_commands(self, ctx):
+        return self.commands.keys()
 
-    parser.add_argument('-w', '--workdir', default='.', help='change working directory'
-                        ).completer = DirectoriesCompleter()
-    parser.add_argument('-r', '--root', nargs='?', help='change root')
-    parser.add_argument('-p', '--project', nargs='?', help='target project to retrieve backups from')
 
-    subparsers = parser.add_subparsers(dest='command')
+app = typer.Typer(
+    cls=NaturalOrderGroup,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    rich_markup_mode="rich",
+)
 
-    bbak_cmd.list.add_to_parser(subparsers.add_parser(LIST_COMMAND, help='list'))
-    bbak_cmd.backup.add_to_parser(subparsers.add_parser(BACKUP_COMMAND, help='backup'))
-    bbak_cmd.get_backup.add_to_parser(
-        subparsers.add_parser(GET_BACKUP_COMMAND, help='download backup for local analysis'))
-    bbak_cmd.restore.add_to_parser(subparsers.add_parser(RESTORE_COMMAND, help='restore a backup'))
+app.command(name='ls')(bbak_cmd.list.main)
+app.command(name='backup')(bbak_cmd.backup.main)
+app.command(name='get')(bbak_cmd.get_backup.main)
+app.command(name='restore')(bbak_cmd.restore.main)
 
-    argcomplete.autocomplete(main_parser)
-    args = main_parser.parse_args()
 
-    if args.project is not None:
-        if args.project.endswith('/'):
-            args.project = args.project[:-1]
-        if '/' in args.project or args.project == '.' or args.project == '':
-            exit("Project name is invalid.\n"
-                 "Please check your -p argument. Exiting.")
+@app.callback()
+def main(
+    ctx: typer.Context,
+    workdir: pathlib.Path = typer.Option('.', '--workdir', '-w',
+                                         autocompletion=DirectoryCompleter().__call__, file_okay=False,
+                                         exists=True,
+                                         help='Change working directory.'),
+    root: t.Optional[str] = typer.Option(None, '--root', '-r',
+                                         help='Change root.'),
+    project_id: t.Optional[str] = typer.Option(None, '--project', '-p',
+                                               callback=project_id_callback,
+                                               help='Target project to retrieve backups from.'),
+):
+    """
+    [b]bbak[/] ([b]b[/]iber [b]ba[/]c[b]k[/]up tool) is a command line tool for listing and downloading (not restoring) backups created by [i]doco[/].
+    It is also able to back up and restore files and directories that are not part of a [i]docker compose[/] project.
+    """
 
-    doco_config = load_doco_config(args.workdir)
-    if args.root is not None:
+    doco_config = load_doco_config(str(workdir))
+    if root is not None:
         doco_config.backup.rsync.root = \
-            os.path.normpath(os.path.join(doco_config.backup.rsync.root, args.root))
+            os.path.normpath(os.path.join(doco_config.backup.rsync.root, root))
 
-    if args.command == LIST_COMMAND:
-        bbak_cmd.list.main(args, doco_config)
-    elif args.command == BACKUP_COMMAND:
-        bbak_cmd.backup.main(args, doco_config)
-    elif args.command == GET_BACKUP_COMMAND:
-        bbak_cmd.get_backup.main(args, doco_config)
-    elif args.command == RESTORE_COMMAND:
-        bbak_cmd.restore.main(args, doco_config)
-
-    return 0
+    ctx.obj = BbakContextObject(workdir=str(workdir), project_id=project_id, doco_config=doco_config)
 
 
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__ == "__main__":
+    app()
