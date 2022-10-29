@@ -11,8 +11,9 @@ class _FileCompleter:
         self.predicate = predicate
 
     def __call__(self, ctx: typer.Context, param: click.Parameter, incomplete: str) -> list[str]:
-        past_values: t.Optional[t.Union[str, tuple[str]]] = ctx.params.get(
-            self.param) if self.param is not None else None
+        past_values: t.Optional[t.Union[str, tuple[str]]] = (
+            ctx.params.get(self.param) if self.param is not None else None
+        )
 
         target_dir = os.path.dirname(incomplete)
         try:
@@ -26,8 +27,10 @@ class _FileCompleter:
             if not name.startswith(incomplete_part):
                 continue
             candidate = os.path.join(target_dir, name)
-            if type(past_values) is tuple and os.path.abspath(candidate) in map(os.path.abspath, past_values):
-                continue
+            if isinstance(past_values, tuple):
+                past_values_tuple: tuple = past_values
+                if os.path.abspath(candidate) in list(map(os.path.abspath, past_values_tuple)):
+                    continue
             if not self.predicate(candidate):
                 continue
             candidates.append(candidate + "/" if os.path.isdir(candidate) else candidate)
@@ -50,7 +53,6 @@ class ComposeProjectCompleter(_FileCompleter):
         _FileCompleter.__init__(
             self,
             param=param,
-            predicate=lambda path: \
-                os.path.isdir(path) or
-                ('docker-compose' in path and (path.endswith('.yml') or path.endswith('.yaml'))),
+            predicate=lambda path: os.path.isdir(path)
+            or ("docker-compose" in path and (path.endswith(".yml") or path.endswith(".yaml"))),
         )

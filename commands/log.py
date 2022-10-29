@@ -20,33 +20,43 @@ class Options:
 
 def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
     rich_run_compose(
-        project.dir, project.file,
+        project.dir,
+        project.file,
         command=[
-            'logs',
-            *(['-f'] if options.follow else []),
+            "logs",
+            *(["-f"] if options.follow else []),
         ],
-        dry_run=False, rich_node=info.run_node, cancelable=options.follow,
+        dry_run=False,
+        rich_node=info.run_node,
+        cancelable=options.follow,
     )
 
 
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    follow: bool = typer.Option(False, '--follow', '-f',
-                                help='Follow (adds -f).'),
+    follow: bool = typer.Option(False, "--follow", "-f", help="Follow (adds -f)."),
 ):
     """
     Print logs of projects.
     """
 
-    for project in get_compose_projects(projects, ProjectSearchOptions(
-        print_compose_errors=False,
-        only_running=running,
-    )):
+    for project in get_compose_projects(
+        projects,
+        ProjectSearchOptions(
+            print_compose_errors=False,
+            only_running=running,
+        ),
+    ):
         do_project_cmd(
+            # pylint: disable=cell-var-from-loop
             project=project,
             dry_run=False,
-            cmd_task=lambda info: log_project(project, options=Options(
-                follow=follow,
-            ), info=info)
+            cmd_task=lambda info: log_project(
+                project,
+                options=Options(
+                    follow=follow,
+                ),
+                info=info,
+            ),
         )

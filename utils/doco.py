@@ -2,7 +2,6 @@ import dataclasses
 import os
 import typing as t
 
-import rich
 import rich.console
 import rich.json
 import rich.markup
@@ -21,9 +20,8 @@ class ProjectInfo:
     run_node: rich.tree.Tree
 
 
-def do_project_cmd(project: ComposeProject, dry_run: bool,
-                   cmd_task: t.Callable[[ProjectInfo], None]):
-    project_name = project.config['name']
+def do_project_cmd(project: ComposeProject, dry_run: bool, cmd_task: t.Callable[[ProjectInfo], None]):
+    project_name = project.config["name"]
     project_id = f"[b]{Formatted(project_name)}[/]"
     project_id += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
 
@@ -32,29 +30,31 @@ def do_project_cmd(project: ComposeProject, dry_run: bool,
     has_running_or_restarting = False
     all_running = True
 
-    for service_name, service in project.config['services'].items():
-        state = next((s['State'] for s in project.ps if s['Service'] == service_name), 'exited')
+    for service_name, _ in project.config["services"].items():
+        state = next((s["State"] for s in project.ps if s["Service"] == service_name), "exited")
 
-        if state in ['running', 'restarting']:
+        if state in ("running", "restarting"):
             has_running_or_restarting = True
 
-        if state != 'running':
+        if state != "running":
             all_running = False
 
         tree.add(f"[b]{Formatted(service_name)}[/] [i]{Formatted(state)}[/]")
 
-    run_node = rich.tree.Tree('[i]Would run[/]')
+    run_node = rich.tree.Tree("[i]Would run[/]")
     if dry_run:
         tree.add(run_node)
 
-    cmd_task(ProjectInfo(
-        has_running_or_restarting=has_running_or_restarting,
-        all_running=all_running,
-        run_node=run_node,
-    ))
+    cmd_task(
+        ProjectInfo(
+            has_running_or_restarting=has_running_or_restarting,
+            all_running=all_running,
+            run_node=run_node,
+        )
+    )
 
     if len(run_node.children) == 0:
-        run_node.add('[dim](nothing)[/]')
+        run_node.add("[dim](nothing)[/]")
 
     if dry_run:
         rich.print(tree)

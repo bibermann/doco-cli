@@ -21,30 +21,41 @@ class Options:
 def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
     if not info.all_running:
         rich_run_compose(
-            project.dir, project.file,
-            command=['up', '--build', '-d'],
-            dry_run=options.dry_run, rich_node=info.run_node,
+            project.dir,
+            project.file,
+            command=["up", "--build", "-d"],
+            dry_run=options.dry_run,
+            rich_node=info.run_node,
         )
 
 
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    dry_run: bool = typer.Option(False, '--dry-run', '-n',
-                                 help='Do not actually start anything, only show what would be done.'),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", "-n", help="Do not actually start anything, only show what would be done."
+    ),
 ):
     """
     Start projects.
     """
 
-    for project in get_compose_projects(projects, ProjectSearchOptions(
-        print_compose_errors=dry_run,
-        only_running=running,
-    )):
+    for project in get_compose_projects(
+        projects,
+        ProjectSearchOptions(
+            print_compose_errors=dry_run,
+            only_running=running,
+        ),
+    ):
         do_project_cmd(
+            # pylint: disable=cell-var-from-loop
             project=project,
             dry_run=dry_run,
-            cmd_task=lambda info: up_project(project, options=Options(
-                dry_run=dry_run,
-            ), info=info)
+            cmd_task=lambda info: up_project(
+                project,
+                options=Options(
+                    dry_run=dry_run,
+                ),
+                info=info,
+            ),
         )

@@ -29,12 +29,12 @@ class DocoConfig(pydantic.BaseModel):
 
 def load_doco_config(project_path: str) -> DocoConfig:
     root = os.path.abspath(project_path)
-    file_name = 'doco.config.json'
+    file_name = "doco.config.json"
     while True:
         path = os.path.join(root, file_name)
         if os.path.isfile(path):
             return DocoConfig.parse_file(path)
-        if root == '/':
+        if root == "/":
             break
         root = os.path.dirname(root)
     return DocoConfig()

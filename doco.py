@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import typer.core
 
 from commands import backups as cmd_backups
@@ -11,7 +10,7 @@ from commands import up as cmd_up
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
-    def list_commands(self, ctx):
+    def list_commands(self, _):
         return self.commands.keys()
 
 
@@ -21,18 +20,19 @@ app = typer.Typer(
     rich_markup_mode="rich",
 )
 
-app.command(name='s')(cmd_status.main)
-app.command(name='r')(cmd_restart.main)
-app.command(name='d')(cmd_down.main)
-app.command(name='u')(cmd_up.main)
-app.command(name='l')(cmd_log.main)
+app.command(name="s")(cmd_status.main)
+app.command(name="r")(cmd_restart.main)
+app.command(name="d")(cmd_down.main)
+app.command(name="u")(cmd_up.main)
+app.command(name="l")(cmd_log.main)
 app.add_typer(cmd_backups.app, name="backups")
 
 
 @app.callback()
 def main():
     """
-    [b]doco[/] ([b]do[/]cker [b]co[/]mpose tool) is a command line tool for working with [i]docker compose[/] projects
+    [b]doco[/] ([b]do[/]cker [b]co[/]mpose tool) is a command line tool
+    for working with [i]docker compose[/] projects
     (pretty-printing status, creating backups using rsync, batch commands and more).
     """
 

@@ -6,7 +6,7 @@ from . import restore as cmd_restore
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
-    def list_commands(self, ctx):
+    def list_commands(self, _):
         return self.commands.keys()
 
 
@@ -16,8 +16,8 @@ app = typer.Typer(
     rich_markup_mode="rich",
 )
 
-app.command(name='create')(cmd_create.main)
-app.command(name='restore')(cmd_restore.main)
+app.command(name="create")(cmd_create.main)
+app.command(name="restore")(cmd_restore.main)
 app.add_typer(cmd_raw.app, name="raw")
 
 

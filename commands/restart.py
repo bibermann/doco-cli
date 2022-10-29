@@ -3,6 +3,7 @@ import pathlib
 
 import typer
 
+from .down import DownOptions
 from utils.cli import PROJECTS_ARGUMENT
 from utils.cli import RUNNING_OPTION
 from utils.compose_rich import ComposeProject
@@ -11,7 +12,6 @@ from utils.compose_rich import ProjectSearchOptions
 from utils.compose_rich import rich_run_compose
 from utils.doco import do_project_cmd
 from utils.doco import ProjectInfo
-from .down import DownOptions
 
 
 @dataclasses.dataclass
@@ -22,49 +22,61 @@ class Options(DownOptions):
 def restart_project(project: ComposeProject, options: Options, info: ProjectInfo):
     if info.has_running_or_restarting or options.remove_volumes or options.force_down:
         rich_run_compose(
-            project.dir, project.file,
+            project.dir,
+            project.file,
             command=[
-                'down',
-                *(['-v'] if options.remove_volumes else []),
-                *(['--remove-orphans'] if not options.no_remove_orphans else []),
+                "down",
+                *(["-v"] if options.remove_volumes else []),
+                *(["--remove-orphans"] if not options.no_remove_orphans else []),
             ],
-            dry_run=options.dry_run, rich_node=info.run_node,
+            dry_run=options.dry_run,
+            rich_node=info.run_node,
         )
 
     rich_run_compose(
-        project.dir, project.file,
-        command=['up', '--build', '-d'],
-        dry_run=options.dry_run, rich_node=info.run_node,
+        project.dir,
+        project.file,
+        command=["up", "--build", "-d"],
+        dry_run=options.dry_run,
+        rich_node=info.run_node,
     )
 
 
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    remove_volumes: bool = typer.Option(False, '--remove-volumes', '-v',
-                                        help='Remove volumes (adds -v).'),
-    no_remove_orphans: bool = typer.Option(False, '--no-remove-orphans', '-k',
-                                           help='Keep orphans (omits --remove-orphans).'),
-    force: bool = typer.Option(False, '--force', '-f',
-                               help='Force calling down even if not running.'),
-    dry_run: bool = typer.Option(False, '--dry-run', '-n',
-                                 help='Do not actually stop anything, only show what would be done.'),
+    remove_volumes: bool = typer.Option(False, "--remove-volumes", "-v", help="Remove volumes (adds -v)."),
+    no_remove_orphans: bool = typer.Option(
+        False, "--no-remove-orphans", "-k", help="Keep orphans (omits --remove-orphans)."
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", "-n", help="Do not actually stop anything, only show what would be done."
+    ),
 ):
     """
     Restart projects. This is like [i]down[/] and [i]up[/] in one command.
     """
 
-    for project in get_compose_projects(projects, ProjectSearchOptions(
-        print_compose_errors=dry_run,
-        only_running=running,
-    )):
+    for project in get_compose_projects(
+        projects,
+        ProjectSearchOptions(
+            print_compose_errors=dry_run,
+            only_running=running,
+        ),
+    ):
         do_project_cmd(
             project=project,
             dry_run=dry_run,
-            cmd_task=lambda info: restart_project(project, options=Options(
-                remove_volumes=remove_volumes,
-                no_remove_orphans=no_remove_orphans,
-                force_down=force,
-                dry_run=dry_run,
-            ), info=info)
+            cmd_task=lambda info: restart_project(
+                # pylint: disable=cell-var-from-loop
+                project,
+                options=Options(
+                    remove_volumes=remove_volumes,
+                    no_remove_orphans=no_remove_orphans,
+                    force_down=force,
+                    dry_run=dry_run,
+                ),
+                info=info,
+            ),
         )

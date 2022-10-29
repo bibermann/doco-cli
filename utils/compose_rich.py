@@ -4,7 +4,6 @@ import pathlib
 import subprocess
 import typing as t
 
-import rich
 import rich.tree
 
 from utils.compose import find_compose_projects
@@ -24,9 +23,9 @@ from utils.system import get_user_groups
 class ComposeProject:
     dir: str
     file: str
-    config: t.Mapping[str, any]
+    config: t.Mapping[str, t.Any]
     config_yaml: str
-    ps: t.Mapping[str, any]
+    ps: t.List[t.Mapping[str, t.Any]]
     doco_config: DocoConfig
 
 
@@ -37,20 +36,23 @@ class ProjectSearchOptions:
     allow_empty: bool = False
 
 
-def get_compose_projects(paths: t.Iterable[pathlib.Path], options: ProjectSearchOptions) \
-    -> t.Generator[ComposeProject, None, None]:
-    if not (os.geteuid() == 0 or 'docker' in get_user_groups()):
-        raise DocoError("You need to belong to the docker group or have root privileges to run this script.\n"
-                        "Please try again, this time using 'sudo'.")
+def get_compose_projects(  # noqa: C901 (too complex)
+    paths: t.Iterable[pathlib.Path], options: ProjectSearchOptions
+) -> t.Generator[ComposeProject, None, None]:
+    if not (os.geteuid() == 0 or "docker" in get_user_groups()):
+        raise DocoError(
+            "You need to belong to the docker group or have root privileges to run this script.\n"
+            "Please try again, this time using 'sudo'."
+        )
 
     for project_dir, project_file in find_compose_projects(paths, options.allow_empty):
-        if not (options.allow_empty and project_file == ''):
+        if not (options.allow_empty and project_file == ""):
             try:
                 project_config, project_config_yaml = load_compose_config(project_dir, project_file)
             except subprocess.CalledProcessError as e:
                 if options.print_compose_errors:
                     tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
-                    tree.add(f'[red]{Formatted(e.stderr.strip())}')
+                    tree.add(f"[red]{Formatted(e.stderr.strip())}")
                     rich.print(tree)
                 continue
 
@@ -58,10 +60,10 @@ def get_compose_projects(paths: t.Iterable[pathlib.Path], options: ProjectSearch
 
             if options.only_running:
                 has_running_or_restarting = False
-                for service_name in project_config['services'].keys():
-                    state = next((s['State'] for s in project_ps if s['Service'] == service_name), 'exited')
+                for service_name in project_config["services"].keys():
+                    state = next((s["State"] for s in project_ps if s["Service"] == service_name), "exited")
 
-                    if state in ['running', 'restarting']:
+                    if state in ("running", "restarting"):
                         has_running_or_restarting = True
                         break
 
@@ -69,8 +71,8 @@ def get_compose_projects(paths: t.Iterable[pathlib.Path], options: ProjectSearch
                     continue
         else:
             project_config = {}
-            project_config_yaml = str
-            project_ps = {}
+            project_config_yaml = ""
+            project_ps = []
 
         yield ComposeProject(
             dir=project_dir,
@@ -78,12 +80,18 @@ def get_compose_projects(paths: t.Iterable[pathlib.Path], options: ProjectSearch
             config=project_config,
             config_yaml=project_config_yaml,
             ps=project_ps,
-            doco_config=load_doco_config(project_dir)
+            doco_config=load_doco_config(project_dir),
         )
 
 
-def rich_run_compose(project_dir, project_file, command: list[str], dry_run: bool,
-                     rich_node: rich.tree.Tree, cancelable: bool = False):
+def rich_run_compose(
+    project_dir,
+    project_file,
+    command: list[str],
+    dry_run: bool,
+    rich_node: rich.tree.Tree,
+    cancelable: bool = False,
+):
     cmd = run_compose(
         project_dir=os.path.abspath(project_dir),
         project_file=project_file,
