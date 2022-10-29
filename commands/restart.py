@@ -51,7 +51,7 @@ def main(
                                  help='Do not actually stop anything, only show what would be done.'),
 ):
     """
-    Restart [i]docker compose[/] projects. This is like [i]down[/] and [i]up[/] in one command.
+    Restart projects. This is like [i]down[/] and [i]up[/] in one command.
     """
 
     for project in get_compose_projects(projects, ProjectSearchOptions(

@@ -147,7 +147,7 @@ def main(
                                   callback=project_name_callback,
                                   help='Target project to write backups to.'),
     paths: list[pathlib.Path] = typer.Argument(...,
-                                               autocompletion=PathCompleter().__call__, exists=True,
+                                               shell_complete=PathCompleter().__call__, exists=True,
                                                help='Paths to backup (not relative to --workdir but to the caller\'s CWD).',
                                                show_default=False),
     verbose: bool = typer.Option(False, '--verbose',

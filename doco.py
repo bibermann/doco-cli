@@ -2,13 +2,12 @@
 
 import typer.core
 
-import doco_cmd.backup
-import doco_cmd.down
-import doco_cmd.log
-import doco_cmd.restart
-import doco_cmd.restore
-import doco_cmd.status
-import doco_cmd.up
+from commands import backups as cmd_backups
+from commands import down as cmd_down
+from commands import log as cmd_log
+from commands import restart as cmd_restart
+from commands import status as cmd_status
+from commands import up as cmd_up
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
@@ -22,20 +21,19 @@ app = typer.Typer(
     rich_markup_mode="rich",
 )
 
-app.command(name='s')(doco_cmd.status.main)
-app.command(name='r')(doco_cmd.restart.main)
-app.command(name='d')(doco_cmd.down.main)
-app.command(name='u')(doco_cmd.up.main)
-app.command(name='l')(doco_cmd.log.main)
-app.command(name='backup')(doco_cmd.backup.main)
-app.command(name='restore')(doco_cmd.restore.main)
+app.command(name='s')(cmd_status.main)
+app.command(name='r')(cmd_restart.main)
+app.command(name='d')(cmd_down.main)
+app.command(name='u')(cmd_up.main)
+app.command(name='l')(cmd_log.main)
+app.add_typer(cmd_backups.app, name="backups")
 
 
 @app.callback()
 def main():
     """
-    [b]doco[/] ([b]do[/]cker [b]co[/]mpose tool) is a command line tool for working with [i]docker compose[/] projects.
-    Its core features are the colored status output and the backup functionality.
+    [b]doco[/] ([b]do[/]cker [b]co[/]mpose tool) is a command line tool for working with [i]docker compose[/] projects
+    (pretty-printing status, creating backups using rsync, batch commands and more).
     """
 
 

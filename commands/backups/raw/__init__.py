@@ -1,18 +1,16 @@
-#!/usr/bin/env python3
-
 import os
 import pathlib
 import typing as t
 
 import typer.core
 
-import bbak_cmd.backup
-import bbak_cmd.get_backup
-import bbak_cmd.list
-import bbak_cmd.restore
 from utils.bbak import BbakContextObject
 from utils.completers import DirectoryCompleter
 from utils.doco_config import load_doco_config
+from . import create as cmd_create
+from . import download as cmd_download
+from . import list as cmd_list
+from . import restore as cmd_restore
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
@@ -26,25 +24,24 @@ app = typer.Typer(
     rich_markup_mode="rich",
 )
 
-app.command(name='ls')(bbak_cmd.list.main)
-app.command(name='backup')(bbak_cmd.backup.main)
-app.command(name='get')(bbak_cmd.get_backup.main)
-app.command(name='restore')(bbak_cmd.restore.main)
+app.command(name='ls')(cmd_list.main)
+app.command(name='download')(cmd_download.main)
+app.command(name='create')(cmd_create.main)
+app.command(name='restore')(cmd_restore.main)
 
 
 @app.callback()
 def main(
     ctx: typer.Context,
     workdir: pathlib.Path = typer.Option('.', '--workdir', '-w',
-                                         autocompletion=DirectoryCompleter().__call__, file_okay=False,
+                                         shell_complete=DirectoryCompleter().__call__, file_okay=False,
                                          exists=True,
                                          help='Change working directory.'),
     root: t.Optional[str] = typer.Option(None, '--root', '-r',
                                          help='Change root.'),
 ):
     """
-    [b]bbak[/] ([b]b[/]iber [b]ba[/]c[b]k[/]up tool) is a command line tool for listing and downloading (not restoring) backups created by [i]doco[/].
-    It is also able to back up and restore files and directories that are not part of a [i]docker compose[/] project.
+    Manage backups (independently of [i]docker compose[/]).
     """
 
     doco_config = load_doco_config(str(workdir))
@@ -53,7 +50,3 @@ def main(
             os.path.normpath(os.path.join(doco_config.backup.rsync.root, root))
 
     ctx.obj = BbakContextObject(workdir=str(workdir), doco_config=doco_config)
-
-
-if __name__ == "__main__":
-    app()

@@ -14,7 +14,7 @@ def projects_callback(ctx: typer.Context, projects: list[str]) -> list[str]:
 
 
 PROJECTS_ARGUMENT = typer.Argument(None, callback=projects_callback,
-                                   autocompletion=ComposeProjectCompleter().__call__,
+                                   shell_complete=ComposeProjectCompleter().__call__,
                                    help='Compose files and/or directories containing a docker-compose.y\[a]ml.',
                                    show_default='stdin or current directory')
 RUNNING_OPTION = typer.Option(False, '--running', '-r',

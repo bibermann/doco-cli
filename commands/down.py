@@ -51,7 +51,7 @@ def main(
                                  help='Do not actually stop anything, only show what would be done.'),
 ):
     """
-    Shutdown [i]docker compose[/] projects.
+    Shutdown projects.
     """
 
     for project in get_compose_projects(projects, ProjectSearchOptions(

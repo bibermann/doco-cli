@@ -36,7 +36,7 @@ def main(
                                 help='Follow (adds -f).'),
 ):
     """
-    Print logs of [i]docker compose[/] projects.
+    Print logs of projects.
     """
 
     for project in get_compose_projects(projects, ProjectSearchOptions(

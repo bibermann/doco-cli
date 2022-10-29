@@ -294,7 +294,7 @@ def main(
                                  help='Do not actually backup, only show what would be done.'),
 ):
     """
-    Backup [i]docker compose[/] projects.
+    Backup projects.
     """
 
     if not (dry_run or os.geteuid() == 0):

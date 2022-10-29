@@ -249,7 +249,7 @@ def main(
                                         **FORMATTING_GROUP, help='Alternate row colors in tables.'),
 ):
     """
-    Print status of [i]docker compose[/] projects.
+    Print status of projects.
     """
 
     for project in get_compose_projects(projects, ProjectSearchOptions(

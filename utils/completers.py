@@ -1,6 +1,7 @@
 import os
 import typing as t
 
+import click
 import typer
 
 
@@ -9,7 +10,7 @@ class _FileCompleter:
         self.param = param
         self.predicate = predicate
 
-    def __call__(self, ctx: typer.Context, incomplete: str) -> t.Generator[str, None, None]:
+    def __call__(self, ctx: typer.Context, param: click.Parameter, incomplete: str) -> list[str]:
         past_values: t.Optional[t.Union[str, tuple[str]]] = ctx.params.get(
             self.param) if self.param is not None else None
 
@@ -17,9 +18,10 @@ class _FileCompleter:
         try:
             names = os.listdir(target_dir or ".")
         except OSError:
-            return
+            return []
         incomplete_part = os.path.basename(incomplete)
 
+        candidates = []
         for name in names:
             if not name.startswith(incomplete_part):
                 continue
@@ -28,7 +30,9 @@ class _FileCompleter:
                 continue
             if not self.predicate(candidate):
                 continue
-            yield candidate + "/" if os.path.isdir(candidate) else candidate
+            candidates.append(candidate + "/" if os.path.isdir(candidate) else candidate)
+
+        return candidates
 
 
 class PathCompleter(_FileCompleter):

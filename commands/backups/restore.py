@@ -188,7 +188,7 @@ def main(
                                  help='Do not actually restore a backup, only show what would be done.'),
 ):
     """
-    Restore [i]docker compose[/] project backups.
+    Restore project backups.
     """
 
     if not (dry_run or os.geteuid() == 0):

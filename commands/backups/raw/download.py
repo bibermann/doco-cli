@@ -59,7 +59,7 @@ def main(
     backup: str = typer.Option('0', '--backup', '-b',
                                help='Backup index or name.'),
     destination: t.Optional[pathlib.Path] = typer.Option(None, '--destination', '-d',
-                                                         autocompletion=DirectoryCompleter().__call__,
+                                                         shell_complete=DirectoryCompleter().__call__,
                                                          file_okay=False,
                                                          help='Destination (not relative to --workdir but to the caller\'s CWD), defaults to --project within --workdir.'),
     dry_run: bool = typer.Option(False, '--dry-run', '-n',

@@ -34,7 +34,7 @@ def main(
                                  help='Do not actually start anything, only show what would be done.'),
 ):
     """
-    Start [i]docker compose[/] projects.
+    Start projects.
     """
 
     for project in get_compose_projects(projects, ProjectSearchOptions(
