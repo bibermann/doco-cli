@@ -1,0 +1,104 @@
+fail_fast: false
+
+default_language_version:
+  python: python3.10
+
+repos:
+
+  # General
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 'v4.1.0'
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+        exclude: (\.lock|-lock.json)$
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-xml
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+      - id: debug-statements
+      #- id: detect-aws-credentials
+      #  args: ['--allow-missing-credentials']
+      - id: detect-private-key
+      #- id: double-quote-string-fixer
+      - id: trailing-whitespace  # Note: Must run before end-of-file-fixer
+        args: ['--markdown-linebreak-ext=md']
+      - id: end-of-file-fixer
+      #- id: file-contents-sorter
+      - id: fix-byte-order-marker
+      - id: fix-encoding-pragma
+        args: ['--remove']
+      - id: forbid-new-submodules
+      - id: mixed-line-ending
+      - id: name-tests-test
+        args: ['--django']
+      #- id: no-commit-to-branch
+      #  args: ['--branch', 'main']
+      - id: pretty-format-json
+        args: ['--autofix', '--no-sort-keys']
+      - id: requirements-txt-fixer
+      #- id: sort-simple-yaml
+
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.28.0
+    hooks:
+      - id: yamllint
+        args: [--format, parsable, --strict, -d, '{line-length: disable}']
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.2
+    hooks:
+      - id: yamlfmt
+        args: [--mapping, '2', --sequence, '4', --offset, '2', --implicit_start, --preserve-quotes, --preserve_null, --width, '1000']
+
+  # Python
+
+  - repo: https://github.com/asottile/reorder_python_imports
+    rev: 'v3.0.1'
+    hooks:
+      - id: reorder-python-imports
+
+  - repo: https://github.com/psf/black
+    rev: '22.3.0'
+    hooks:
+      - id: black
+        language_version: python3.10
+        args: ['--line-length', '111']
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: '4.0.1'
+    hooks:
+      - id: flake8
+        args: ['--config=tox.ini']
+        additional_dependencies:
+          # For more extensions, see https://github.com/DmytroLitvinov/awesome-flake8-extensions
+          - flake8-blind-except
+          - flake8-builtins-unleashed
+          - flake8-functions
+          - flake8-logging-format
+          - flake8_module_name
+          - pep8-naming
+
+  - repo: https://github.com/PyCQA/pylint
+    rev: 'v2.13.4'
+    hooks:
+      - id: pylint
+        args: ['--rcfile=.pylintrc', '--fail-under=10']
+
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v0.942'
+    hooks:
+      - id: mypy
+        additional_dependencies: ['types-PyYaml']

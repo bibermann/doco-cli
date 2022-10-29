@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "doco"
+version = "0.1.0"
+description = ""
+authors = ["Fabian Sandoval Saldias <fabianvss@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "3.10.7"
+pydantic = "^1.10.2"
+python-dotenv = "^0.21.0"
+PyYAML = "^6.0"
+rich = "^12.6.0"
+typer = {extras = ["all"], version = "^0.6.1"}
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.20.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

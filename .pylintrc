@@ -1,0 +1,25 @@
+[BASIC]
+good-names=ps
+good-names-rgxs=^[a-z][0-9]?$
+
+[FORMAT]
+max-line-length = 111
+
+[MESSAGES CONTROL]
+disable=
+    # Note: `bad-continuation` may conflict with black E0401 (but not seen yet).
+    #       Add this to the disable list, in case it does.
+    import-error,
+    too-few-public-methods,
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    fixme,
+    no-self-argument,  # done by flake8
+    too-many-arguments,  # done by flake8
+    relative-beyond-top-level,
+    wrong-import-order,
+    duplicate-code,  # needs to be fixed
+
+[SIMILARITIES]
+ignore-imports=yes
