@@ -1,7 +1,7 @@
 fail_fast: false
 
 default_language_version:
-  python: python3.10
+  python: python3.9
 
 repos:
 
@@ -73,7 +73,7 @@ repos:
     rev: '22.3.0'
     hooks:
       - id: black
-        language_version: python3.10
+        language_version: python3.9
         args: ['--line-length', '111']
 
   - repo: https://gitlab.com/pycqa/flake8

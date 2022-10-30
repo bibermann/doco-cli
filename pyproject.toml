@@ -1,19 +1,40 @@
 [tool.poetry]
-name = "doco"
-version = "0.1.0"
+name = "doco-cli"
+version = "0.1.2"
 description = ""
+keywords = ["docker", "rsync"]
 authors = ["Fabian Sandoval Saldias <fabianvss@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/bibermann/doco-cli"
+license = "GPL-3.0-only"
+packages = [{ include = "src" }]
+
+[tool.poetry.scripts]
+doco = "src.main:app"
 
 [tool.poetry.dependencies]
-python = "3.10.7"
+python = "^3.9.2"
 pydantic = "^1.10.2"
 python-dotenv = "^0.21.0"
 PyYAML = "^6.0"
 rich = "^12.6.0"
-typer = {extras = ["all"], version = "^0.6.1"}
+typer = { extras = ["all"], version = "^0.6.1" }
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.20.0"
+bumpver = "^2022.1119"
+
+[tool.bumpver]
+current_version = "0.1.2"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "Bump version {old_version} -> {new_version}"
+commit = true
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
+"src/main.py" = ['__version__ = "{version}"']
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
