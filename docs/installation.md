@@ -9,12 +9,14 @@ everywhere where `bash` is mentioned.
 
 ### Requirements
 
+- [pyenv](https://github.com/pyenv/pyenv#installation)
 - [pipx](https://pypa.github.io/pipx/installation/)
 
 ### Install
 
 ```bash
-pipx install doco-cli
+pyenv install 3.11.0 -s
+pipx install doco-cli --python "$(PYENV_VERSION=3.11.0 pyenv which python)"
 ```
 
 To install a specific version, f.ex. `1.0.0`,
@@ -41,6 +43,12 @@ sed -i '\#^'"source $HOME/.bash_completions/doco.sh"'$#d' ~/.bashrc
 
 ### Requirements
 
+- [pyenv](https://github.com/pyenv/pyenv#installation)
+
+    Make sure you install globally, f.ex.:
+    ```bash
+    curl https://pyenv.run | sudo PYENV_ROOT=/opt/pyenv bash
+    ```
 - [pipx](https://pypa.github.io/pipx/installation/)
 
     Make sure you install globally, f.ex.:
@@ -51,7 +59,8 @@ sed -i '\#^'"source $HOME/.bash_completions/doco.sh"'$#d' ~/.bashrc
 ### Install
 
 ```bash
-sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install doco-cli
+sudo pyenv install 3.11.0 -s
+sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install doco-cli --python "$(sudo PYENV_VERSION=3.11.0 pyenv which python)"
 ```
 
 To install a specific version, f.ex. `1.0.0`,

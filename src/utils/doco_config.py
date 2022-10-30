@@ -1,8 +1,8 @@
 import os
+import tomllib
 import typing as t
 
 import pydantic
-import tomli
 
 from src.utils.rsync import RsyncConfig
 
@@ -37,7 +37,7 @@ def _load_config_from_filesystem(project_path: str) -> t.Optional[DocoConfig]:
         path = os.path.join(root, toml_file_name)
         if os.path.isfile(path):
             with open(path, "rb") as f:
-                return DocoConfig.parse_obj(tomli.load(f))
+                return DocoConfig.parse_obj(tomllib.load(f))
 
         path = os.path.join(root, json_file_name)
         if os.path.isfile(path):

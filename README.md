@@ -22,7 +22,8 @@ To explore all possibilities, run `doco -h` or see  [docs/doco-help.md](docs/doc
 ## Installation
 
 ```bash
-pipx install doco-cli
+pyenv install 3.11.0 -s
+pipx install doco-cli --python "$(PYENV_VERSION=3.11.0 pyenv which python)"
 doco --install-completion
 ```
 
