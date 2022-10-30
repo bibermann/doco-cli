@@ -10,7 +10,7 @@ from src.commands import restart as cmd_restart
 from src.commands import status as cmd_status
 from src.commands import up as cmd_up
 
-__version__ = "0.1.3"
+__version__ = "1.0.0"
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
