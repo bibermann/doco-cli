@@ -1,7 +1,10 @@
 # Doco CLI
 
-**doco** (**do**cker **co**mpose tool) is a command line tool for working with _docker compose_ projects
+**doco** (**do**cker **co**mpose tool) is a command line tool
+for working with [Docker Compose](https://docs.docker.com/compose/compose-file/) projects
 (pretty-printing status, creating backups using rsync, batch commands and more).
+
+## Usage
 
 Example calls:
 

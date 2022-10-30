@@ -6,7 +6,7 @@ doco (docker compose tool) is a command line tool for working with docker
 compose projects (pretty-printing status, creating backups using rsync, batch  
 commands and more).
 
-```bash
+```
  Usage: doco [OPTIONS] COMMAND [ARGS]...  
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -30,7 +30,7 @@ commands and more).
 
 Print status of projects.
 
-```bash
+```
  Usage: doco s [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -61,7 +61,7 @@ Print status of projects.
 
 Restart projects. This is like down and up in one command.
 
-```bash
+```
  Usage: doco r [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -85,7 +85,7 @@ Restart projects. This is like down and up in one command.
 
 Shutdown projects.
 
-```bash
+```
  Usage: doco d [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -109,7 +109,7 @@ Shutdown projects.
 
 Start projects.
 
-```bash
+```
  Usage: doco u [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -130,7 +130,7 @@ Start projects.
 
 Print logs of projects.
 
-```bash
+```
  Usage: doco l [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -150,7 +150,7 @@ Print logs of projects.
 
 Create, restore, download or list backups.
 
-```bash
+```
  Usage: doco backups [OPTIONS] COMMAND [ARGS]...  
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -167,7 +167,7 @@ Create, restore, download or list backups.
 
 Backup projects.
 
-```bash
+```
  Usage: doco backups create [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -198,7 +198,7 @@ Backup projects.
 
 Restore project backups.
 
-```bash
+```
  Usage: doco backups restore [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -225,7 +225,7 @@ Restore project backups.
 
 Manage backups (independently of docker compose).
 
-```bash
+```
  Usage: doco backups raw [OPTIONS] COMMAND [ARGS]...  
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -245,7 +245,7 @@ Manage backups (independently of docker compose).
 
 List backups.
 
-```bash
+```
  Usage: doco backups raw ls [OPTIONS] [PROJECT]  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -262,7 +262,7 @@ List backups.
 
 Download a backup for local analysis.
 
-```bash
+```
  Usage: doco backups raw download [OPTIONS] PROJECT  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -286,7 +286,7 @@ Download a backup for local analysis.
 
 Backup files and directories.
 
-```bash
+```
  Usage: doco backups raw create [OPTIONS] PROJECT PATHS...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
@@ -308,7 +308,7 @@ Backup files and directories.
 
 Restore a backup.
 
-```bash
+```
  Usage: doco backups raw restore [OPTIONS] PROJECT  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
