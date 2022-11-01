@@ -38,11 +38,10 @@ def format_cmd_line(cmd: list[str]) -> Formatted:
 
 
 def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
-    if cwd:
-        rich.print(
-            rich.tree.Tree(
-                f"[i]Running[/] {format_cmd_line(cmd)} [i]in[/] [yellow]{relative_path_if_below(cwd)}[/]"
-            )
+    rich.print(
+        rich.panel.Panel(
+            str(format_cmd_line(cmd)),
+            title=f"[i]Running in[/] [yellow]{relative_path_if_below(cwd)}[/]" if cwd else "[i]Running[/]",
+            title_align="left",
         )
-    else:
-        rich.print(rich.tree.Tree(f"[i]Running[/] {format_cmd_line(cmd)}"))
+    )
