@@ -19,6 +19,7 @@ python-dotenv = "^0.21.0"
 PyYAML = "^6.0"
 rich = "^12.6.0"
 typer = { extras = ["all"], version = "^0.6.1" }
+tomli = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.20.0"

@@ -192,7 +192,7 @@ def main(
         raise DocoError(
             "You need to configure rsync to get a backup.\n"
             "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
-            "Please see documentation for 'doco.config.json'.",
+            "Please see documentation for 'doco.config.toml'.",
             formatted=True,
         )
 

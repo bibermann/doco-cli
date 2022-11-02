@@ -1,42 +1,36 @@
 # Doco configuration
 
-Doco uses the first `doco.config.json` it finds,
+Doco uses the first `doco.config.toml` or `doco.config.json` file it finds,
 beginning at the current working directory,
 going upwards the directory hierarchy.
 
 ## Example
 
-Example configuration file `doco.config.json`:
-```json
-{
-  "output": {
-    "text_substitutions": {
-      "bind_mount_volume_path": [
-        {
-          "pattern": "^/var/(.*)$",
-          "replace": "[red]/var/\\1[/]"
-        }
-      ]
-    }
-  },
-  "backup": {
-    "rsync": {
-      "rsh": "ssh -p 22 -i /home/johndoe/.ssh/id_ed25519",
-      "host": "backup-user@my-nas.example.com",
-      "module": "NetBackup",
-      "root": "/docker-projects"
-    }
-  }
-}
+Example configuration file
+`doco.config.toml` ([TOML syntax](https://toml.io/en/)):
+```toml
+[[output.text_substitutions.bind_mount_volume_path]]
+pattern = "^/var/(.*)$"
+replace = "[red]/var/\\1[/]"
+
+[backup.rsync]
+rsh = "ssh -p 22 -i /home/johndoe/.ssh/id_ed25519"
+host = "backup-user@my-nas.example.com"
+module = "NetBackup"
+root = "/docker-projects"
 ```
 
-## Configuration options
+Instead of `doco.config.toml` you may give a
+`doco.config.json` (JSON syntax).
+
+## Configuration details
 
 ### Output
 
 In `.output.text_substitutions.bind_mount_volume_path`
 you can define how you want to highlight _bind mounts_ depending on its source path.
 In the example above, each mount point beginning with `/var/` is highlighted in red.
+If this section appears more than once, all the rules are applied in order.
 
 More information:
 - For the regular expression syntax, see https://docs.python.org/3/library/re.html.

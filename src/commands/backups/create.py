@@ -332,7 +332,7 @@ def main(  # noqa: CFQ002 (max arguments)
         if rsync_config.host == "" or rsync_config.module == "":
             raise DocoError(
                 "You need to configure rsync to get a backup.\n"
-                "Please see documentation for 'doco.config.json'."
+                "Please see documentation for 'doco.config.toml'."
             )
 
     for project in get_compose_projects(
