@@ -2,7 +2,7 @@ import sys
 
 import typer
 
-from src.utils.completers import ComposeProjectCompleter
+from src.utils.completers_autocompletion import LegacyComposeProjectCompleter
 
 
 def projects_callback(ctx: typer.Context, projects: list[str]) -> list[str]:
@@ -16,7 +16,7 @@ def projects_callback(ctx: typer.Context, projects: list[str]) -> list[str]:
 PROJECTS_ARGUMENT = typer.Argument(
     None,
     callback=projects_callback,
-    shell_complete=ComposeProjectCompleter().__call__,
+    autocompletion=LegacyComposeProjectCompleter().__call__,
     help="Compose files and/or directories containing a docker-compose.y\\[a]ml.",
     show_default="stdin or current directory",
 )

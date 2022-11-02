@@ -24,7 +24,7 @@ from src.utils.backup_rich import do_backup_job
 from src.utils.backup_rich import format_do_backup
 from src.utils.bbak import BbakContextObject
 from src.utils.common import dir_from_path
-from src.utils.completers import PathCompleter
+from src.utils.completers_autocompletion import LegacyPathCompleter
 from src.utils.doco_config import DocoConfig
 from src.utils.exceptions_rich import DocoError
 from src.utils.rich import Formatted
@@ -167,7 +167,7 @@ def main(
     ),
     paths: list[pathlib.Path] = typer.Argument(
         ...,
-        shell_complete=PathCompleter().__call__,
+        autocompletion=LegacyPathCompleter().__call__,
         exists=True,
         help="Paths to backup (not relative to --workdir but to the caller's CWD).",
         show_default=False,
