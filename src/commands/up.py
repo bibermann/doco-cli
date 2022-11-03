@@ -15,6 +15,7 @@ from src.utils.doco import ProjectInfo
 
 @dataclasses.dataclass
 class Options:
+    do_pull: bool
     do_log: bool
     dry_run: bool
 
@@ -24,7 +25,12 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
         rich_run_compose(
             project.dir,
             project.file,
-            command=["up", "--build", "-d"],
+            command=[
+                "up",
+                "--build",
+                *(["--pull", "always"] if options.do_pull else []),
+                "-d",
+            ],
             dry_run=options.dry_run,
             rich_node=info.run_node,
         )
@@ -46,6 +52,7 @@ def main(
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually start anything, only show what would be done."
     ),
+    do_pull: bool = typer.Option(False, "--pull", "-p", help="Pull images before running."),
     do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
 ):
     """
@@ -66,6 +73,7 @@ def main(
             cmd_task=lambda info: up_project(
                 project,
                 options=Options(
+                    do_pull=do_pull,
                     do_log=do_log,
                     dry_run=dry_run,
                 ),

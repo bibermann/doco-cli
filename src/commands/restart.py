@@ -16,6 +16,7 @@ from src.utils.doco import ProjectInfo
 
 @dataclasses.dataclass
 class Options(DownOptions):
+    do_pull: bool
     do_log: bool
     dry_run: bool
 
@@ -37,7 +38,12 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
     rich_run_compose(
         project.dir,
         project.file,
-        command=["up", "--build", "-d"],
+        command=[
+            "up",
+            "--build",
+            *(["--pull", "always"] if options.do_pull else []),
+            "-d",
+        ],
         dry_run=options.dry_run,
         rich_node=info.run_node,
     )
@@ -61,6 +67,7 @@ def main(  # noqa: CFQ002 (max arguments)
         False, "--no-remove-orphans", "-k", help="Keep orphans (omits --remove-orphans)."
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
+    do_pull: bool = typer.Option(False, "--pull", "-p", help="Pull images before running."),
     do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually stop anything, only show what would be done."
@@ -87,6 +94,7 @@ def main(  # noqa: CFQ002 (max arguments)
                     remove_volumes=remove_volumes,
                     no_remove_orphans=no_remove_orphans,
                     force_down=force,
+                    do_pull=do_pull,
                     do_log=do_log,
                     dry_run=dry_run,
                 ),

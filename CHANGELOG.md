@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support TOML config format.
 - Add option to show logs (in up and restart commands).
+- Add option to pull images before running (in up and restart commands).
 
 ### Changed
 - Print command that gets executed more prominent with surrounding border.
