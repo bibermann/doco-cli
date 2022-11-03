@@ -75,6 +75,7 @@ Restart projects. This is like down and up in one command.
 │ --remove-volumes     -v        Remove volumes (adds -v).                     │
 │ --no-remove-orphans  -k        Keep orphans (omits --remove-orphans).        │
 │ --force              -f        Force calling down even if not running.       │
+│ --log                -l        Also show logs.                               │
 │ --dry-run            -n        Do not actually stop anything, only show what │
 │                                would be done.                                │
 │ --help               -h        Show this message and exit.                   │
@@ -122,6 +123,7 @@ Start projects.
 │                      restarting service.                                     │
 │ --dry-run  -n        Do not actually start anything, only show what would be │
 │                      done.                                                   │
+│ --log      -l        Also show logs.                                         │
 │ --help     -h        Show this message and exit.                             │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
@@ -139,10 +141,10 @@ Print logs of projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running  -r        Consider only projects with at least one running or     │
-│                      restarting service.                                     │
-│ --follow   -f        Follow (adds -f).                                       │
-│ --help     -h        Show this message and exit.                             │
+│ --running    -r        Consider only projects with at least one running or   │
+│                        restarting service.                                   │
+│ --no-follow  -q        Quit right after printing logs.                       │
+│ --help       -h        Show this message and exit.                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 

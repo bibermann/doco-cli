@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Support TOML config format.
+- Add option to show logs (in up and restart commands).
 
 ### Changed
 - Show command that gets executed more prominent with surrounding border.
+- Follow logs by default (in log command).
 
 ### Fixed
 - Fix shell autocompletion for arguments.
