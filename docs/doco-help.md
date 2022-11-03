@@ -75,6 +75,7 @@ Restart projects. This is like down and up in one command.
 │ --remove-volumes     -v        Remove volumes (adds -v).                     │
 │ --no-remove-orphans  -k        Keep orphans (omits --remove-orphans).        │
 │ --force              -f        Force calling down even if not running.       │
+│ --pull               -p        Pull images before running.                   │
 │ --log                -l        Also show logs.                               │
 │ --dry-run            -n        Do not actually stop anything, only show what │
 │                                would be done.                                │
@@ -123,6 +124,7 @@ Start projects.
 │                      restarting service.                                     │
 │ --dry-run  -n        Do not actually start anything, only show what would be │
 │                      done.                                                   │
+│ --pull     -p        Pull images before running.                             │
 │ --log      -l        Also show logs.                                         │
 │ --help     -h        Show this message and exit.                             │
 ╰──────────────────────────────────────────────────────────────────────────────╯
