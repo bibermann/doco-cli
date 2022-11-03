@@ -15,6 +15,7 @@ from src.utils.doco import ProjectInfo
 
 @dataclasses.dataclass
 class Options:
+    do_log: bool
     dry_run: bool
 
 
@@ -28,6 +29,16 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
             rich_node=info.run_node,
         )
 
+    if options.do_log:
+        rich_run_compose(
+            project.dir,
+            project.file,
+            command=["logs", "-f"],
+            dry_run=options.dry_run,
+            rich_node=info.run_node,
+            cancelable=True,
+        )
+
 
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
@@ -35,6 +46,7 @@ def main(
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually start anything, only show what would be done."
     ),
+    do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
 ):
     """
     Start projects.
@@ -54,6 +66,7 @@ def main(
             cmd_task=lambda info: up_project(
                 project,
                 options=Options(
+                    do_log=do_log,
                     dry_run=dry_run,
                 ),
                 info=info,

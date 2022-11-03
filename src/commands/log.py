@@ -35,7 +35,7 @@ def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    follow: bool = typer.Option(False, "--follow", "-f", help="Follow (adds -f)."),
+    no_follow: bool = typer.Option(False, "--no-follow", "-q", help="Quit right after printing logs."),
 ):
     """
     Print logs of projects.
@@ -55,7 +55,7 @@ def main(
             cmd_task=lambda info: log_project(
                 project,
                 options=Options(
-                    follow=follow,
+                    follow=not no_follow,
                 ),
                 info=info,
             ),

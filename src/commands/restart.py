@@ -16,6 +16,7 @@ from src.utils.doco import ProjectInfo
 
 @dataclasses.dataclass
 class Options(DownOptions):
+    do_log: bool
     dry_run: bool
 
 
@@ -41,8 +42,18 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
         rich_node=info.run_node,
     )
 
+    if options.do_log:
+        rich_run_compose(
+            project.dir,
+            project.file,
+            command=["logs", "-f"],
+            dry_run=options.dry_run,
+            rich_node=info.run_node,
+            cancelable=True,
+        )
 
-def main(
+
+def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
     remove_volumes: bool = typer.Option(False, "--remove-volumes", "-v", help="Remove volumes (adds -v)."),
@@ -50,6 +61,7 @@ def main(
         False, "--no-remove-orphans", "-k", help="Keep orphans (omits --remove-orphans)."
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
+    do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually stop anything, only show what would be done."
     ),
@@ -75,6 +87,7 @@ def main(
                     remove_volumes=remove_volumes,
                     no_remove_orphans=no_remove_orphans,
                     force_down=force,
+                    do_log=do_log,
                     dry_run=dry_run,
                 ),
                 info=info,
