@@ -1,13 +1,30 @@
 # Doco `--help`
 
-## doco
+## Command hierarchy
 
-doco (docker compose tool) is a command line tool for working with docker  
-compose projects (pretty-printing status, creating backups using rsync, batch  
+- [`doco`](#doco)
+    - [`doco s`](#doco-s)
+    - [`doco u`](#doco-u)
+    - [`doco d`](#doco-d)
+    - [`doco r`](#doco-r)
+    - [`doco l`](#doco-l)
+    - [`doco backups`](#doco-backups)
+        - [`doco backups create`](#doco-backups-create)
+        - [`doco backups restore`](#doco-backups-restore)
+        - [`doco backups raw`](#doco-backups-raw)
+            - [`doco backups raw ls`](#doco-backups-raw-ls)
+            - [`doco backups raw download`](#doco-backups-raw-download)
+            - [`doco backups raw create`](#doco-backups-raw-create)
+            - [`doco backups raw restore`](#doco-backups-raw-restore)
+
+## `doco`
+
+doco (docker compose tool) is a command line tool for working with docker
+compose projects (pretty-printing status, creating backups using rsync, batch
 commands and more).
 
 ```
- Usage: doco [OPTIONS] COMMAND [ARGS]...  
+ Usage: doco [OPTIONS] COMMAND [ARGS]...
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --version                       Show version information and exit.           │
@@ -26,12 +43,22 @@ commands and more).
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco s
+Direct sub commands:
+- [`doco s`](#doco-s)
+- [`doco u`](#doco-u)
+- [`doco d`](#doco-d)
+- [`doco r`](#doco-r)
+- [`doco l`](#doco-l)
+- [`doco backups`](#doco-backups)
+
+### `doco s`
 
 Print status of projects.
 
+Parent command: [`doco`](#doco)
+
 ```
- Usage: doco s [OPTIONS] [PROJECTS]...  
+ Usage: doco s [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -57,12 +84,14 @@ Print status of projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco u
+### `doco u`
 
 Start projects.
 
+Parent command: [`doco`](#doco)
+
 ```
- Usage: doco u [OPTIONS] [PROJECTS]...  
+ Usage: doco u [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -80,12 +109,14 @@ Start projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco d
+### `doco d`
 
 Shutdown projects.
 
+Parent command: [`doco`](#doco)
+
 ```
- Usage: doco d [OPTIONS] [PROJECTS]...  
+ Usage: doco d [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -104,12 +135,14 @@ Shutdown projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco r
+### `doco r`
 
 Restart projects. This is like down and up in one command.
 
+Parent command: [`doco`](#doco)
+
 ```
- Usage: doco r [OPTIONS] [PROJECTS]...  
+ Usage: doco r [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -130,12 +163,14 @@ Restart projects. This is like down and up in one command.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco l
+### `doco l`
 
 Print logs of projects.
 
+Parent command: [`doco`](#doco)
+
 ```
- Usage: doco l [OPTIONS] [PROJECTS]...  
+ Usage: doco l [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -150,12 +185,14 @@ Print logs of projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco backups
+### `doco backups`
 
 Create, restore, download or list backups.
 
+Parent command: [`doco`](#doco)
+
 ```
- Usage: doco backups [OPTIONS] COMMAND [ARGS]...  
+ Usage: doco backups [OPTIONS] COMMAND [ARGS]...
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --help  -h        Show this message and exit.                                │
@@ -167,12 +204,19 @@ Create, restore, download or list backups.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-#### doco backups create
+Direct sub commands:
+- [`doco backups create`](#doco-backups-create)
+- [`doco backups restore`](#doco-backups-restore)
+- [`doco backups raw`](#doco-backups-raw)
+
+#### `doco backups create`
 
 Backup projects.
 
+Parent command: [`doco backups`](#doco-backups)
+
 ```
- Usage: doco backups create [OPTIONS] [PROJECTS]...  
+ Usage: doco backups create [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -198,12 +242,14 @@ Backup projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-#### doco backups restore
+#### `doco backups restore`
 
 Restore project backups.
 
+Parent command: [`doco backups`](#doco-backups)
+
 ```
- Usage: doco backups restore [OPTIONS] [PROJECTS]...  
+ Usage: doco backups restore [OPTIONS] [PROJECTS]...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -225,12 +271,14 @@ Restore project backups.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-#### doco backups raw
+#### `doco backups raw`
 
 Manage backups (independently of docker compose).
 
+Parent command: [`doco backups`](#doco-backups)
+
 ```
- Usage: doco backups raw [OPTIONS] COMMAND [ARGS]...  
+ Usage: doco backups raw [OPTIONS] COMMAND [ARGS]...
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --workdir  -w      DIRECTORY  Change working directory. [default: .]         │
@@ -245,12 +293,20 @@ Manage backups (independently of docker compose).
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-##### doco backups raw ls
+Direct sub commands:
+- [`doco backups raw ls`](#doco-backups-raw-ls)
+- [`doco backups raw download`](#doco-backups-raw-download)
+- [`doco backups raw create`](#doco-backups-raw-create)
+- [`doco backups raw restore`](#doco-backups-raw-restore)
+
+##### `doco backups raw ls`
 
 List backups.
 
+Parent command: [`doco backups raw`](#doco-backups-raw)
+
 ```
- Usage: doco backups raw ls [OPTIONS] [PROJECT]  
+ Usage: doco backups raw ls [OPTIONS] [PROJECT]
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   project      [PROJECT]  Project to list backups from. Listing projects if  │
@@ -262,12 +318,14 @@ List backups.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-##### doco backups raw download
+##### `doco backups raw download`
 
 Download a backup for local analysis.
 
+Parent command: [`doco backups raw`](#doco-backups-raw)
+
 ```
- Usage: doco backups raw download [OPTIONS] PROJECT  
+ Usage: doco backups raw download [OPTIONS] PROJECT
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │ *    project      TEXT  Source project to retrieve backups from.             │
@@ -286,12 +344,14 @@ Download a backup for local analysis.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-##### doco backups raw create
+##### `doco backups raw create`
 
 Backup files and directories.
 
+Parent command: [`doco backups raw`](#doco-backups-raw)
+
 ```
- Usage: doco backups raw create [OPTIONS] PROJECT PATHS...  
+ Usage: doco backups raw create [OPTIONS] PROJECT PATHS...
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │ *    project      TEXT      Target project to write backups to.              │
@@ -308,12 +368,14 @@ Backup files and directories.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-##### doco backups raw restore
+##### `doco backups raw restore`
 
 Restore a backup.
 
+Parent command: [`doco backups raw`](#doco-backups-raw)
+
 ```
- Usage: doco backups raw restore [OPTIONS] PROJECT  
+ Usage: doco backups raw restore [OPTIONS] PROJECT
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │ *    project      TEXT  Source project to retrieve backups from.             │
