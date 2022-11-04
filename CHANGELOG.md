@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Support TOML config format.
+- Support `DOCO_BACKUP_RSYNC_*` environment variables.
 - Add option to show logs (in up and restart commands).
 - Add option to pull images before running (in up and restart commands).
 

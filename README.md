@@ -30,8 +30,9 @@ Or install from source, see [docs/installation.md](docs/installation.md).
 
 ## Configuration
 
-To create a backup, you need to either create a `doco.config.toml` file or
-a `doco.config.json` file.
+To create a backup, you need to either create a `doco.config.toml` file,
+a `doco.config.json` file
+or set environment variables.
 
 See [docs/configuration.md](docs/configuration.md).
 

@@ -1,4 +1,5 @@
 import os
+import typing as t
 
 import pydantic
 import tomli
@@ -28,7 +29,7 @@ class DocoConfig(pydantic.BaseModel):
     backup: DocoBackupConfig = DocoBackupConfig()
 
 
-def load_doco_config(project_path: str) -> DocoConfig:
+def _load_config_from_filesystem(project_path: str) -> t.Optional[DocoConfig]:
     root = os.path.abspath(project_path)
     toml_file_name = "doco.config.toml"
     json_file_name = "doco.config.json"
@@ -45,4 +46,20 @@ def load_doco_config(project_path: str) -> DocoConfig:
         if root == "/":
             break
         root = os.path.dirname(root)
-    return DocoConfig()
+    return None
+
+
+def _load_backup_rsync_config_from_env(config: RsyncConfig) -> None:
+    prefix = "DOCO_BACKUP_RSYNC_"
+    config.rsh = os.environ.get(f"{prefix}RSH", config.rsh)
+    config.host = os.environ.get(f"{prefix}HOST", config.host)
+    config.module = os.environ.get(f"{prefix}MODULE", config.module)
+    config.root = os.environ.get(f"{prefix}ROOT", config.root)
+
+
+def load_doco_config(project_path: str) -> DocoConfig:
+    config = _load_config_from_filesystem(project_path)
+    if config is None:
+        config = DocoConfig()
+    _load_backup_rsync_config_from_env(config.backup.rsync)
+    return config
