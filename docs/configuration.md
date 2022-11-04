@@ -4,7 +4,9 @@ Doco uses the first `doco.config.toml` or `doco.config.json` file it finds,
 beginning at the current working directory,
 going upwards the directory hierarchy.
 
-## Example
+Environment variables can override the settings found in the configuration file.
+
+## Configuration possibilities
 
 Example configuration file
 `doco.config.toml` ([TOML syntax](https://toml.io/en/)):
@@ -23,6 +25,14 @@ root = "/docker-projects"
 Instead of `doco.config.toml` you may give a
 `doco.config.json` (JSON syntax).
 
+Example environment variables:
+```bash
+DOCO_BACKUP_RSYNC_RSH="ssh -p 22 -i /home/johndoe/.ssh/id_ed25519"
+DOCO_BACKUP_RSYNC_HOST="backup-user@my-nas.example.com"
+DOCO_BACKUP_RSYNC_MODULE="NetBackup"
+DOCO_BACKUP_RSYNC_ROOT="/docker-projects"
+```
+
 ## Configuration details
 
 ### Output
@@ -39,7 +49,7 @@ More information:
 
 ### Backup
 
-For the `doco backups` command, you need a `rsync` configuration.
+You need a `.backup.rsync` configuration for using the `doco backups` command.
 
 Doco uses rsync-daemon features via a remote-shell connection.
 See:
