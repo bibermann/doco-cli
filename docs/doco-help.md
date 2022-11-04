@@ -39,7 +39,7 @@ Print status of projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running  -r        Consider only projects with at least one running or     │
+│ --running            Consider only projects with at least one running or     │
 │                      restarting service.                                     │
 │ --help     -h        Show this message and exit.                             │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -70,7 +70,7 @@ Restart projects. This is like down and up in one command.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running            -r        Consider only projects with at least one      │
+│ --running                      Consider only projects with at least one      │
 │                                running or restarting service.                │
 │ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
 │ --no-remove-orphans  -k        Keep orphans.                                 │
@@ -96,7 +96,7 @@ Shutdown projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running            -r        Consider only projects with at least one      │
+│ --running                      Consider only projects with at least one      │
 │                                running or restarting service.                │
 │ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
 │ --no-remove-orphans  -k        Keep orphans.                                 │
@@ -120,7 +120,7 @@ Start projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running  -r        Consider only projects with at least one running or     │
+│ --running            Consider only projects with at least one running or     │
 │                      restarting service.                                     │
 │ --dry-run  -n        Do not actually start anything, only show what would be │
 │                      done.                                                   │
@@ -143,7 +143,7 @@ Print logs of projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running    -r        Consider only projects with at least one running or   │
+│ --running              Consider only projects with at least one running or   │
 │                        restarting service.                                   │
 │ --no-follow  -q        Quit right after printing logs.                       │
 │ --help       -h        Show this message and exit.                           │
@@ -180,7 +180,7 @@ Backup projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running              -r            Consider only projects with at least    │
+│ --running                            Consider only projects with at least    │
 │                                      one running or restarting service.      │
 │ --exclude-project-dir  -e            Exclude project directory.              │
 │ --include-ro           -r            Also consider read-only volumes.        │
@@ -211,7 +211,7 @@ Restore project backups.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running  -r            Consider only projects with at least one running or │
+│ --running                Consider only projects with at least one running or │
 │                          restarting service.                                 │
 │ --name             TEXT  Override project name. Using directory name if not  │
 │                          given.                                              │

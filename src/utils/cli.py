@@ -21,5 +21,5 @@ PROJECTS_ARGUMENT = typer.Argument(
     show_default="stdin or current directory",
 )
 RUNNING_OPTION = typer.Option(
-    False, "--running", "-r", help="Consider only projects with at least one running or restarting service."
+    False, "--running", help="Consider only projects with at least one running or restarting service."
 )
