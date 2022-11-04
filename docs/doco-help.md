@@ -18,9 +18,9 @@ commands and more).
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────╮
 │ s          Print status of projects.                                         │
-│ r          Restart projects. This is like down and up in one command.        │
-│ d          Shutdown projects.                                                │
 │ u          Start projects.                                                   │
+│ d          Shutdown projects.                                                │
+│ r          Restart projects. This is like down and up in one command.        │
 │ l          Print logs of projects.                                           │
 │ backups    Create, restore, download or list backups.                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -57,12 +57,12 @@ Print status of projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco r
+### doco u
 
-Restart projects. This is like down and up in one command.
+Start projects.
 
 ```
- Usage: doco r [OPTIONS] [PROJECTS]...  
+ Usage: doco u [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -70,16 +70,13 @@ Restart projects. This is like down and up in one command.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running                      Consider only projects with at least one      │
-│                                running or restarting service.                │
-│ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
-│ --no-remove-orphans  -k        Keep orphans.                                 │
-│ --force              -f        Force calling down even if not running.       │
-│ --pull               -p        Pull images before running.                   │
-│ --log                -l        Also show logs.                               │
-│ --dry-run            -n        Do not actually stop anything, only show what │
-│                                would be done.                                │
-│ --help               -h        Show this message and exit.                   │
+│ --running            Consider only projects with at least one running or     │
+│                      restarting service.                                     │
+│ --dry-run  -n        Do not actually start anything, only show what would be │
+│                      done.                                                   │
+│ --pull     -p        Pull images before running.                             │
+│ --log      -l        Also show logs.                                         │
+│ --help     -h        Show this message and exit.                             │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -107,12 +104,12 @@ Shutdown projects.
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### doco u
+### doco r
 
-Start projects.
+Restart projects. This is like down and up in one command.
 
 ```
- Usage: doco u [OPTIONS] [PROJECTS]...  
+ Usage: doco r [OPTIONS] [PROJECTS]...  
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
@@ -120,13 +117,16 @@ Start projects.
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running            Consider only projects with at least one running or     │
-│                      restarting service.                                     │
-│ --dry-run  -n        Do not actually start anything, only show what would be │
-│                      done.                                                   │
-│ --pull     -p        Pull images before running.                             │
-│ --log      -l        Also show logs.                                         │
-│ --help     -h        Show this message and exit.                             │
+│ --running                      Consider only projects with at least one      │
+│                                running or restarting service.                │
+│ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
+│ --no-remove-orphans  -k        Keep orphans.                                 │
+│ --force              -f        Force calling down even if not running.       │
+│ --pull               -p        Pull images before running.                   │
+│ --log                -l        Also show logs.                               │
+│ --dry-run            -n        Do not actually stop anything, only show what │
+│                                would be done.                                │
+│ --help               -h        Show this message and exit.                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 

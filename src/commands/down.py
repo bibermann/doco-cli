@@ -32,8 +32,8 @@ def down_project(project: ComposeProject, options: Options, info: ProjectInfo):
             project.file,
             command=[
                 "down",
-                *(["-v"] if options.remove_volumes else []),
                 *(["--remove-orphans"] if not options.no_remove_orphans else []),
+                *(["-v"] if options.remove_volumes else []),
             ],
             dry_run=options.dry_run,
             rich_node=info.run_node,

@@ -25,9 +25,9 @@ app = typer.Typer(
 )
 
 app.command(name="s")(cmd_status.main)
-app.command(name="r")(cmd_restart.main)
-app.command(name="d")(cmd_down.main)
 app.command(name="u")(cmd_up.main)
+app.command(name="d")(cmd_down.main)
+app.command(name="r")(cmd_restart.main)
 app.command(name="l")(cmd_log.main)
 app.add_typer(cmd_backups.app, name="backups")
 
