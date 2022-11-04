@@ -72,8 +72,8 @@ Restart projects. This is like down and up in one command.
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --running            -r        Consider only projects with at least one      │
 │                                running or restarting service.                │
-│ --remove-volumes     -v        Remove volumes (adds -v).                     │
-│ --no-remove-orphans  -k        Keep orphans (omits --remove-orphans).        │
+│ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
+│ --no-remove-orphans  -k        Keep orphans.                                 │
 │ --force              -f        Force calling down even if not running.       │
 │ --pull               -p        Pull images before running.                   │
 │ --log                -l        Also show logs.                               │
@@ -98,8 +98,8 @@ Shutdown projects.
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --running            -r        Consider only projects with at least one      │
 │                                running or restarting service.                │
-│ --remove-volumes     -v        Remove volumes (adds -v).                     │
-│ --no-remove-orphans  -k        Keep orphans (omits --remove-orphans).        │
+│ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
+│ --no-remove-orphans  -k        Keep orphans.                                 │
 │ --force              -f        Force calling down even if not running.       │
 │ --dry-run            -n        Do not actually stop anything, only show what │
 │                                would be done.                                │

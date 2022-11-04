@@ -62,10 +62,10 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    remove_volumes: bool = typer.Option(False, "--remove-volumes", "-v", help="Remove volumes (adds -v)."),
-    no_remove_orphans: bool = typer.Option(
-        False, "--no-remove-orphans", "-k", help="Keep orphans (omits --remove-orphans)."
+    remove_volumes: bool = typer.Option(
+        False, "--remove-volumes", "-v", help="Remove volumes (implies -f / --force)."
     ),
+    no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", "-k", help="Keep orphans."),
     force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
     do_pull: bool = typer.Option(False, "--pull", "-p", help="Pull images before running."),
     do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
