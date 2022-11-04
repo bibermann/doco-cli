@@ -42,6 +42,6 @@ sed -E "s/^$OLD_UNRELEASED_LINE\$/$NEW_UNRELEASED_LINE\n$NEW_RELEASE_LINE/" -i C
 #*******************************
 
 git commit --amend --no-edit -- CHANGELOG.md
-git tag -a -m "$CURRENT_VERSION" "$CURRENT_VERSION"
+git tag -a -m "Release version $CURRENT_VERSION" "v$CURRENT_VERSION"
 
 poetry publish
