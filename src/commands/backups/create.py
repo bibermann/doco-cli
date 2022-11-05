@@ -64,10 +64,10 @@ class BackupConfigOptions(pydantic.BaseModel):
 
 class BackupConfigTasks(pydantic.BaseModel):
     restart_project: bool = False
-    create_last_backup_dir_file: t.Union[bool, str]
-    backup_config: t.Union[bool, str]
-    backup_compose_config: t.Union[bool, str]
-    backup_project_dir: t.Union[bool, tuple[str, str]]
+    create_last_backup_dir_file: bool | str
+    backup_config: bool | str
+    backup_compose_config: bool | str
+    backup_project_dir: bool | tuple[str, str]
     backup_services: list[BackupConfigServiceTask] = []
 
 

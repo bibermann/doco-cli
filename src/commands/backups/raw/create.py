@@ -41,8 +41,8 @@ class BackupOptions:
 
 
 class BackupConfigTasks(pydantic.BaseModel):
-    create_last_backup_dir_file: t.Union[bool, str]
-    backup_config: t.Union[bool, str]
+    create_last_backup_dir_file: bool | str
+    backup_config: bool | str
     backup_paths: list[tuple[str, str]] = []
 
 

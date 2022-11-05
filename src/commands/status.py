@@ -66,7 +66,7 @@ def colored_path(
     )
 
 
-def colored_readonly(text: t.Union[str, Formatted], read_only: bool, is_bind_mount: bool) -> Formatted:
+def colored_readonly(text: str | Formatted, read_only: bool, is_bind_mount: bool) -> Formatted:
     text = Formatted(text)
     ro_text = text if read_only else Formatted(f"[dark_orange]{text}[/]", True)
     return ro_text if is_bind_mount else Formatted(f"[dim]{ro_text}[/]", True)
@@ -94,7 +94,7 @@ def colored_dockerfile(dockerfile: str, dimmed_prefix: str) -> Formatted:
 
 
 def colored_key_value(  # noqa: CFQ004 (max returns amount)
-    text: t.Union[str, Formatted], key: str, value: str
+    text: str | Formatted, key: str, value: str
 ) -> Formatted:
     text = str(Formatted(text))
     if text[-1:] == "\n":

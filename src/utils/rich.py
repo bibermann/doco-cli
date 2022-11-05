@@ -13,7 +13,7 @@ from src.utils.common import relative_path_if_below
 
 
 class Formatted:
-    def __init__(self, text: t.Union[str, "Formatted"], already_formatted: bool = False):
+    def __init__(self, text: str | "Formatted", already_formatted: bool = False):
         if already_formatted or isinstance(text, Formatted):
             self._text = str(text)
         else:

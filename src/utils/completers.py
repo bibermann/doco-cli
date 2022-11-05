@@ -11,7 +11,7 @@ class _FileCompleter:
         self.predicate = predicate
 
     def __call__(self, ctx: typer.Context, param: click.Parameter, incomplete: str) -> list[str]:
-        past_values: t.Optional[t.Union[str, tuple[str]]] = (
+        past_values: t.Optional[str | tuple[str]] = (
             ctx.params.get(self.param) if self.param is not None else None
         )
 
