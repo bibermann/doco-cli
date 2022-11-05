@@ -9,6 +9,9 @@ pipx install doco-cli
 doco --install-completion
 ```
 
+To install a specific version, f.ex. `1.0.0`,
+you would replace `doco-cli` above with `doco-cli==1.0.0`.
+
 ### Uninstall
 
 ```bash
@@ -21,7 +24,7 @@ sed -i '\#^'"source $HOME/.bash_completions/doco.sh"'$#d' ~/.bashrc
 
 We assume that you use `bash` as your main shell.
 
-If you use `zsh` or `fish`, you need to do different things at these steps:
+If you use `zsh` or `fish`, you need to do different things at the following steps:
 - Install » `# Add to $PATH`
 - Uninstall
 
