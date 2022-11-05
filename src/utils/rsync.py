@@ -165,7 +165,7 @@ def run_rsync_list(
     target: str,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
-) -> t.Tuple[list[str], list[str]]:
+) -> tuple[list[str], list[str]]:
     opt = RsyncListOptions(config=config)
     cmd = [
         "rsync",

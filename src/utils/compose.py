@@ -11,7 +11,7 @@ from src.utils.common import PrintCmdCallable
 from src.utils.common import relative_path_if_below
 
 
-def load_compose_config(cwd: str, file: str) -> t.Tuple[t.Mapping[str, t.Any], str]:
+def load_compose_config(cwd: str, file: str) -> tuple[t.Mapping[str, t.Any], str]:
     result = subprocess.run(
         ["docker", "compose", "-f", file, "config"],
         cwd=cwd,
@@ -23,7 +23,7 @@ def load_compose_config(cwd: str, file: str) -> t.Tuple[t.Mapping[str, t.Any], s
     return yaml.safe_load(result.stdout), result.stdout
 
 
-def load_compose_ps(cwd: str, file: str) -> t.List[t.Mapping[str, t.Any]]:
+def load_compose_ps(cwd: str, file: str) -> list[t.Mapping[str, t.Any]]:
     result = subprocess.run(
         ["docker", "compose", "-f", file, "ps", "--format", "json"],
         cwd=cwd,
@@ -63,7 +63,7 @@ def run_compose(
 
 def find_compose_projects(
     paths: t.Iterable[pathlib.Path], allow_empty: bool
-) -> t.Generator[t.Tuple[str, str], None, None]:
+) -> t.Generator[tuple[str, str], None, None]:
     for project in map(str, paths):
         project_dir = None
         project_file = None
