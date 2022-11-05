@@ -83,7 +83,7 @@ def main(
 
     if not (dry_run or os.geteuid() == 0):
         raise DocoError(
-            "You need to have root privileges to load a backup.\n" "Please try again, this time using 'sudo'."
+            "You need to have root privileges to load a backup.\nPlease try again, this time using 'sudo'."
         )
 
     if obj.doco_config.backup.rsync.host == "" or obj.doco_config.backup.rsync.module == "":
