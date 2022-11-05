@@ -51,7 +51,7 @@ class BackupOptions:
 
 class BackupConfigServiceTask(pydantic.BaseModel):
     name: str
-    backup_volumes: list[t.Tuple[str, str]] = []
+    backup_volumes: list[tuple[str, str]] = []
     exclude_volumes: list[str] = []
 
 
@@ -67,7 +67,7 @@ class BackupConfigTasks(pydantic.BaseModel):
     create_last_backup_dir_file: t.Union[bool, str]
     backup_config: t.Union[bool, str]
     backup_compose_config: t.Union[bool, str]
-    backup_project_dir: t.Union[bool, t.Tuple[str, str]]
+    backup_project_dir: t.Union[bool, tuple[str, str]]
     backup_services: list[BackupConfigServiceTask] = []
 
 

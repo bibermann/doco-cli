@@ -110,7 +110,7 @@ def colored_key_value(  # noqa: CFQ004 (max returns amount)
     return Formatted(text.replace(",", "[b white],[/]"), True)
 
 
-def colored_port_mapping(mapping: t.Tuple[str, str]) -> Formatted:
+def colored_port_mapping(mapping: tuple[str, str]) -> Formatted:
     return Formatted(f"{mapping[0]}[dim]:{mapping[1]}[/]", True)
 
 
