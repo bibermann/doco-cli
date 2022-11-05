@@ -30,10 +30,13 @@ class RsyncBaseOptions:
 
 
 class RsyncBackupOptions(RsyncBaseOptions):
-    def __init__(
+    def __init__(  # noqa: CFQ002 (max arguments)
         self,
         config: RsyncConfig,
         delete_from_destination: bool,
+        compress: bool = True,
+        cross_filesystem_boundaries: bool = True,
+        verbose: bool = False,
         show_progress: bool = False,
         dry_run: bool = False,
     ):
@@ -41,18 +44,20 @@ class RsyncBackupOptions(RsyncBaseOptions):
 
         info_opts = [
             "-h",
+            *(["-v"] if verbose else []),
             *(["--info=progress2"] if show_progress else []),
         ]
         backup_opts = [
             *(["--delete"] if delete_from_destination else []),
             # '--mkpath', # --mkpath supported only since 3.2.3
-            "-z",
+            *(["-z"] if compress else []),
             *(["-n"] if dry_run else []),
         ]
         archive_opts = [
             "-a",
             # '-N', # -N (--crtimes) supported only on OS X apparently
             "--numeric-ids",
+            *(["-x"] if not cross_filesystem_boundaries else []),
         ]
         self.opts.extend([*info_opts, *backup_opts, *archive_opts])
 
