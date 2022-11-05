@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Follow logs by default (in log command).
 
 ### Fixed
-- Fix shell autocompletion for arguments.
+- Fix shell completion for arguments.
 
 ## [1.0.0] - 2021-10-30
 ### Added
