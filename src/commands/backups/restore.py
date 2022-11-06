@@ -238,7 +238,7 @@ def main(  # noqa: CFQ002 (max arguments)
         )
 
     def check_rsync_config(rsync_config: RsyncConfig):
-        if rsync_config.host == "" or rsync_config.module == "":
+        if not rsync_config.is_complete():
             raise DocoError(
                 "You need to configure rsync to get a backup.\n"
                 "Please see documentation for 'doco.config.toml'."
