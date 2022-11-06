@@ -23,7 +23,7 @@ def main(
 
     obj: BbakContextObject = ctx.obj
 
-    if obj.doco_config.backup.rsync.host == "" or obj.doco_config.backup.rsync.module == "":
+    if not obj.doco_config.backup.rsync.is_complete():
         raise DocoError(
             "You need to configure rsync to get a backup.\n"
             "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"

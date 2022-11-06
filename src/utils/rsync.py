@@ -8,25 +8,42 @@ from src.utils.common import PrintCmdCallable
 
 
 class RsyncConfig(pydantic.BaseModel):
-    rsh: t.Optional[str] = None
+    rsh: str = ""
     host: str = ""
     module: str = ""
-    root: str = "/"
+    root: str = ""
+
+    def is_complete(self):
+        return self.host != ""
 
 
 class RsyncBaseOptions:
+    opts: list[str]
+    host: str
+    module: t.Optional[str]
+    root: str
+
     def __init__(
         self,
         config: RsyncConfig,
     ):
-        if config.host == "" or config.module == "":
+        if not config.is_complete():
             raise Exception("You need to configure rsync.")
 
-        ssh_opts = ["-e", config.rsh] if config.rsh is not None else []
+        ssh_opts = ["-e", config.rsh] if config.rsh != "" else []
         self.opts = [*ssh_opts]
         self.host = config.host
-        self.module = config.module
+        self.module = config.module if config.module != "" else None
         self.root = config.root
+
+        if self.module is not None and not self.root.startswith("/"):
+            self.root = "/" + self.root
+        if self.root not in ("", "/") and not self.root.endswith("/"):
+            self.root += "/"
+
+    def path(self):
+        prefix = ":" + self.module if self.module is not None else ""
+        return f"{self.host}:{prefix}{self.root}"
 
 
 class RsyncBackupOptions(RsyncBaseOptions):
@@ -88,7 +105,7 @@ def run_rsync_without_delete(
         *opt.opts,
         "--",
         source,
-        f"{opt.host}::{opt.module}{opt.root}/{destination}",
+        f"{opt.path()}{destination}",
     ]
     if not dry_run:
         print_cmd_callback(cmd, None)
@@ -109,10 +126,10 @@ def run_rsync_backup_incremental(
         "rsync",
         *opt.opts,
         "--backup-dir",
-        f"{opt.root}/{backup_dir}",
+        f"{opt.root}{backup_dir}",
         "--",
         source,
-        f"{opt.host}::{opt.module}{opt.root}/{destination}",
+        f"{opt.path()}{destination}",
     ]
     if not dry_run:
         print_cmd_callback(cmd, None)
@@ -130,13 +147,13 @@ def run_rsync_backup_with_hardlinks(
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     for old_backup_dir in old_backup_dirs:
-        opt.opts.extend(["--link-dest", f"{opt.root}/{old_backup_dir}"])
+        opt.opts.extend(["--link-dest", f"{opt.root}{old_backup_dir}"])
     cmd = [
         "rsync",
         *opt.opts,
         "--",
         source,
-        f"{opt.host}::{opt.module}{opt.root}/{new_backup}",
+        f"{opt.path()}{new_backup}",
     ]
     if not dry_run:
         print_cmd_callback(cmd, None)
@@ -156,7 +173,7 @@ def run_rsync_download_incremental(
         "rsync",
         *opt.opts,
         "--",
-        f"{opt.host}::{opt.module}{opt.root}/{source}",
+        f"{opt.path()}{source}",
         destination,
     ]
     if not dry_run:
@@ -176,7 +193,7 @@ def run_rsync_list(
         "rsync",
         *opt.opts,
         "--",
-        f"{opt.host}::{opt.module}{opt.root}/{target}",
+        f"{opt.path()}{target}",
     ]
     file_list = []
     if not dry_run:
