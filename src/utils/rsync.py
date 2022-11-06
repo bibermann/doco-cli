@@ -10,6 +10,7 @@ from src.utils.common import PrintCmdCallable
 class RsyncConfig(pydantic.BaseModel):
     rsh: str = ""
     host: str = ""
+    user: str = ""
     module: str = ""
     root: str = ""
 
@@ -32,7 +33,7 @@ class RsyncBaseOptions:
 
         ssh_opts = ["-e", config.rsh] if config.rsh != "" else []
         self.opts = [*ssh_opts]
-        self.host = config.host
+        self.host = (config.user + "@" if config.user != "" else "") + config.host
         self.module = config.module if config.module != "" else None
         self.root = config.root
 

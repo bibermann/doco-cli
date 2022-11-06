@@ -53,6 +53,7 @@ def _load_backup_rsync_config_from_env(config: RsyncConfig) -> None:
     prefix = "DOCO_BACKUP_RSYNC_"
     config.rsh = os.environ.get(f"{prefix}RSH", config.rsh)
     config.host = os.environ.get(f"{prefix}HOST", config.host)
+    config.user = os.environ.get(f"{prefix}USER", config.user)
     config.module = os.environ.get(f"{prefix}MODULE", config.module)
     config.root = os.environ.get(f"{prefix}ROOT", config.root)
 
