@@ -36,6 +36,7 @@ from src.utils.validators import project_name_callback
 class BackupOptions:
     workdir: str
     paths: list[str]
+    backup: t.Optional[str]
     dry_run: bool
     dry_run_verbose: bool
 
@@ -103,7 +104,10 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
     project_id = f"[b]{Formatted(project_name)}[/]"
 
     now = datetime.datetime.now()
-    new_backup_dir = os.path.join(project_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
+    new_backup_dir = os.path.join(
+        project_name,
+        options.backup if options.backup is not None else f"backup-{now.strftime('%Y-%m-%d_%H.%M')}",
+    )
     old_backup_dir = load_last_backup_directory(options.workdir)
 
     config = BackupConfig(
@@ -172,6 +176,7 @@ def main(
         help="Paths to backup (not relative to --workdir but to the caller's CWD).",
         show_default=False,
     ),
+    backup: t.Optional[str] = typer.Option(None, "--backup", "-b", help="Specify backup name."),
     verbose: bool = typer.Option(False, "--verbose", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
@@ -201,6 +206,7 @@ def main(
         options=BackupOptions(
             workdir=obj.workdir,
             paths=list(map(str, paths)),
+            backup=backup,
             dry_run=dry_run,
             dry_run_verbose=verbose,
         ),

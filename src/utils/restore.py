@@ -52,10 +52,11 @@ def get_backup_directory(
 ) -> str:
     if backup_id.isnumeric():
         try:
-            _, file_list = run_rsync_list(
+            _, date_file_tuples = run_rsync_list(
                 rsync_config, target=f"{project_name}/", dry_run=False, print_cmd_callback=print_cmd_callback
             )
         except subprocess.CalledProcessError as e:
             raise RichAbortCmd(e) from e
-        return sorted([file for file in file_list if file.startswith("backup-")], reverse=True)[int(backup_id)]
-    return f"backup-{backup_id}"
+        files = [item[1] for item in sorted(date_file_tuples, key=lambda item: item[0], reverse=True)]
+        return files[int(backup_id)]
+    return backup_id

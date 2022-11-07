@@ -17,13 +17,13 @@ from src.utils.rsync import run_rsync_list
 
 def list_projects(doco_config: DocoConfig):
     try:
-        _, file_list = run_rsync_list(
+        _, date_file_tuples = run_rsync_list(
             doco_config.backup.rsync, target="", dry_run=False, print_cmd_callback=rich_print_cmd
         )
     except subprocess.CalledProcessError as e:
         raise RichAbortCmd(e) from e
     tree = rich.tree.Tree(f"[b]{Formatted(doco_config.backup.rsync.root)}[/]")
-    files = sorted([file for file in file_list if file != "."])
+    files = sorted([item[1] for item in date_file_tuples])
     for file in files:
         tree.add(f"[yellow]{Formatted(file)}[/]")
     rich.print(tree)
@@ -31,7 +31,7 @@ def list_projects(doco_config: DocoConfig):
 
 def list_backups(project_name: str, doco_config: DocoConfig):
     try:
-        _, file_list = run_rsync_list(
+        _, date_file_tuples = run_rsync_list(
             doco_config.backup.rsync,
             target=f"{project_name}/",
             dry_run=False,
@@ -42,7 +42,7 @@ def list_backups(project_name: str, doco_config: DocoConfig):
     tree = rich.tree.Tree(
         f"[dim]{Formatted(doco_config.backup.rsync.root)}/[/][b]{Formatted(project_name)}[/]"
     )
-    files = sorted([file[7:] for file in file_list if file.startswith("backup-")], reverse=True)
+    files = [item[1] for item in sorted(date_file_tuples, key=lambda item: item[0], reverse=True)]
     for i, file in enumerate(files):
         tree.add(f"[yellow]{i}[/][dim]:[/] {Formatted(file)}")
     rich.print(tree)
