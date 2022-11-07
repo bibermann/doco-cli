@@ -99,13 +99,14 @@ Parent command: [`doco`](#doco)
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running            Consider only projects with at least one running or     │
-│                      restarting service.                                     │
-│ --dry-run  -n        Do not actually start anything, only show what would be │
-│                      done.                                                   │
-│ --pull     -p        Pull images before running.                             │
-│ --log      -l        Also show logs.                                         │
-│ --help     -h        Show this message and exit.                             │
+│ --running                      Consider only projects with at least one      │
+│                                running or restarting service.                │
+│ --no-remove-orphans  -k        Keep orphans.                                 │
+│ --dry-run            -n        Do not actually start anything, only show     │
+│                                what would be done.                           │
+│ --pull               -p        Pull images before running.                   │
+│ --log                -l        Also show logs.                               │
+│ --help               -h        Show this message and exit.                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 
