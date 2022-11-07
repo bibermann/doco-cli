@@ -1,0 +1,6 @@
+[backup.rsync]
+rsh = "ssh"
+host = "doco-demo-server"
+user = "root"
+module = ""
+root = "/backups"

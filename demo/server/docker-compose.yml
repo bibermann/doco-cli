@@ -1,0 +1,10 @@
+services:
+  server:
+    build: .
+    ports:
+      - 2222:22
+    volumes:
+      - ../keys/etc/ssh/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key:ro
+      - ../keys/etc/ssh/ssh_host_ed25519_key.pub:/etc/ssh/ssh_host_ed25519_key.pub:ro
+      - ../keys/id_ed25519.pub:/client-key.pub:ro
+      - ../server-backups:/backups

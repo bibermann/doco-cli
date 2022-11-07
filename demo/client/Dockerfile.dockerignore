@@ -1,0 +1,6 @@
+*
+!/pyproject.toml
+!/poetry.lock
+!/src/
+!/demo/client/docker-entrypoint.sh
+!/demo/client/doco.config.toml

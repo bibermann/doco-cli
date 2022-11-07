@@ -1,0 +1,12 @@
+services:
+  client:
+    build:
+      context: ../..
+      dockerfile: demo/client/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../keys/id_ed25519:/root/.ssh/id_ed25519
+      - ../keys/id_ed25519.pub:/root/.ssh/id_ed25519.pub
+      - ../keys/etc/ssh/ssh_host_ed25519_key.pub:/host-key.pub:ro
+      - ../client-projects:/client-projects
+    network_mode: host
