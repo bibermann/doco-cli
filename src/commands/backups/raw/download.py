@@ -40,7 +40,7 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
             f"Enter '{options.destination}' to overwrite (files may get deleted): "
         )
         if answer != options.destination:
-            typer.Abort()
+            raise typer.Abort()
 
     cmd = run_rsync_download_incremental(
         doco_config.backup.rsync,
