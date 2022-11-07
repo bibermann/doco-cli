@@ -16,6 +16,7 @@ from src.utils.exceptions_rich import DocoError
 from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import RichAbortCmd
 from src.utils.system import get_user_groups
 
 
@@ -92,12 +93,15 @@ def rich_run_compose(
     rich_node: rich.tree.Tree,
     cancelable: bool = False,
 ):
-    cmd = run_compose(
-        project_dir=os.path.abspath(project_dir),
-        project_file=project_file,
-        command=command,
-        dry_run=dry_run,
-        cancelable=cancelable,
-        print_cmd_callback=rich_print_cmd,
-    )
+    try:
+        cmd = run_compose(
+            project_dir=os.path.abspath(project_dir),
+            project_file=project_file,
+            command=command,
+            dry_run=dry_run,
+            cancelable=cancelable,
+            print_cmd_callback=rich_print_cmd,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
     rich_node.add(str(format_cmd_line(cmd)))

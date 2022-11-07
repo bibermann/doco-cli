@@ -1,4 +1,5 @@
 import os
+import subprocess
 import tempfile
 import typing as t
 
@@ -8,6 +9,7 @@ from src.utils.backup import BackupJob
 from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_backup_with_hardlinks
 from src.utils.rsync import run_rsync_without_delete
@@ -40,14 +42,17 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
         source = os.path.join(tmp_dir, target_file_name)
         with open(source, "w", encoding="utf-8") as f:
             f.write(content)
-        cmd = run_rsync_backup_with_hardlinks(
-            config=rsync_config,
-            source=source,
-            new_backup=os.path.join(new_backup_dir, target_file_name),
-            old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
-            dry_run=dry_run,
-            print_cmd_callback=rich_print_cmd,
-        )
+        try:
+            cmd = run_rsync_backup_with_hardlinks(
+                config=rsync_config,
+                source=source,
+                new_backup=os.path.join(new_backup_dir, target_file_name),
+                old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
+                dry_run=dry_run,
+                print_cmd_callback=rich_print_cmd,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RichAbortCmd(e) from e
         rich_node.add(str(format_cmd_line(cmd)))
 
 
@@ -65,14 +70,17 @@ def do_backup_job(
             old_backup_path = os.path.dirname(old_backup_path)
     else:
         old_backup_path = None
-    cmd = run_rsync_backup_with_hardlinks(
-        config=rsync_config,
-        source=job.rsync_source_path,
-        new_backup=os.path.join(new_backup_dir, job.rsync_target_path),
-        old_backup_dirs=[old_backup_path] if old_backup_path is not None else [],
-        dry_run=dry_run,
-        print_cmd_callback=rich_print_cmd,
-    )
+    try:
+        cmd = run_rsync_backup_with_hardlinks(
+            config=rsync_config,
+            source=job.rsync_source_path,
+            new_backup=os.path.join(new_backup_dir, job.rsync_target_path),
+            old_backup_dirs=[old_backup_path] if old_backup_path is not None else [],
+            dry_run=dry_run,
+            print_cmd_callback=rich_print_cmd,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
     rich_node.add(str(format_cmd_line(cmd)))
 
 
@@ -100,11 +108,14 @@ def create_target_structure(
     with tempfile.TemporaryDirectory() as tmp_dir:
         for leaf in leafs:
             os.makedirs(os.path.join(tmp_dir, leaf))
-        cmd = run_rsync_without_delete(
-            config=rsync_config,
-            source=f"{tmp_dir}/",
-            destination="",
-            dry_run=dry_run,
-            print_cmd_callback=rich_print_cmd,
-        )
+        try:
+            cmd = run_rsync_without_delete(
+                config=rsync_config,
+                source=f"{tmp_dir}/",
+                destination="",
+                dry_run=dry_run,
+                print_cmd_callback=rich_print_cmd,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RichAbortCmd(e) from e
         rich_node.add(str(format_cmd_line(cmd)))

@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import pathlib
+import subprocess
 import typing as t
 
 import rich.pretty
@@ -14,6 +15,7 @@ from src.utils.exceptions_rich import DocoError
 from src.utils.restore import get_backup_directory
 from src.utils.rich import format_cmd_line
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import RichAbortCmd
 from src.utils.rsync import run_rsync_download_incremental
 from src.utils.validators import project_name_callback
 
@@ -42,13 +44,16 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
         if answer != options.destination:
             raise typer.Abort()
 
-    cmd = run_rsync_download_incremental(
-        doco_config.backup.rsync,
-        source=f"{options.project_name}/{backup_dir}/",
-        destination=f"{options.destination}/",
-        dry_run=options.dry_run,
-        print_cmd_callback=rich_print_cmd,
-    )
+    try:
+        cmd = run_rsync_download_incremental(
+            doco_config.backup.rsync,
+            source=f"{options.project_name}/{backup_dir}/",
+            destination=f"{options.destination}/",
+            dry_run=options.dry_run,
+            print_cmd_callback=rich_print_cmd,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
 
     if options.dry_run:
         run_node = rich.tree.Tree("[i]Would run[/]")

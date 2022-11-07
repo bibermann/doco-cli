@@ -1,11 +1,13 @@
 import dataclasses
 import os
+import subprocess
 import typing as t
 
 from src.utils.common import print_cmd
 from src.utils.common import PrintCmdCallable
 from src.utils.common import relative_path
 from src.utils.common import relative_path_if_below
+from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_list
 
@@ -49,8 +51,11 @@ def get_backup_directory(
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> str:
     if backup_id.isnumeric():
-        _, file_list = run_rsync_list(
-            rsync_config, target=f"{project_name}/", dry_run=False, print_cmd_callback=print_cmd_callback
-        )
+        try:
+            _, file_list = run_rsync_list(
+                rsync_config, target=f"{project_name}/", dry_run=False, print_cmd_callback=print_cmd_callback
+            )
+        except subprocess.CalledProcessError as e:
+            raise RichAbortCmd(e) from e
         return sorted([file for file in file_list if file.startswith("backup-")], reverse=True)[int(backup_id)]
     return f"backup-{backup_id}"
