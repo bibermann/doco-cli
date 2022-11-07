@@ -236,6 +236,7 @@ Parent command: [`doco backups`](#doco-backups)
 │                                      [default: (exclude many system          │
 │                                      directories)]                           │
 │ --live                               Do not stop the services before backup. │
+│ --backup               -b      TEXT  Specify backup name. [default: None]    │
 │ --verbose                            Print more details if --dry-run.        │
 │ --dry-run              -n            Do not actually backup, only show what  │
 │                                      would be done.                          │
@@ -363,9 +364,11 @@ Parent command: [`doco backups raw`](#doco-backups-raw)
 │                             [required]                                       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --verbose            Print more details if --dry-run.                        │
-│ --dry-run  -n        Do not actually backup, only show what would be done.   │
-│ --help     -h        Show this message and exit.                             │
+│ --backup   -b      TEXT  Specify backup name. [default: None]                │
+│ --verbose                Print more details if --dry-run.                    │
+│ --dry-run  -n            Do not actually backup, only show what would be     │
+│                          done.                                               │
+│ --help     -h            Show this message and exit.                         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
 

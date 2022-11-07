@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support `DOCO_BACKUP_RSYNC_*` environment variables.
 - Add option to show logs (in up and restart commands).
 - Add option to pull images before running (in up and restart commands).
+- Allow specifying backup item directory name.
 
 ### Changed
 - Print command that gets executed more prominent with surrounding border.
 - Follow logs by default (in log command).
+- Don't imply `backup-` prefix when listing or specifying backup items.
 
 ### Fixed
 - Fix shell completion for arguments.

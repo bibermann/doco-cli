@@ -45,6 +45,7 @@ class BackupOptions:
     include_read_only_volumes: bool
     volumes: list[str]
     live: bool
+    backup: t.Optional[str]
     dry_run: bool
     dry_run_verbose: bool
 
@@ -156,7 +157,10 @@ def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
     project_id = Formatted(project_id_str, True)
 
     now = datetime.datetime.now()
-    new_backup_dir = os.path.join(project_name, f"backup-{now.strftime('%Y-%m-%d_%H.%M')}")
+    new_backup_dir = os.path.join(
+        project_name,
+        options.backup if options.backup is not None else f"backup-{now.strftime('%Y-%m-%d_%H.%M')}",
+    )
     old_backup_dir = load_last_backup_directory(project.dir)
 
     config = BackupConfig(
@@ -314,6 +318,7 @@ def main(  # noqa: CFQ002 (max arguments)
         show_default=False,
     ),
     live: bool = typer.Option(False, "--live", help="Do not stop the services before backup."),
+    backup: t.Optional[str] = typer.Option(None, "--backup", "-b", help="Specify backup name."),
     verbose: bool = typer.Option(False, "--verbose", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
@@ -350,6 +355,7 @@ def main(  # noqa: CFQ002 (max arguments)
                 include_read_only_volumes=include_ro,
                 volumes=volume,
                 live=live,
+                backup=backup,
                 dry_run=dry_run,
                 dry_run_verbose=verbose,
             ),

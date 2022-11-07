@@ -1,3 +1,4 @@
+import re
 import subprocess
 import typing as t
 
@@ -188,7 +189,10 @@ def run_rsync_list(
     target: str,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
-) -> tuple[list[str], list[str]]:
+) -> tuple[list[str], list[tuple[str, str]]]:
+    """
+    :return: Tuple of cmdline and list of date-file-tuples
+    """
     opt = RsyncListOptions(config=config)
     cmd = [
         "rsync",
@@ -196,13 +200,16 @@ def run_rsync_list(
         "--",
         f"{opt.path()}{target}",
     ]
-    file_list = []
+    date_file_tuples: list[tuple[str, str]] = []
     if not dry_run:
         print_cmd_callback(cmd, None)
         result = subprocess.run(
             cmd, capture_output=True, encoding="utf-8", universal_newlines=True, check=True
         )
+        # Output contains lines like: drwxr-xr-x          4,096 2022/11/07 18:47:30 backup-2022-11-07_18.47
+        regex = re.compile("[^ ]+ + [^ ]+ +(?P<date>[^ ]+ +[^ ]+) +(?P<file>.*)")
         for line in result.stdout.split("\n"):
-            if len(line) >= 5:
-                file_list.append(" ".join(line.split()[4:]))
-    return cmd, file_list
+            match = regex.match(line)
+            if match and match.group("file") != ".":
+                date_file_tuples.append((match.group("date"), match.group("file")))
+    return cmd, date_file_tuples
