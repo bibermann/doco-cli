@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix shell completion for arguments.
 - Allow empty module for rsync.
 - Don't print stacktrace on docker/rsync process errors.
+- Add `--remove-orphans` to `docker compose up` by default.
 
 ## [1.0.0] - 2021-10-30
 ### Added

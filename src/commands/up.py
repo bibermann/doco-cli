@@ -17,6 +17,7 @@ from src.utils.doco import ProjectInfo
 class Options:
     do_pull: bool
     do_log: bool
+    no_remove_orphans: bool
     dry_run: bool
 
 
@@ -27,6 +28,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
             project.file,
             command=[
                 "up",
+                *(["--remove-orphans"] if not options.no_remove_orphans else []),
                 "--build",
                 *(["--pull", "always"] if options.do_pull else []),
                 "-d",
@@ -49,6 +51,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
+    no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", "-k", help="Keep orphans."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually start anything, only show what would be done."
     ),
@@ -75,6 +78,7 @@ def main(
                 options=Options(
                     do_pull=do_pull,
                     do_log=do_log,
+                    no_remove_orphans=no_remove_orphans,
                     dry_run=dry_run,
                 ),
                 info=info,
