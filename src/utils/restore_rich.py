@@ -1,4 +1,5 @@
 import os
+import subprocess
 import typing as t
 
 import rich.tree
@@ -8,15 +9,19 @@ from src.utils.restore import RestoreJob
 from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_download_incremental
 from src.utils.rsync import run_rsync_list
 
 
 def list_projects(doco_config: DocoConfig):
-    _, file_list = run_rsync_list(
-        doco_config.backup.rsync, target="", dry_run=False, print_cmd_callback=rich_print_cmd
-    )
+    try:
+        _, file_list = run_rsync_list(
+            doco_config.backup.rsync, target="", dry_run=False, print_cmd_callback=rich_print_cmd
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
     tree = rich.tree.Tree(f"[b]{Formatted(doco_config.backup.rsync.root)}[/]")
     files = sorted([file for file in file_list if file != "."])
     for file in files:
@@ -25,9 +30,15 @@ def list_projects(doco_config: DocoConfig):
 
 
 def list_backups(project_name: str, doco_config: DocoConfig):
-    _, file_list = run_rsync_list(
-        doco_config.backup.rsync, target=f"{project_name}/", dry_run=False, print_cmd_callback=rich_print_cmd
-    )
+    try:
+        _, file_list = run_rsync_list(
+            doco_config.backup.rsync,
+            target=f"{project_name}/",
+            dry_run=False,
+            print_cmd_callback=rich_print_cmd,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
     tree = rich.tree.Tree(
         f"[dim]{Formatted(doco_config.backup.rsync.root)}/[/][b]{Formatted(project_name)}[/]"
     )
@@ -38,13 +49,16 @@ def list_backups(project_name: str, doco_config: DocoConfig):
 
 
 def do_restore_job(rsync_config: RsyncConfig, job: RestoreJob, dry_run: bool, rich_node: rich.tree.Tree):
-    cmd = run_rsync_download_incremental(
-        config=rsync_config,
-        source=job.rsync_source_path,
-        destination=job.rsync_target_path,
-        dry_run=dry_run,
-        print_cmd_callback=rich_print_cmd,
-    )
+    try:
+        cmd = run_rsync_download_incremental(
+            config=rsync_config,
+            source=job.rsync_source_path,
+            destination=job.rsync_target_path,
+            dry_run=dry_run,
+            print_cmd_callback=rich_print_cmd,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
     rich_node.add(str(format_cmd_line(cmd)))
 
 

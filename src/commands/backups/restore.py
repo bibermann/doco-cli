@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import pathlib
+import subprocess
 import tempfile
 import typing as t
 
@@ -26,6 +27,7 @@ from src.utils.restore_rich import do_restore_job
 from src.utils.restore_rich import list_backups
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_download_incremental
 from src.utils.validators import project_name_callback
@@ -88,13 +90,16 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
     backup_config: t.Any = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
         config_path = os.path.join(tmp_dir, BACKUP_CONFIG_JSON)
-        run_rsync_download_incremental(
-            project.doco_config.backup.rsync,
-            source=f"{options.project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
-            destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
-            dry_run=False,
-            print_cmd_callback=rich_print_cmd,
-        )
+        try:
+            run_rsync_download_incremental(
+                project.doco_config.backup.rsync,
+                source=f"{options.project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
+                destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
+                dry_run=False,
+                print_cmd_callback=rich_print_cmd,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RichAbortCmd(e) from e
         with open(config_path, encoding="utf-8") as f:
             backup_config = json.load(f)
 

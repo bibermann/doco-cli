@@ -1,5 +1,6 @@
 import re
 import shlex
+import subprocess
 import typing as t
 
 import rich.console
@@ -8,6 +9,7 @@ import rich.markup
 import rich.panel
 import rich.pretty
 import rich.tree
+import typer
 
 from src.utils.common import relative_path_if_below
 
@@ -45,3 +47,18 @@ def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
             title_align="left",
         )
     )
+
+
+class RichAbortCmd(typer.Exit):
+    def __init__(self, error: subprocess.CalledProcessError):
+        stderr = error.stderr.strip()
+        rich.print(
+            rich.panel.Panel(
+                f"$ {format_cmd_line(error.cmd)}\n" f"[red dim]{Formatted(stderr, already_formatted=True)}[/]"
+                if stderr != ""
+                else str(format_cmd_line(error.cmd)),
+                title=f"[red]Exit code [b]{error.returncode}[/][/]",
+                title_align="left",
+            )
+        )
+        super().__init__(error.returncode)
