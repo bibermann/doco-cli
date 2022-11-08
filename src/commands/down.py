@@ -46,7 +46,7 @@ def main(
     remove_volumes: bool = typer.Option(
         False, "--remove-volumes", "-v", help="Remove volumes (implies -f / --force)."
     ),
-    no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", "-k", help="Keep orphans."),
+    no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", help="Keep orphans."),
     force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually stop anything, only show what would be done."

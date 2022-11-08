@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option to show logs (in up and restart commands).
 - Add option to pull images before running (in up and restart commands).
 - Allow specifying backup item directory name.
+- Add --no-build option (in up and restart commands).
 
 ### Changed
 - Show command that gets executed more prominent with surrounding border.

@@ -17,6 +17,7 @@ from src.utils.doco import ProjectInfo
 class Options:
     do_pull: bool
     do_log: bool
+    no_build: bool
     no_remove_orphans: bool
     dry_run: bool
 
@@ -29,7 +30,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
             command=[
                 "up",
                 *(["--remove-orphans"] if not options.no_remove_orphans else []),
-                "--build",
+                *(["--build"] if not options.no_build else []),
                 *(["--pull", "always"] if options.do_pull else []),
                 "-d",
             ],
@@ -48,15 +49,16 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
         )
 
 
-def main(
+def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     running: bool = RUNNING_OPTION,
-    no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", "-k", help="Keep orphans."),
+    do_pull: bool = typer.Option(False, "--pull", "-p", help="Pull images before running."),
+    do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
+    no_build: bool = typer.Option(False, "--no-build", help="Don't build images before running."),
+    no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", help="Keep orphans."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually start anything, only show what would be done."
     ),
-    do_pull: bool = typer.Option(False, "--pull", "-p", help="Pull images before running."),
-    do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
 ):
     """
     Start projects.
@@ -78,6 +80,7 @@ def main(
                 options=Options(
                     do_pull=do_pull,
                     do_log=do_log,
+                    no_build=no_build,
                     no_remove_orphans=no_remove_orphans,
                     dry_run=dry_run,
                 ),

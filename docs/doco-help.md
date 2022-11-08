@@ -101,11 +101,12 @@ Parent command: [`doco`](#doco)
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --running                      Consider only projects with at least one      │
 │                                running or restarting service.                │
-│ --no-remove-orphans  -k        Keep orphans.                                 │
-│ --dry-run            -n        Do not actually start anything, only show     │
-│                                what would be done.                           │
 │ --pull               -p        Pull images before running.                   │
 │ --log                -l        Also show logs.                               │
+│ --no-build                     Don't build images before running.            │
+│ --no-remove-orphans            Keep orphans.                                 │
+│ --dry-run            -n        Do not actually start anything, only show     │
+│                                what would be done.                           │
 │ --help               -h        Show this message and exit.                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
@@ -128,7 +129,7 @@ Parent command: [`doco`](#doco)
 │ --running                      Consider only projects with at least one      │
 │                                running or restarting service.                │
 │ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
-│ --no-remove-orphans  -k        Keep orphans.                                 │
+│ --no-remove-orphans            Keep orphans.                                 │
 │ --force              -f        Force calling down even if not running.       │
 │ --dry-run            -n        Do not actually stop anything, only show what │
 │                                would be done.                                │
@@ -154,10 +155,11 @@ Parent command: [`doco`](#doco)
 │ --running                      Consider only projects with at least one      │
 │                                running or restarting service.                │
 │ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
-│ --no-remove-orphans  -k        Keep orphans.                                 │
+│ --no-remove-orphans            Keep orphans.                                 │
 │ --force              -f        Force calling down even if not running.       │
 │ --pull               -p        Pull images before running.                   │
 │ --log                -l        Also show logs.                               │
+│ --no-build                     Don't build images before running.            │
 │ --dry-run            -n        Do not actually stop anything, only show what │
 │                                would be done.                                │
 │ --help               -h        Show this message and exit.                   │
