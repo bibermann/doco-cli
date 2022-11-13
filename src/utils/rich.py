@@ -51,7 +51,7 @@ def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
 
 class RichAbortCmd(typer.Exit):
     def __init__(self, error: subprocess.CalledProcessError):
-        stderr = error.stderr.strip()
+        stderr = error.stderr.strip() if error.stderr is not None else ""
         rich.print(
             rich.panel.Panel(
                 f"$ {format_cmd_line(error.cmd)}\n" f"[red dim]{Formatted(stderr, already_formatted=True)}[/]"

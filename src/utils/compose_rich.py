@@ -52,8 +52,16 @@ def get_compose_projects(  # noqa: C901 (too complex)
                 project_config, project_config_yaml = load_compose_config(project_dir, project_file)
             except subprocess.CalledProcessError as e:
                 if options.print_compose_errors:
-                    tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}")
-                    tree.add(f"[red]{Formatted(e.stderr.strip())}")
+                    tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}[/]")
+                    tree.add(
+                        "[red]"
+                        + str(
+                            Formatted(
+                                e.stderr.strip() if e.stderr is not None else f"Exit code [b]{e.returncode}[/]"
+                            )
+                        )
+                        + "[/]"
+                    )
                     rich.print(tree)
                 continue
 
