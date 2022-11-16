@@ -114,6 +114,12 @@ def colored_port_mapping(mapping: tuple[str, str]) -> Formatted:
     return Formatted(f"{mapping[0]}[dim]:{mapping[1]}[/]", True)
 
 
+def get_source_volume_name(volume: t.Mapping[str, t.Any], config: t.Mapping[str, t.Any]) -> str:
+    alias = volume["source"]
+    name = config.get("volumes", {}).get(alias, {}).get("name", None)
+    return name if name is not None else alias
+
+
 @dataclasses.dataclass
 class PrintOptions:
     print_path: bool
@@ -215,7 +221,8 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                 is_bind_mount = volume["type"] == "bind"
                 is_dir = False
                 if is_volume_mount:
-                    source_volume = Formatted(volume["source"])
+                    name = get_source_volume_name(volume, project.config)
+                    source_volume = Formatted(name)
                 elif is_bind_mount:
                     is_dir = os.path.isdir(volume["source"])
                     output_config = project.doco_config.output
@@ -225,9 +232,8 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                         dimmed_prefix=project.dir,
                     )
                 else:
-                    source_volume = Formatted(
-                        f"{Formatted(volume['source'])} [dim]({Formatted(volume['type'])})[/]", True
-                    )
+                    name = get_source_volume_name(volume, project.config)
+                    source_volume = Formatted(f"{Formatted(name)} [dim]({Formatted(volume['type'])})[/]", True)
                 files = rich.tree.Tree(str(colored_readonly(source_volume, read_only, is_bind_mount)))
                 if (
                     options.list_volumes >= 2

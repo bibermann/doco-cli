@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show command that gets executed more prominent with surrounding border.
 - Follow logs by default (in log command).
 - Don't imply `backup-` prefix when listing or specifying backup items.
+- Display mapped volume name for named volumes.
 
 ### Fixed
 - Fix shell completion for arguments.
