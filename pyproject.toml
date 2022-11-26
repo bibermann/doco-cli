@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "doco-cli"
-version = "2.2.0"
+version = "2.2.1"
 description = ""
 keywords = ["docker", "rsync"]
 authors = ["Fabian Sandoval Saldias <fabianvss@gmail.com>"]
@@ -27,7 +27,7 @@ pre-commit = "^2.20.0"
 bumpver = "^2022.1119"
 
 [tool.bumpver]
-current_version = "2.2.0"
+current_version = "2.2.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
