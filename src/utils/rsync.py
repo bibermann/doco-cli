@@ -9,21 +9,22 @@ from src.utils.common import PrintCmdCallable
 
 
 class RsyncConfig(pydantic.BaseModel):
-    rsh: str = ""
     host: str = ""
     user: str = ""
     module: str = ""
     root: str = ""
+    rsh: str = ""  # deprecated
+    args: list[str] = []
 
     def is_complete(self):
         return self.host != ""
 
 
 class RsyncBaseOptions:
-    opts: list[str]
     host: str
     module: t.Optional[str]
     root: str
+    args: list[str]
 
     def __init__(
         self,
@@ -32,8 +33,6 @@ class RsyncBaseOptions:
         if not config.is_complete():
             raise Exception("You need to configure rsync.")
 
-        ssh_opts = ["-e", config.rsh] if config.rsh != "" else []
-        self.opts = [*ssh_opts]
         self.host = (config.user + "@" if config.user != "" else "") + config.host
         self.module = config.module if config.module != "" else None
         self.root = config.root
@@ -42,6 +41,9 @@ class RsyncBaseOptions:
             self.root = "/" + self.root
         if self.root not in ("", "/") and not self.root.endswith("/"):
             self.root += "/"
+
+        ssh_args = ["-e", config.rsh] if config.rsh != "" else []
+        self.args = [*ssh_args, *config.args]
 
     def path(self):
         prefix = ":" + self.module if self.module is not None else ""
@@ -61,24 +63,24 @@ class RsyncBackupOptions(RsyncBaseOptions):
     ):
         super().__init__(config)
 
-        info_opts = [
+        info_args = [
             "-h",
             *(["-v"] if verbose else []),
             *(["--info=progress2"] if show_progress else []),
         ]
-        backup_opts = [
+        backup_args = [
             *(["--delete"] if delete_from_destination else []),
             # '--mkpath', # --mkpath supported only since 3.2.3
             *(["-z"] if compress else []),
             *(["-n"] if dry_run else []),
         ]
-        archive_opts = [
+        archive_args = [
             "-a",
             # '-N', # -N (--crtimes) supported only on OS X apparently
             "--numeric-ids",
             *(["-x"] if not cross_filesystem_boundaries else []),
         ]
-        self.opts.extend([*info_opts, *backup_opts, *archive_opts])
+        self.args.extend([*info_args, *backup_args, *archive_args])
 
 
 class RsyncListOptions(RsyncBaseOptions):
@@ -88,10 +90,10 @@ class RsyncListOptions(RsyncBaseOptions):
     ):
         super().__init__(config)
 
-        list_opts = [
+        list_args = [
             "--list-only",
         ]
-        self.opts.extend([*list_opts])
+        self.args.extend([*list_args])
 
 
 def run_rsync_without_delete(
@@ -104,7 +106,7 @@ def run_rsync_without_delete(
     opt = RsyncBackupOptions(config=config, delete_from_destination=False)
     cmd = [
         "rsync",
-        *opt.opts,
+        *opt.args,
         "--",
         source,
         f"{opt.path()}{destination}",
@@ -126,7 +128,7 @@ def run_rsync_backup_incremental(
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
         "rsync",
-        *opt.opts,
+        *opt.args,
         "--backup-dir",
         f"{opt.root}{backup_dir}",
         "--",
@@ -149,10 +151,10 @@ def run_rsync_backup_with_hardlinks(
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     for old_backup_dir in old_backup_dirs:
-        opt.opts.extend(["--link-dest", f"{opt.root}{old_backup_dir}"])
+        opt.args.extend(["--link-dest", f"{opt.root}{old_backup_dir}"])
     cmd = [
         "rsync",
-        *opt.opts,
+        *opt.args,
         "--",
         source,
         f"{opt.path()}{new_backup}",
@@ -173,7 +175,7 @@ def run_rsync_download_incremental(
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
         "rsync",
-        *opt.opts,
+        *opt.args,
         "--",
         f"{opt.path()}{source}",
         destination,
@@ -196,7 +198,7 @@ def run_rsync_list(
     opt = RsyncListOptions(config=config)
     cmd = [
         "rsync",
-        *opt.opts,
+        *opt.args,
         "--",
         f"{opt.path()}{target}",
     ]

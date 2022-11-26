@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Introduce `args` in rsync configuration which are forwarded to rsync.
+
+### Deprecated
+- Deprecated `rsh` rsync configuration in favor of `args`.
 
 ## [2.0.0] -- 2022-11-25
 ### Added

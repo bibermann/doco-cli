@@ -16,11 +16,13 @@ pattern = "^/var/(.*)$"
 replace = "[red]/var/\\1[/]"
 
 [backup.rsync]
-rsh = "ssh -p 22 -i /home/johndoe/.ssh/id_ed25519"
 host = "my-nas.example.com"
 user = "backup-user"
 module = "NetBackup"
 root = "/docker-projects"
+args = [
+  "--rsh", "ssh -p 22 -i /home/johndoe/.ssh/id_ed25519",
+]
 ```
 
 Instead of `doco.config.toml` you may give a
@@ -28,11 +30,11 @@ Instead of `doco.config.toml` you may give a
 
 Example environment variables:
 ```bash
-DOCO_BACKUP_RSYNC_RSH="ssh -p 22 -i /home/johndoe/.ssh/id_ed25519"
 DOCO_BACKUP_RSYNC_HOST="my-nas.example.com"
 DOCO_BACKUP_RSYNC_USER="backup-user"
 DOCO_BACKUP_RSYNC_MODULE="NetBackup"
 DOCO_BACKUP_RSYNC_ROOT="/docker-projects"
+DOCO_BACKUP_RSYNC_ARGS="--rsh 'ssh -p 22 -i /home/johndoe/.ssh/id_ed25519'"
 ```
 
 ## Configuration details
