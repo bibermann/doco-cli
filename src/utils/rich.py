@@ -26,12 +26,27 @@ class Formatted:
 
 
 def format_cmd_line(cmd: list[str]) -> Formatted:
+    special_characters = "~`#$&*()|[]{};'\"<>?!@:="
+    # special_characters, for our purposes, inludes the characters listed here
+    # https://www.oreilly.com/library/view/learning-the-bash/1565923472/ch01s09.html
+    # plus '@:=' (we want to highlight that)
+    # minus '/\\' ('/' will be formatted with paths, '\\' could be an escape character for rich).
+
+    highlight_path_segments = False
+
     cmdline = str(Formatted(shlex.join(cmd)))
-    cmdline = re.sub(r" (--?[^ =-][^ =]*)", r" [/][dim dark_orange]\1[/][dim]", cmdline)
-    cmdline = re.sub(r'([\'"@:])', r"[/][dark_orange]\1[/][dim]", cmdline)
-    cmdline = re.sub(r'((?<=[ \'":])/[^/]*)', r"[/][yellow]\1[/][dim]", cmdline)
+    cmdline = re.sub(f"([{re.escape(special_characters)}])", r"[/][dark_orange]\1[/][dim]", cmdline)
+    cmdline = re.sub(r"(?<![-\w])(--?\w[-\w]*)", r"[/][dim dark_orange]\1[/][dim]", cmdline)
+    cmdline = re.sub(
+        r"(?=^|(?<=[ \]]))(/" + f"[^{re.escape(special_characters)}/\\ ]+" + r")",
+        r"[/][yellow]\1[/][dim]",
+        cmdline,
+    )
+    if highlight_path_segments:
+        cmdline = re.sub(r"(?<!\[yellow\])(/)(?!\])", r"[/][yellow]\1[/][dim]", cmdline)
     cmdline = re.sub(r" -- ", r"[/] [dark_orange]--[/] [dim]", cmdline)
     cmdline = f"[dim]{cmdline}[/]"
+
     if len(cmd) > 0:
         program = str(Formatted(cmd[0]))
         if cmdline.startswith(f"[dim]{program} "):
