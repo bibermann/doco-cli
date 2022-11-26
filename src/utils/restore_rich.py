@@ -92,6 +92,10 @@ def create_target_structure(
                 while not existing_parent.exists():
                     existing_parent = existing_parent.parent
                 os.makedirs(leaf)
-                chown_given_strings(existing_parent, structure_config.uid, structure_config.gid)
+                for root, dirs, _ in os.walk(existing_parent):
+                    for name in dirs:
+                        chown_given_strings(
+                            os.path.join(root, name), structure_config.uid, structure_config.gid
+                        )
             else:
                 rich_node.add(f"[dim]Create directory[/] {leaf}")

@@ -113,9 +113,8 @@ def create_target_structure(
     with tempfile.TemporaryDirectory() as tmp_dir:
         for leaf in leafs:
             os.makedirs(os.path.join(tmp_dir, leaf))
-        for root, dirs, _ in os.walk(tmp_dir):
-            for name in dirs:
-                chown_given_strings(os.path.join(root, name), structure_config.uid, structure_config.gid)
+        for root, _, _ in os.walk(tmp_dir):
+            chown_given_strings(root, structure_config.uid, structure_config.gid)
         try:
             cmd = run_rsync_without_delete(
                 config=rsync_config,
