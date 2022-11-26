@@ -36,7 +36,12 @@ class RestoreOptions:
 def do_restore(
     options: RestoreOptions, jobs: list[RestoreJob], doco_config: DocoConfig, run_node: rich.tree.Tree
 ):
-    create_target_structure(jobs=jobs, dry_run=options.dry_run, rich_node=run_node)
+    create_target_structure(
+        structure_config=doco_config.backup.restore_structure,
+        jobs=jobs,
+        dry_run=options.dry_run,
+        rich_node=run_node,
+    )
 
     for job in jobs:
         do_restore_job(

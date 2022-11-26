@@ -1,9 +1,11 @@
 import os
+import pathlib
 import subprocess
 import typing as t
 
 import rich.tree
 
+from src.utils.doco_config import DocoBackupRestoreStructureConfig
 from src.utils.doco_config import DocoConfig
 from src.utils.restore import RestoreJob
 from src.utils.rich import format_cmd_line
@@ -13,6 +15,7 @@ from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_download_incremental
 from src.utils.rsync import run_rsync_list
+from src.utils.system import chown_given_strings
 
 
 def list_projects(doco_config: DocoConfig):
@@ -62,7 +65,12 @@ def do_restore_job(rsync_config: RsyncConfig, job: RestoreJob, dry_run: bool, ri
     rich_node.add(str(format_cmd_line(cmd)))
 
 
-def create_target_structure(jobs: t.Iterable[RestoreJob], dry_run: bool, rich_node: rich.tree.Tree):
+def create_target_structure(
+    structure_config: DocoBackupRestoreStructureConfig,
+    jobs: t.Iterable[RestoreJob],
+    dry_run: bool,
+    rich_node: rich.tree.Tree,
+):
     """Create target directory structure at local machine
 
     Required as long as (remote?) rsync does not implement --mkpath
@@ -80,6 +88,10 @@ def create_target_structure(jobs: t.Iterable[RestoreJob], dry_run: bool, rich_no
             if os.path.exists(leaf):
                 raise RuntimeError(f"Error: {leaf} was assumed to be a directory.")
             if not dry_run:
+                existing_parent = pathlib.Path(leaf)
+                while not existing_parent.exists():
+                    existing_parent = existing_parent.parent
                 os.makedirs(leaf)
+                chown_given_strings(existing_parent, structure_config.uid, structure_config.gid)
             else:
                 rich_node.add(f"[dim]Create directory[/] {leaf}")

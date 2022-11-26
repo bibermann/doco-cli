@@ -58,7 +58,12 @@ def do_restore(
     jobs: list[RestoreJob],
     run_node: rich.tree.Tree,
 ):
-    create_target_structure(jobs=jobs, dry_run=options.dry_run, rich_node=run_node)
+    create_target_structure(
+        structure_config=project.doco_config.backup.restore_structure,
+        jobs=jobs,
+        dry_run=options.dry_run,
+        rich_node=run_node,
+    )
 
     if config.tasks.restart_project:
         rich_run_compose(

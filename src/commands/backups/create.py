@@ -93,6 +93,7 @@ def do_backup(
 ):
     create_target_structure(
         rsync_config=project.doco_config.backup.rsync,
+        structure_config=project.doco_config.backup.structure,
         new_backup_dir=config.backup_dir,
         jobs=jobs,
         dry_run=options.dry_run,
@@ -107,6 +108,7 @@ def do_backup(
     if config.tasks.backup_config:
         do_backup_content(
             rsync_config=project.doco_config.backup.rsync,
+            structure_config=project.doco_config.backup.structure,
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
             content=config.json(indent=4),
@@ -118,6 +120,7 @@ def do_backup(
     if config.tasks.backup_compose_config:
         do_backup_content(
             rsync_config=project.doco_config.backup.rsync,
+            structure_config=project.doco_config.backup.structure,
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
             content=project.config_yaml,

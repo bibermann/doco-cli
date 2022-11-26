@@ -5,26 +5,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Introduce `.backup.structure` and `.backup.restore_structure` configuration
+    to allow changing UID/GID for the backup directory structure and configuration files.
 
 ## [2.1.0] -- 2022-11-26
 ### Added
-- Introduce `args` in rsync configuration which are forwarded to rsync.
+- Introduce `.backup.rsync.args` configuration to specify args to forward to rsync.
 
 ### Deprecated
-- Deprecated `rsh` rsync configuration in favor of `args`.
+- Deprecated `.backup.rsync.rsh` configuration in favor of `.backup.rsync.args`.
 
 ## [2.0.0] -- 2022-11-25
 ### Added
 - Support TOML config format.
 - Support `DOCO_BACKUP_RSYNC_*` environment variables.
-- Add option to show logs (in up and restart commands).
-- Add option to pull images before running (in up and restart commands).
+- Add option to show logs (in `up` and `restart` commands).
+- Add option to pull images before running (in `up` and `restart` commands).
 - Allow specifying backup item directory name.
-- Add --no-build option (in up and restart commands).
+- Add `--no-build` option (in up and restart commands).
 
 ### Changed
 - Show command that gets executed more prominent with surrounding border.
-- Follow logs by default (in log command).
+- Follow logs by default (in `log` command).
 - Don't imply `backup-` prefix when listing or specifying backup items.
 - Display mapped volume name for named volumes.
 

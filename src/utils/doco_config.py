@@ -21,7 +21,19 @@ class DocoOutputConfig(pydantic.BaseModel):
     text_substitutions: DocoConfigTextSubstitutions = DocoConfigTextSubstitutions()
 
 
+class DocoBackupStructureConfig(pydantic.BaseModel):
+    uid: t.Optional[str] = None
+    gid: t.Optional[str] = None
+
+
+class DocoBackupRestoreStructureConfig(pydantic.BaseModel):
+    uid: t.Optional[str] = None
+    gid: t.Optional[str] = None
+
+
 class DocoBackupConfig(pydantic.BaseModel):
+    structure: DocoBackupStructureConfig = DocoBackupStructureConfig()
+    restore_structure: DocoBackupRestoreStructureConfig = DocoBackupRestoreStructureConfig()
     rsync: RsyncConfig = RsyncConfig()
 
 
@@ -50,6 +62,20 @@ def _load_config_from_filesystem(project_path: str) -> t.Optional[DocoConfig]:
     return None
 
 
+def _load_backup_structure_config_from_env(config: DocoBackupStructureConfig) -> None:
+    prefix = "DOCO_BACKUP_STRUCTURE_"
+
+    config.uid = os.environ.get(f"{prefix}UID", config.uid)
+    config.gid = os.environ.get(f"{prefix}GID", config.gid)
+
+
+def _load_backup_restore_structure_config_from_env(config: DocoBackupRestoreStructureConfig) -> None:
+    prefix = "DOCO_BACKUP_RESTORE_STRUCTURE_"
+
+    config.uid = os.environ.get(f"{prefix}UID", config.uid)
+    config.gid = os.environ.get(f"{prefix}GID", config.gid)
+
+
 def _load_backup_rsync_config_from_env(config: RsyncConfig) -> None:
     prefix = "DOCO_BACKUP_RSYNC_"
 
@@ -67,5 +93,7 @@ def load_doco_config(project_path: str) -> DocoConfig:
     config = _load_config_from_filesystem(project_path)
     if config is None:
         config = DocoConfig()
+    _load_backup_structure_config_from_env(config.backup.structure)
+    _load_backup_restore_structure_config_from_env(config.backup.restore_structure)
     _load_backup_rsync_config_from_env(config.backup.rsync)
     return config

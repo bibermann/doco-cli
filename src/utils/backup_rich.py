@@ -6,6 +6,7 @@ import typing as t
 import rich.tree
 
 from src.utils.backup import BackupJob
+from src.utils.doco_config import DocoBackupStructureConfig
 from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
@@ -13,6 +14,7 @@ from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_backup_with_hardlinks
 from src.utils.rsync import run_rsync_without_delete
+from src.utils.system import chown_given_strings
 
 
 def format_do_backup(job: BackupJob) -> Formatted:
@@ -31,6 +33,7 @@ def format_no_backup(job: BackupJob, reason: str, emphasize: bool = True) -> For
 
 def do_backup_content(  # noqa: CFQ002 (max arguments)
     rsync_config: RsyncConfig,
+    structure_config: DocoBackupStructureConfig,
     new_backup_dir: str,
     old_backup_dir: t.Optional[str],
     content: str,
@@ -42,6 +45,7 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
         source = os.path.join(tmp_dir, target_file_name)
         with open(source, "w", encoding="utf-8") as f:
             f.write(content)
+        chown_given_strings(source, structure_config.uid, structure_config.gid)
         try:
             cmd = run_rsync_backup_with_hardlinks(
                 config=rsync_config,
@@ -86,6 +90,7 @@ def do_backup_job(
 
 def create_target_structure(
     rsync_config: RsyncConfig,
+    structure_config: DocoBackupStructureConfig,
     new_backup_dir: str,
     jobs: t.Iterable[BackupJob],
     dry_run: bool,
@@ -108,6 +113,9 @@ def create_target_structure(
     with tempfile.TemporaryDirectory() as tmp_dir:
         for leaf in leafs:
             os.makedirs(os.path.join(tmp_dir, leaf))
+        for root, dirs, _ in os.walk(tmp_dir):
+            for name in dirs:
+                chown_given_strings(os.path.join(root, name), structure_config.uid, structure_config.gid)
         try:
             cmd = run_rsync_without_delete(
                 config=rsync_config,
