@@ -33,6 +33,7 @@ from src.utils.compose_rich import get_compose_projects
 from src.utils.compose_rich import ProjectSearchOptions
 from src.utils.compose_rich import rich_run_compose
 from src.utils.exceptions_rich import DocoError
+from src.utils.rich import format_not_existing
 from src.utils.rich import Formatted
 from src.utils.rsync import RsyncConfig
 
@@ -250,6 +251,11 @@ def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
             is_bind_mount = volume["type"] == "bind"
             if not is_bind_mount:
                 s.add(str(format_no_backup(job, "no bind mount")))
+                service_task.exclude_volumes.append(job.rsync_source_path)
+                continue
+            existing = os.path.exists(job.rsync_source_path)
+            if not existing:
+                s.add(str(format_not_existing(job.rsync_source_path)))
                 service_task.exclude_volumes.append(job.rsync_source_path)
                 continue
             read_only = volume.get("read_only", False)

@@ -64,6 +64,11 @@ def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
     )
 
 
+def format_not_existing(text: t.Union[str, Formatted]) -> Formatted:
+    text = Formatted(text)
+    return Formatted(f"[red][b]{text}[/] [dim](not existing)[/][/]", True)
+
+
 class RichAbortCmd(typer.Exit):
     def __init__(self, error: subprocess.CalledProcessError):
         stderr = error.stderr.strip() if error.stderr is not None else ""

@@ -17,6 +17,7 @@ from src.utils.compose_rich import ComposeProject
 from src.utils.compose_rich import get_compose_projects
 from src.utils.compose_rich import ProjectSearchOptions
 from src.utils.doco_config import TextSubstitutions
+from src.utils.rich import format_not_existing
 from src.utils.rich import Formatted
 
 
@@ -216,6 +217,7 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
             table.add_column("Container path")
             table.add_column("ro/rw")
             for volume in service["volumes"]:
+                existing = True
                 read_only = volume.get("read_only", False)
                 is_volume_mount = volume["type"] == "volume"
                 is_bind_mount = volume["type"] == "bind"
@@ -224,6 +226,7 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                     name = get_source_volume_name(volume, project.config)
                     source_volume = Formatted(name)
                 elif is_bind_mount:
+                    existing = os.path.exists(volume["source"])
                     is_dir = os.path.isdir(volume["source"])
                     output_config = project.doco_config.output
                     source_volume = colored_path(
@@ -234,7 +237,10 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                 else:
                     name = get_source_volume_name(volume, project.config)
                     source_volume = Formatted(f"{Formatted(name)} [dim]({Formatted(volume['type'])})[/]", True)
-                files = rich.tree.Tree(str(colored_readonly(source_volume, read_only, is_bind_mount)))
+                if not existing:
+                    files = rich.tree.Tree(str(format_not_existing(source_volume)))
+                else:
+                    files = rich.tree.Tree(str(colored_readonly(source_volume, read_only, is_bind_mount)))
                 if (
                     options.list_volumes >= 2
                     and volume["source"].startswith("/")
