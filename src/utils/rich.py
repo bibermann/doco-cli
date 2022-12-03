@@ -8,10 +8,13 @@ import rich.json
 import rich.markup
 import rich.panel
 import rich.pretty
+import rich.rule
+import rich.text
 import rich.tree
 import typer
 
 from src.utils.common import relative_path_if_below
+from src.utils.console import console
 
 
 class Formatted:
@@ -55,11 +58,23 @@ def format_cmd_line(cmd: list[str]) -> Formatted:
 
 
 def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
-    rich.print(
-        rich.panel.Panel(
-            str(format_cmd_line(cmd)),
-            title=f"[i]Running in[/] [yellow]{relative_path_if_below(cwd)}[/]" if cwd else "[i]Running[/]",
-            title_align="left",
+    console.print(
+        rich.rule.Rule(
+            title=rich.text.Text("─ ").append(
+                rich.text.Text.from_markup(
+                    f"[i]Running in[/] [yellow]{relative_path_if_below(cwd)}[/]" if cwd else "[i]Running[/]"
+                )
+            ),
+            align="left",
+            characters="─",
+            style="default",
+        )
+    )
+    console.print(str(format_cmd_line(cmd)), soft_wrap=True)
+    console.print(
+        rich.rule.Rule(
+            characters="─",
+            style="default",
         )
     )
 
@@ -74,9 +89,9 @@ class RichAbortCmd(typer.Exit):
         stderr = error.stderr.strip() if error.stderr is not None else ""
         rich.print(
             rich.panel.Panel(
-                f"$ {format_cmd_line(error.cmd)}\n" f"[red dim]{Formatted(stderr, already_formatted=True)}[/]"
+                f"[red dim]{Formatted(stderr, already_formatted=True)}[/]"
                 if stderr != ""
-                else str(format_cmd_line(error.cmd)),
+                else "[dim]No stderr captured, see above for output.[/]",
                 title=f"[red]Exit code [b]{error.returncode}[/][/]",
                 title_align="left",
             )

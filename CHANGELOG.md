@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Highlight and don't back up non-existing bind-mount volumes.
+- Render commands more copy-paste-friendly (w/o borders and w/o hard linebreaks).
 
 ## [2.2.1] -- 2022-11-27
 ### Fixed
