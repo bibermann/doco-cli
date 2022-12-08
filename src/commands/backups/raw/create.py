@@ -24,10 +24,12 @@ from src.utils.backup_rich import do_backup_job
 from src.utils.backup_rich import format_do_backup
 from src.utils.bbak import BbakContextObject
 from src.utils.common import dir_from_path
+from src.utils.common import PrintCmdData
 from src.utils.completers_autocompletion import LegacyPathCompleter
 from src.utils.doco_config import DocoConfig
 from src.utils.exceptions_rich import DocoError
 from src.utils.rich import Formatted
+from src.utils.rich import rich_print_conditional_cmds
 from src.utils.rsync import RsyncConfig
 from src.utils.validators import project_name_callback
 
@@ -62,7 +64,7 @@ def do_backup(
     config: BackupConfig,
     jobs: list[BackupJob],
     doco_config: DocoConfig,
-    run_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     create_target_structure(
         rsync_config=doco_config.backup.rsync,
@@ -70,7 +72,7 @@ def do_backup(
         new_backup_dir=config.backup_dir,
         jobs=jobs,
         dry_run=options.dry_run,
-        rich_node=run_node,
+        cmds=cmds,
     )
 
     if config.tasks.backup_config:
@@ -82,7 +84,7 @@ def do_backup(
             content=config.json(indent=4),
             target_file_name=BACKUP_CONFIG_JSON,
             dry_run=options.dry_run,
-            rich_node=run_node,
+            cmds=cmds,
         )
 
     for job in jobs:
@@ -92,7 +94,7 @@ def do_backup(
             old_backup_dir=config.last_backup_dir,
             job=job,
             dry_run=options.dry_run,
-            rich_node=run_node,
+            cmds=cmds,
         )
 
     if not options.dry_run and config.tasks.create_last_backup_dir_file:
@@ -151,11 +153,9 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
         backup_node.add(str(format_do_backup(job)))
         config.tasks.backup_paths.append((job.relative_source_path, job.relative_target_path))
 
-    run_node = rich.tree.Tree("[i]Would run[/]")
-    if options.dry_run_verbose:
-        tree.add(run_node)
+    cmds: list[PrintCmdData] = []
 
-    do_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, run_node=run_node)
+    do_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, cmds=cmds)
 
     if options.dry_run:
         if options.dry_run_verbose:
@@ -164,6 +164,8 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
             )
 
         rich.print(tree)
+        if options.dry_run_verbose:
+            rich_print_conditional_cmds(cmds)
 
 
 def main(

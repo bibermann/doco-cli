@@ -6,6 +6,7 @@ import typing as t
 
 import rich.tree
 
+from src.utils.common import PrintCmdData
 from src.utils.compose import find_compose_projects
 from src.utils.compose import load_compose_config
 from src.utils.compose import load_compose_ps
@@ -13,7 +14,6 @@ from src.utils.compose import run_compose
 from src.utils.doco_config import DocoConfig
 from src.utils.doco_config import load_doco_config
 from src.utils.exceptions_rich import DocoError
-from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
 from src.utils.rich import RichAbortCmd
@@ -98,7 +98,7 @@ def rich_run_compose(
     project_file,
     command: list[str],
     dry_run: bool,
-    rich_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
     cancelable: bool = False,
 ):
     try:
@@ -112,4 +112,4 @@ def rich_run_compose(
         )
     except subprocess.CalledProcessError as e:
         raise RichAbortCmd(e) from e
-    rich_node.add(str(format_cmd_line(cmd)))
+    cmds.append(PrintCmdData(cmd=cmd))

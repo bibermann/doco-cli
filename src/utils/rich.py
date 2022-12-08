@@ -13,6 +13,7 @@ import rich.text
 import rich.tree
 import typer
 
+from src.utils.common import PrintCmdData
 from src.utils.common import relative_path_if_below
 from src.utils.console import console
 
@@ -57,26 +58,66 @@ def format_cmd_line(cmd: list[str]) -> Formatted:
     return Formatted(cmdline, True)
 
 
-def rich_print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
-    console.print(
-        rich.rule.Rule(
-            title=rich.text.Text("─ ").append(
-                rich.text.Text.from_markup(
-                    f"[i]Running in[/] [yellow]{relative_path_if_below(cwd)}[/]" if cwd else "[i]Running[/]"
-                )
-            ),
-            align="left",
-            characters="─",
-            style="default",
+def rich_print_cmd(
+    cmd: list[str],
+    cwd: t.Optional[str] = None,
+    conditional: bool = False,
+    header: bool = True,
+    body: bool = True,
+    footer: bool = True,
+) -> None:
+    if header:
+        verb = "Running" if not conditional else "Would run"
+        console.print(
+            rich.rule.Rule(
+                title=rich.text.Text("▾ ").append(
+                    rich.text.Text.from_markup(
+                        f"[i][b]{verb}[/] in[/] [yellow]{relative_path_if_below(cwd)}[/]"
+                        if cwd
+                        else f"[i b]{verb}[/]"
+                    )
+                ),
+                align="left",
+                characters="─",
+                style="default",
+            )
         )
-    )
-    console.print(str(format_cmd_line(cmd)), soft_wrap=True)
-    console.print(
-        rich.rule.Rule(
-            characters="─",
-            style="default",
+    if body:
+        console.print(str(format_cmd_line(cmd)), highlight=False, soft_wrap=True)
+    if footer:
+        console.print(
+            rich.rule.Rule(
+                characters="─",
+                style="default",
+            )
         )
-    )
+
+
+def rich_print_conditional_cmds(cmds: list[PrintCmdData]):
+    last_was_cmd: bool = False
+    last_cwd: t.Optional[str] = None
+    for cmd in cmds:
+        if cmd.cmd is not None:
+            rich_print_cmd(
+                cmd.cmd,
+                cmd.cwd,
+                conditional=True,
+                header=not last_was_cmd or last_cwd != cmd.cwd,
+                footer=False,
+            )
+            last_cwd = cmd.cwd
+            last_was_cmd = True
+        elif cmd.create_dir is not None:
+            console.print(
+                f"[i][b]Would create[/] directory[/] {cmd.create_dir}", highlight=False, soft_wrap=True
+            )
+            last_was_cmd = False
+        else:
+            assert False
+    if len(cmds) == 0:
+        console.print("[i][b]Would run[/] nothing[/]")
+    else:
+        rich_print_cmd([], header=False, body=False)
 
 
 def format_not_existing(text: t.Union[str, Formatted]) -> Formatted:

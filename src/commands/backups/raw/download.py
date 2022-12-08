@@ -4,17 +4,16 @@ import pathlib
 import subprocess
 import typing as t
 
-import rich.pretty
-import rich.tree
 import typer
 
 from src.utils.bbak import BbakContextObject
+from src.utils.common import PrintCmdData
 from src.utils.completers import DirectoryCompleter
 from src.utils.doco_config import DocoConfig
 from src.utils.exceptions_rich import DocoError
 from src.utils.restore import get_backup_directory
-from src.utils.rich import format_cmd_line
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import rich_print_conditional_cmds
 from src.utils.rich import RichAbortCmd
 from src.utils.rsync import run_rsync_download_incremental
 from src.utils.validators import project_name_callback
@@ -56,9 +55,7 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
         raise RichAbortCmd(e) from e
 
     if options.dry_run:
-        run_node = rich.tree.Tree("[i]Would run[/]")
-        run_node.add(str(format_cmd_line(cmd)))
-        rich.print(run_node)
+        rich_print_conditional_cmds([PrintCmdData(cmd=cmd)])
 
 
 def main(

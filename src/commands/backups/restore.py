@@ -15,6 +15,7 @@ import typer
 from src.utils.backup import BACKUP_CONFIG_JSON
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
+from src.utils.common import PrintCmdData
 from src.utils.compose_rich import ComposeProject
 from src.utils.compose_rich import get_compose_projects
 from src.utils.compose_rich import ProjectSearchOptions
@@ -25,6 +26,7 @@ from src.utils.restore import RestoreJob
 from src.utils.restore_rich import create_target_structure
 from src.utils.restore_rich import do_restore_job
 from src.utils.restore_rich import list_backups
+from src.utils.restore_rich import print_details
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
 from src.utils.rich import RichAbortCmd
@@ -56,29 +58,25 @@ def do_restore(
     options: RestoreOptions,
     config: RestoreConfig,
     jobs: list[RestoreJob],
-    run_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     create_target_structure(
         structure_config=project.doco_config.backup.restore_structure,
         jobs=jobs,
         dry_run=options.dry_run,
-        rich_node=run_node,
+        cmds=cmds,
     )
 
     if config.tasks.restart_project:
-        rich_run_compose(
-            project.dir, project.file, command=["down"], dry_run=options.dry_run, rich_node=run_node
-        )
+        rich_run_compose(project.dir, project.file, command=["down"], dry_run=options.dry_run, cmds=cmds)
 
     for job in jobs:
         do_restore_job(
-            rsync_config=project.doco_config.backup.rsync, job=job, dry_run=options.dry_run, rich_node=run_node
+            rsync_config=project.doco_config.backup.rsync, job=job, dry_run=options.dry_run, cmds=cmds
         )
 
     if config.tasks.restart_project:
-        rich_run_compose(
-            project.dir, project.file, command=["up", "-d"], dry_run=options.dry_run, rich_node=run_node
-        )
+        rich_run_compose(project.dir, project.file, command=["up", "-d"], dry_run=options.dry_run, cmds=cmds)
 
 
 def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
@@ -176,26 +174,14 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
             f"{job.display_source_path} [dim]->[/] [dark_orange]{job.display_target_path}[/] {action}"
         )
 
-    run_node = rich.tree.Tree("[i]Would run[/]")
-    if options.dry_run_verbose:
-        tree.add(run_node)
+    cmds: list[PrintCmdData] = []
 
     config.tasks.restart_project = has_running_or_restarting
 
-    do_restore(project=project, options=options, config=config, jobs=jobs, run_node=run_node)
+    do_restore(project=project, options=options, config=config, jobs=jobs, cmds=cmds)
 
     if options.dry_run:
-        if options.dry_run_verbose:
-            config_group = rich.console.Group(f"[green]{Formatted(BACKUP_CONFIG_JSON)}[/]")
-            backup_dir_node.add(config_group)
-
-            config_group.renderables.append(
-                rich.panel.Panel(
-                    rich.json.JSON(json.dumps(backup_config, indent=4)), expand=False, border_style="green"
-                )
-            )
-
-        rich.print(tree)
+        print_details(tree, backup_dir_node, backup_config, cmds, options.dry_run_verbose)
 
 
 def get_project_name(project_name: t.Optional[str], project: ComposeProject) -> str:

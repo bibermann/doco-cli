@@ -36,7 +36,7 @@ def down_project(project: ComposeProject, options: Options, info: ProjectInfo):
                 *(["-v"] if options.remove_volumes else []),
             ],
             dry_run=options.dry_run,
-            rich_node=info.run_node,
+            cmds=info.cmds,
         )
 
 

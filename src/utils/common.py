@@ -1,9 +1,20 @@
+import dataclasses
 import os
 import typing as t
 
 import dotenv
 
-PrintCmdCallable = t.Callable[[list[str], t.Optional[str]], None]
+
+@dataclasses.dataclass
+class PrintCmdData:
+    cmd: t.Optional[list[str]] = None
+    cwd: t.Optional[str] = None
+    create_dir: t.Optional[str] = None
+
+
+class PrintCmdCallable(t.Protocol):
+    def __call__(self, cmd: list[str], cwd: t.Optional[str] = ..., conditional: bool = ...) -> None:
+        ...
 
 
 def load_env_file():
@@ -36,8 +47,9 @@ def relative_path_if_below(path: str, base: str = os.getcwd()) -> str:
     return relpath
 
 
-def print_cmd(cmd: list[str], cwd: t.Optional[str]) -> None:
+def print_cmd(cmd: list[str], cwd: t.Optional[str] = None, conditional: bool = False) -> None:
+    verb = "Running" if not conditional else "Would run"
     if cwd:
-        print(f"Running {cmd} in {relative_path_if_below(cwd)}")
+        print(f"{verb} {cmd} in {relative_path_if_below(cwd)}")
     else:
-        print(f"Running {cmd}")
+        print(f"{verb} {cmd}")

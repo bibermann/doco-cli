@@ -27,7 +27,7 @@ def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
             *(["-f"] if options.follow else []),
         ],
         dry_run=False,
-        rich_node=info.run_node,
+        cmds=info.cmds,
         cancelable=options.follow,
     )
 

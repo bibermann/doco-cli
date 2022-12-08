@@ -12,12 +12,14 @@ import typer
 
 from src.utils.backup import BACKUP_CONFIG_JSON
 from src.utils.bbak import BbakContextObject
+from src.utils.common import PrintCmdData
 from src.utils.doco_config import DocoConfig
 from src.utils.exceptions_rich import DocoError
 from src.utils.restore import get_backup_directory
 from src.utils.restore import RestoreJob
 from src.utils.restore_rich import create_target_structure
 from src.utils.restore_rich import do_restore_job
+from src.utils.restore_rich import print_details
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
 from src.utils.rich import RichAbortCmd
@@ -34,19 +36,17 @@ class RestoreOptions:
 
 
 def do_restore(
-    options: RestoreOptions, jobs: list[RestoreJob], doco_config: DocoConfig, run_node: rich.tree.Tree
+    options: RestoreOptions, jobs: list[RestoreJob], doco_config: DocoConfig, cmds: list[PrintCmdData]
 ):
     create_target_structure(
         structure_config=doco_config.backup.restore_structure,
         jobs=jobs,
         dry_run=options.dry_run,
-        rich_node=run_node,
+        cmds=cmds,
     )
 
     for job in jobs:
-        do_restore_job(
-            rsync_config=doco_config.backup.rsync, job=job, dry_run=options.dry_run, rich_node=run_node
-        )
+        do_restore_job(rsync_config=doco_config.backup.rsync, job=job, dry_run=options.dry_run, cmds=cmds)
 
 
 def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoConfig):
@@ -58,7 +58,7 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
         print_cmd_callback=rich_print_cmd,
     )
 
-    backup_config: t.Any = {}
+    backup_config: t.Mapping[str, t.Any] = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
         config_path = os.path.join(tmp_dir, BACKUP_CONFIG_JSON)
         try:
@@ -113,24 +113,12 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
             f"{job.display_source_path} [dim]->[/] [dark_orange]{job.display_target_path}[/] {action}"
         )
 
-    run_node = rich.tree.Tree("[i]Would run[/]")
-    if options.dry_run_verbose:
-        tree.add(run_node)
+    cmds: list[PrintCmdData] = []
 
-    do_restore(options=options, jobs=jobs, doco_config=doco_config, run_node=run_node)
+    do_restore(options=options, jobs=jobs, doco_config=doco_config, cmds=cmds)
 
     if options.dry_run:
-        if options.dry_run_verbose:
-            config_group = rich.console.Group(f"[green]{Formatted(BACKUP_CONFIG_JSON)}[/]")
-            backup_dir_node.add(config_group)
-
-            config_group.renderables.append(
-                rich.panel.Panel(
-                    rich.json.JSON(json.dumps(backup_config, indent=4)), expand=False, border_style="green"
-                )
-            )
-
-        rich.print(tree)
+        print_details(tree, backup_dir_node, backup_config, cmds, options.dry_run_verbose)
 
 
 def main(

@@ -3,11 +3,9 @@ import subprocess
 import tempfile
 import typing as t
 
-import rich.tree
-
 from src.utils.backup import BackupJob
+from src.utils.common import PrintCmdData
 from src.utils.doco_config import DocoBackupStructureConfig
-from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
 from src.utils.rich import RichAbortCmd
@@ -39,7 +37,7 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
     content: str,
     target_file_name: str,
     dry_run: bool,
-    rich_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     with tempfile.TemporaryDirectory() as tmp_dir:
         source = os.path.join(tmp_dir, target_file_name)
@@ -57,7 +55,7 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
             )
         except subprocess.CalledProcessError as e:
             raise RichAbortCmd(e) from e
-        rich_node.add(str(format_cmd_line(cmd)))
+        cmds.append(PrintCmdData(cmd=cmd))
 
 
 def do_backup_job(
@@ -66,7 +64,7 @@ def do_backup_job(
     old_backup_dir: t.Optional[str],
     job: BackupJob,
     dry_run: bool,
-    rich_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     if old_backup_dir is not None:
         old_backup_path = os.path.normpath(os.path.join(old_backup_dir, job.rsync_target_path))
@@ -85,7 +83,7 @@ def do_backup_job(
         )
     except subprocess.CalledProcessError as e:
         raise RichAbortCmd(e) from e
-    rich_node.add(str(format_cmd_line(cmd)))
+    cmds.append(PrintCmdData(cmd=cmd))
 
 
 def create_target_structure(
@@ -94,7 +92,7 @@ def create_target_structure(
     new_backup_dir: str,
     jobs: t.Iterable[BackupJob],
     dry_run: bool,
-    rich_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     """Create target directory structure at destination
 
@@ -125,4 +123,4 @@ def create_target_structure(
             )
         except subprocess.CalledProcessError as e:
             raise RichAbortCmd(e) from e
-        rich_node.add(str(format_cmd_line(cmd)))
+        cmds.append(PrintCmdData(cmd=cmd))

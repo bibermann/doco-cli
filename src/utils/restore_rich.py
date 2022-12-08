@@ -1,16 +1,21 @@
+import json
 import os
 import pathlib
 import subprocess
 import typing as t
 
+import rich.json
+import rich.panel
 import rich.tree
 
+from src.utils.backup import BACKUP_CONFIG_JSON
+from src.utils.common import PrintCmdData
 from src.utils.doco_config import DocoBackupRestoreStructureConfig
 from src.utils.doco_config import DocoConfig
 from src.utils.restore import RestoreJob
-from src.utils.rich import format_cmd_line
 from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
+from src.utils.rich import rich_print_conditional_cmds
 from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
 from src.utils.rsync import run_rsync_download_incremental
@@ -51,7 +56,7 @@ def list_backups(project_name: str, doco_config: DocoConfig):
     rich.print(tree)
 
 
-def do_restore_job(rsync_config: RsyncConfig, job: RestoreJob, dry_run: bool, rich_node: rich.tree.Tree):
+def do_restore_job(rsync_config: RsyncConfig, job: RestoreJob, dry_run: bool, cmds: list[PrintCmdData]):
     try:
         cmd = run_rsync_download_incremental(
             config=rsync_config,
@@ -62,14 +67,14 @@ def do_restore_job(rsync_config: RsyncConfig, job: RestoreJob, dry_run: bool, ri
         )
     except subprocess.CalledProcessError as e:
         raise RichAbortCmd(e) from e
-    rich_node.add(str(format_cmd_line(cmd)))
+    cmds.append(PrintCmdData(cmd=cmd))
 
 
 def create_target_structure(
     structure_config: DocoBackupRestoreStructureConfig,
     jobs: t.Iterable[RestoreJob],
     dry_run: bool,
-    rich_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     """Create target directory structure at local machine
 
@@ -98,4 +103,26 @@ def create_target_structure(
                             os.path.join(root, name), structure_config.uid, structure_config.gid
                         )
             else:
-                rich_node.add(f"[dim]Create directory[/] {leaf}")
+                cmds.append(PrintCmdData(create_dir=leaf))
+
+
+def print_details(
+    tree: rich.tree.Tree,
+    backup_dir_node: rich.tree.Tree,
+    backup_config: t.Mapping[str, t.Any],
+    cmds: list[PrintCmdData],
+    verbose: bool,
+):
+    if verbose:
+        config_group = rich.console.Group(f"[green]{Formatted(BACKUP_CONFIG_JSON)}[/]")
+        backup_dir_node.add(config_group)
+
+        config_group.renderables.append(
+            rich.panel.Panel(
+                rich.json.JSON(json.dumps(backup_config, indent=4)), expand=False, border_style="green"
+            )
+        )
+
+    rich.print(tree)
+    if verbose:
+        rich_print_conditional_cmds(cmds)

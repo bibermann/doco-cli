@@ -112,7 +112,7 @@ def run_rsync_without_delete(
         f"{opt.path()}{destination}",
     ]
     if not dry_run:
-        print_cmd_callback(cmd, None)
+        print_cmd_callback(cmd=cmd)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -136,7 +136,7 @@ def run_rsync_backup_incremental(
         f"{opt.path()}{destination}",
     ]
     if not dry_run:
-        print_cmd_callback(cmd, None)
+        print_cmd_callback(cmd=cmd)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -160,7 +160,7 @@ def run_rsync_backup_with_hardlinks(
         f"{opt.path()}{new_backup}",
     ]
     if not dry_run:
-        print_cmd_callback(cmd, None)
+        print_cmd_callback(cmd=cmd)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -181,7 +181,7 @@ def run_rsync_download_incremental(
         destination,
     ]
     if not dry_run:
-        print_cmd_callback(cmd, None)
+        print_cmd_callback(cmd=cmd)
         subprocess.run(cmd, check=True)
     return cmd
 
@@ -204,7 +204,7 @@ def run_rsync_list(
     ]
     date_file_tuples: list[tuple[str, str]] = []
     if not dry_run:
-        print_cmd_callback(cmd, None)
+        print_cmd_callback(cmd=cmd)
         result = subprocess.run(
             cmd, capture_output=True, encoding="utf-8", universal_newlines=True, check=True
         )

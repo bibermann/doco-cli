@@ -9,15 +9,17 @@ import rich.panel
 import rich.pretty
 import rich.tree
 
+from .common import PrintCmdData
 from .compose_rich import ComposeProject
 from .rich import Formatted
+from .rich import rich_print_conditional_cmds
 
 
 @dataclasses.dataclass
 class ProjectInfo:
     has_running_or_restarting: bool
     all_running: bool
-    run_node: rich.tree.Tree
+    cmds: list[PrintCmdData]
 
 
 def do_project_cmd(project: ComposeProject, dry_run: bool, cmd_task: t.Callable[[ProjectInfo], None]):
@@ -41,20 +43,16 @@ def do_project_cmd(project: ComposeProject, dry_run: bool, cmd_task: t.Callable[
 
         tree.add(f"[b]{Formatted(service_name)}[/] [i]{Formatted(state)}[/]")
 
-    run_node = rich.tree.Tree("[i]Would run[/]")
-    if dry_run:
-        tree.add(run_node)
+    cmds: list[PrintCmdData] = []
 
     cmd_task(
         ProjectInfo(
             has_running_or_restarting=has_running_or_restarting,
             all_running=all_running,
-            run_node=run_node,
+            cmds=cmds,
         )
     )
 
-    if len(run_node.children) == 0:
-        run_node.add("[dim](nothing)[/]")
-
     if dry_run:
         rich.print(tree)
+        rich_print_conditional_cmds(cmds)

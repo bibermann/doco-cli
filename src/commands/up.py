@@ -35,7 +35,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
                 "-d",
             ],
             dry_run=options.dry_run,
-            rich_node=info.run_node,
+            cmds=info.cmds,
         )
 
     if options.do_log:
@@ -44,7 +44,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
             project.file,
             command=["logs", "-f"],
             dry_run=options.dry_run,
-            rich_node=info.run_node,
+            cmds=info.cmds,
             cancelable=True,
         )
 

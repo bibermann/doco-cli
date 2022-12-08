@@ -27,6 +27,7 @@ from src.utils.backup_rich import format_no_backup
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
 from src.utils.common import dir_from_path
+from src.utils.common import PrintCmdData
 from src.utils.common import relative_path_if_below
 from src.utils.compose_rich import ComposeProject
 from src.utils.compose_rich import get_compose_projects
@@ -35,6 +36,7 @@ from src.utils.compose_rich import rich_run_compose
 from src.utils.exceptions_rich import DocoError
 from src.utils.rich import format_not_existing
 from src.utils.rich import Formatted
+from src.utils.rich import rich_print_conditional_cmds
 from src.utils.rsync import RsyncConfig
 
 COMPOSE_CONFIG_YAML = "compose.yaml"
@@ -90,7 +92,7 @@ def do_backup(
     options: BackupOptions,
     config: BackupConfig,
     jobs: list[BackupJob],
-    run_node: rich.tree.Tree,
+    cmds: list[PrintCmdData],
 ):
     create_target_structure(
         rsync_config=project.doco_config.backup.rsync,
@@ -98,13 +100,11 @@ def do_backup(
         new_backup_dir=config.backup_dir,
         jobs=jobs,
         dry_run=options.dry_run,
-        rich_node=run_node,
+        cmds=cmds,
     )
 
     if config.tasks.restart_project:
-        rich_run_compose(
-            project.dir, project.file, command=["down"], dry_run=options.dry_run, rich_node=run_node
-        )
+        rich_run_compose(project.dir, project.file, command=["down"], dry_run=options.dry_run, cmds=cmds)
 
     if config.tasks.backup_config:
         do_backup_content(
@@ -115,7 +115,7 @@ def do_backup(
             content=config.json(indent=4),
             target_file_name=BACKUP_CONFIG_JSON,
             dry_run=options.dry_run,
-            rich_node=run_node,
+            cmds=cmds,
         )
 
     if config.tasks.backup_compose_config:
@@ -127,7 +127,7 @@ def do_backup(
             content=project.config_yaml,
             target_file_name=COMPOSE_CONFIG_YAML,
             dry_run=options.dry_run,
-            rich_node=run_node,
+            cmds=cmds,
         )
 
     for job in jobs:
@@ -137,13 +137,11 @@ def do_backup(
             old_backup_dir=config.last_backup_dir,
             job=job,
             dry_run=options.dry_run,
-            rich_node=run_node,
+            cmds=cmds,
         )
 
     if config.tasks.restart_project:
-        rich_run_compose(
-            project.dir, project.file, command=["up", "-d"], dry_run=options.dry_run, rich_node=run_node
-        )
+        rich_run_compose(project.dir, project.file, command=["up", "-d"], dry_run=options.dry_run, cmds=cmds)
 
     if not options.dry_run and config.tasks.create_last_backup_dir_file:
         save_last_backup_directory(project.dir, config.backup_dir)
@@ -281,13 +279,11 @@ def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
         if len(volumes) == 0:
             s.add("[dim](no volumes)[/]")
 
-    run_node = rich.tree.Tree("[i]Would run[/]")
-    if options.dry_run_verbose:
-        tree.add(run_node)
+    cmds: list[PrintCmdData] = []
 
     config.tasks.restart_project = not options.live and has_running_or_restarting
 
-    do_backup(project=project, options=options, config=config, jobs=jobs, run_node=run_node)
+    do_backup(project=project, options=options, config=config, jobs=jobs, cmds=cmds)
 
     if options.dry_run:
         if options.dry_run_verbose:
@@ -296,6 +292,8 @@ def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
             )
 
         rich.print(tree)
+        if options.dry_run_verbose:
+            rich_print_conditional_cmds(cmds)
 
 
 def volumes_callback(ctx: typer.Context, volumes: list[str]) -> list[str]:
