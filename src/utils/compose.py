@@ -32,7 +32,10 @@ def load_compose_ps(cwd: str, file: str) -> list[t.Mapping[str, t.Any]]:
         universal_newlines=True,
         check=True,
     )
-    return json.loads(result.stdout)
+    if len(result.stdout) > 0 and result.stdout[0] == "[":
+        # before docker compose v2.21.0
+        return json.loads(result.stdout)
+    return [json.loads(line) for line in result.stdout.split("\n") if line]
 
 
 def run_compose(
