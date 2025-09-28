@@ -62,7 +62,7 @@ Parent command: [`doco`](#doco)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -95,7 +95,7 @@ Parent command: [`doco`](#doco)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -122,7 +122,7 @@ Parent command: [`doco`](#doco)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -148,7 +148,7 @@ Parent command: [`doco`](#doco)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -177,7 +177,7 @@ Parent command: [`doco`](#doco)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -223,7 +223,7 @@ Parent command: [`doco backups`](#doco-backups)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
@@ -257,7 +257,7 @@ Parent command: [`doco backups`](#doco-backups)
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                docker-compose.y[a]ml.                        │
+│                                [docker-]compose.y[a]ml.                      │
 │                                [default: (stdin or current directory)]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ────────────────────────────────────────────────────────────────────╮

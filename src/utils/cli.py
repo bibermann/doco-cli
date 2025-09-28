@@ -17,7 +17,7 @@ PROJECTS_ARGUMENT = typer.Argument(
     None,
     callback=projects_callback,
     autocompletion=LegacyComposeProjectCompleter().__call__,
-    help="Compose files and/or directories containing a docker-compose.y\\[a]ml.",
+    help="Compose files and/or directories containing a \\[docker-]compose.y\\[a]ml.",
     show_default="stdin or current directory",
 )
 RUNNING_OPTION = typer.Option(

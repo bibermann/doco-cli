@@ -72,14 +72,14 @@ def find_compose_projects(
         project_file = None
         if (
             os.path.isfile(project)
-            and "docker-compose" in project
+            and "compose" in project
             and (project.endswith(".yml") or project.endswith(".yaml"))
         ):
             project_dir, project_file = os.path.split(project)
             if project_dir == "":
                 project_dir = ""
         if project_dir is None or project_file is None:
-            for file in ("docker-compose.yml", "docker-compose.yaml"):
+            for file in ["compose.yaml", "compose.yml", "docker-compose.yaml", "docker-compose.yml"]:
                 if os.path.exists(os.path.join(project, file)):
                     project_dir, project_file = project, file
                     break

@@ -56,5 +56,5 @@ class LegacyComposeProjectCompleter(_FileCompleter):
             self,
             param=param,
             predicate=lambda path: os.path.isdir(path)
-            or ("docker-compose" in path and (path.endswith(".yml") or path.endswith(".yaml"))),
+            or ("compose" in path and (path.endswith(".yml") or path.endswith(".yaml"))),
         )
