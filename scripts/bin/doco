@@ -3,4 +3,4 @@ set -euo pipefail
 
 SCRIPT="$(readlink -f "$0")"
 SCRIPTPATH="$(dirname "$SCRIPT")"
-poetry run -C "$SCRIPTPATH/../.." doco "$@"
+poetry run -P "$SCRIPTPATH/../.." doco "$@"
