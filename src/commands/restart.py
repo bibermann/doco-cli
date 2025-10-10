@@ -41,6 +41,7 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
         project.file,
         command=[
             "up",
+            *(["--remove-orphans"] if not options.no_remove_orphans else []),
             *(["--build"] if not options.no_build else []),
             *(["--pull", "always"] if options.do_pull else []),
             "-d",
