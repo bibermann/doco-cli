@@ -1,398 +1,321 @@
-# Doco `--help`
+# Doco
 
-## Command hierarchy
+<span style="font-weight: bold">doco</span> (<span style="font-weight: bold">do</span>cker <span style="font-weight: bold">co</span>mpose tool) is a command line tool
+for working with <span style="font-style: italic">docker compose</span> projects
+(pretty-printing status, creating backups using rsync, batch commands and more).
 
-- [`doco`](#doco)
-    - [`doco s`](#doco-s)
-    - [`doco u`](#doco-u)
-    - [`doco d`](#doco-d)
-    - [`doco r`](#doco-r)
-    - [`doco l`](#doco-l)
-    - [`doco backups`](#doco-backups)
-        - [`doco backups create`](#doco-backups-create)
-        - [`doco backups restore`](#doco-backups-restore)
-        - [`doco backups raw`](#doco-backups-raw)
-            - [`doco backups raw ls`](#doco-backups-raw-ls)
-            - [`doco backups raw download`](#doco-backups-raw-download)
-            - [`doco backups raw create`](#doco-backups-raw-create)
-            - [`doco backups raw restore`](#doco-backups-raw-restore)
+**Usage**:
 
-## `doco`
-
-doco (docker compose tool) is a command line tool for working with docker
-compose projects (pretty-printing status, creating backups using rsync, batch
-commands and more).
-
-```
- Usage: doco [OPTIONS] COMMAND [ARGS]...
-
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --version                       Show version information and exit.           │
-│ --install-completion            Install completion for the current shell.    │
-│ --show-completion               Show completion for the current shell, to    │
-│                                 copy it or customize the installation.       │
-│ --help                -h        Show this message and exit.                  │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────╮
-│ s          Print status of projects.                                         │
-│ u          Start projects.                                                   │
-│ d          Shutdown projects.                                                │
-│ r          Restart projects. This is like down and up in one command.        │
-│ l          Print logs of projects.                                           │
-│ backups    Create, restore, download or list backups.                        │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco [OPTIONS] COMMAND [ARGS]...
 ```
 
-Direct sub commands:
-- [`doco s`](#doco-s)
-- [`doco u`](#doco-u)
-- [`doco d`](#doco-d)
-- [`doco r`](#doco-r)
-- [`doco l`](#doco-l)
-- [`doco backups`](#doco-backups)
+**Options**:
 
-### `doco s`
+* `--version`: Show version information and exit.
+* `--install-completion`: Install completion for the current shell.
+* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `s`: Print status of projects.
+* `u`: Start projects.
+* `d`: Shutdown projects.
+* `r`: Restart projects.
+* `l`: Print logs of projects.
+* `backups`: Create, restore, download or list backups.
+
+## `doco s`
 
 Print status of projects.
 
-Parent command: [`doco`](#doco)
+**Usage**:
 
-```
- Usage: doco s [OPTIONS] [PROJECTS]...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running            Consider only projects with at least one running or     │
-│                      restarting service.                                     │
-│ --help     -h        Show this message and exit.                             │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Content detail Options ─────────────────────────────────────────────────────╮
-│ --path     -p               Print path of compose file.                      │
-│ --build    -b               Output build context and arguments.              │
-│ --envs     -e               List environment variables.                      │
-│ --volumes  -v      INTEGER  List volumes (use -vv to also list content).     │
-│                             [default: 0]                                     │
-│ --all      -a      INTEGER  Like -pbev (use -aa for -pbevv). [default: 0]    │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Formatting Options ─────────────────────────────────────────────────────────╮
-│ --right          Right-align variable names.                                 │
-│ --zebra          Alternate row colors in tables.                             │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco s [OPTIONS] [PROJECTS]...
 ```
 
-### `doco u`
+**Arguments**:
+
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
+
+**Options**:
+
+* `--running`: Consider only projects with at least one running or restarting service.
+* `-p, --path`: Print path of compose file.
+* `-b, --build`: Output build context and arguments.
+* `-e, --envs`: List environment variables.
+* `-v, --volumes`: List volumes (use -vv to also list content).  [default: 0]
+* `-a, --all`: Like -pbev (use -aa for -pbevv).  [default: 0]
+* `--right`: Right-align variable names.
+* `--zebra`: Alternate row colors in tables.
+* `--help`: Show this message and exit.
+
+## `doco u`
 
 Start projects.
 
-Parent command: [`doco`](#doco)
+**Usage**:
 
-```
- Usage: doco u [OPTIONS] [PROJECTS]...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running                      Consider only projects with at least one      │
-│                                running or restarting service.                │
-│ --pull               -p        Pull images before running.                   │
-│ --log                -l        Also show logs.                               │
-│ --no-build                     Don't build images before running.            │
-│ --no-remove-orphans            Keep orphans.                                 │
-│ --dry-run            -n        Do not actually start anything, only show     │
-│                                what would be done.                           │
-│ --help               -h        Show this message and exit.                   │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco u [OPTIONS] [PROJECTS]...
 ```
 
-### `doco d`
+**Arguments**:
+
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
+
+**Options**:
+
+* `--running`: Consider only projects with at least one running or restarting service.
+* `-p, --pull`: Pull images before running.
+* `-l, --log`: Also show logs.
+* `--no-build`: Don&#x27;t build images before running.
+* `--no-remove-orphans`: Keep orphans.
+* `-n, --dry-run`: Do not actually start anything, only show what would be done.
+* `--help`: Show this message and exit.
+
+## `doco d`
 
 Shutdown projects.
 
-Parent command: [`doco`](#doco)
+**Usage**:
 
-```
- Usage: doco d [OPTIONS] [PROJECTS]...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running                      Consider only projects with at least one      │
-│                                running or restarting service.                │
-│ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
-│ --no-remove-orphans            Keep orphans.                                 │
-│ --force              -f        Force calling down even if not running.       │
-│ --dry-run            -n        Do not actually stop anything, only show what │
-│                                would be done.                                │
-│ --help               -h        Show this message and exit.                   │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco d [OPTIONS] [PROJECTS]...
 ```
 
-### `doco r`
+**Arguments**:
 
-Restart projects. This is like down and up in one command.
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
 
-Parent command: [`doco`](#doco)
+**Options**:
 
-```
- Usage: doco r [OPTIONS] [PROJECTS]...
+* `--running`: Consider only projects with at least one running or restarting service.
+* `-v, --remove-volumes`: Remove volumes (implies -f / --force).
+* `--no-remove-orphans`: Keep orphans.
+* `-f, --force`: Force calling down even if not running.
+* `-n, --dry-run`: Do not actually stop anything, only show what would be done.
+* `--help`: Show this message and exit.
 
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running                      Consider only projects with at least one      │
-│                                running or restarting service.                │
-│ --remove-volumes     -v        Remove volumes (implies -f / --force).        │
-│ --no-remove-orphans            Keep orphans.                                 │
-│ --force              -f        Force calling down even if not running.       │
-│ --pull               -p        Pull images before running.                   │
-│ --log                -l        Also show logs.                               │
-│ --no-build                     Don't build images before running.            │
-│ --dry-run            -n        Do not actually stop anything, only show what │
-│                                would be done.                                │
-│ --help               -h        Show this message and exit.                   │
-╰──────────────────────────────────────────────────────────────────────────────╯
+## `doco r`
+
+Restart projects. This is like <span style="font-style: italic">down</span> and <span style="font-style: italic">up</span> in one command.
+
+**Usage**:
+
+```console
+$ doco r [OPTIONS] [PROJECTS]...
 ```
 
-### `doco l`
+**Arguments**:
+
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
+
+**Options**:
+
+* `--running`: Consider only projects with at least one running or restarting service.
+* `-v, --remove-volumes`: Remove volumes (implies -f / --force).
+* `--no-remove-orphans`: Keep orphans.
+* `-f, --force`: Force calling down even if not running.
+* `-p, --pull`: Pull images before running.
+* `-l, --log`: Also show logs.
+* `--no-build`: Don&#x27;t build images before running.
+* `-n, --dry-run`: Do not actually stop anything, only show what would be done.
+* `--help`: Show this message and exit.
+
+## `doco l`
 
 Print logs of projects.
 
-Parent command: [`doco`](#doco)
+**Usage**:
 
-```
- Usage: doco l [OPTIONS] [PROJECTS]...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running              Consider only projects with at least one running or   │
-│                        restarting service.                                   │
-│ --no-follow  -q        Quit right after printing logs.                       │
-│ --help       -h        Show this message and exit.                           │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco l [OPTIONS] [PROJECTS]...
 ```
 
-### `doco backups`
+**Arguments**:
+
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
+
+**Options**:
+
+* `--running`: Consider only projects with at least one running or restarting service.
+* `-q, --no-follow`: Quit right after printing logs.
+* `--help`: Show this message and exit.
+
+## `doco backups`
 
 Create, restore, download or list backups.
 
-Parent command: [`doco`](#doco)
+**Usage**:
 
-```
- Usage: doco backups [OPTIONS] COMMAND [ARGS]...
-
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --help  -h        Show this message and exit.                                │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────╮
-│ create      Backup projects.                                                 │
-│ restore     Restore project backups.                                         │
-│ raw         Manage backups (independently of docker compose).                │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco backups [OPTIONS] COMMAND [ARGS]...
 ```
 
-Direct sub commands:
-- [`doco backups create`](#doco-backups-create)
-- [`doco backups restore`](#doco-backups-restore)
-- [`doco backups raw`](#doco-backups-raw)
+**Options**:
 
-#### `doco backups create`
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `create`: Backup projects.
+* `restore`: Restore project backups.
+* `raw`: Manage backups (independently of <span style="font-style: italic">docker...</span>
+
+### `doco backups create`
 
 Backup projects.
 
-Parent command: [`doco backups`](#doco-backups)
+**Usage**:
 
-```
- Usage: doco backups create [OPTIONS] [PROJECTS]...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running                            Consider only projects with at least    │
-│                                      one running or restarting service.      │
-│ --exclude-project-dir  -e            Exclude project directory.              │
-│ --include-ro           -r            Also consider read-only volumes.        │
-│ --volume               -v      TEXT  Regex for volume selection, can be      │
-│                                      specified multiple times. Use -v '(?!)' │
-│                                      to exclude all volumes. Use -v ^/path/  │
-│                                      to only allow specified paths.          │
-│                                      [default: (exclude many system          │
-│                                      directories)]                           │
-│ --live                               Do not stop the services before backup. │
-│ --backup               -b      TEXT  Specify backup name. [default: None]    │
-│ --verbose                            Print more details if --dry-run.        │
-│ --dry-run              -n            Do not actually backup, only show what  │
-│                                      would be done.                          │
-│ --help                 -h            Show this message and exit.             │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco backups create [OPTIONS] [PROJECTS]...
 ```
 
-#### `doco backups restore`
+**Arguments**:
+
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
+
+**Options**:
+
+* `--running`: Consider only projects with at least one running or restarting service.
+* `-e, --exclude-project-dir`: Exclude project directory.
+* `-r, --include-ro`: Also consider read-only volumes.
+* `-v, --volume TEXT`: Regex for volume selection, can be specified multiple times. Use -v <span style="color: #808000; text-decoration-color: #808000; font-weight: bold">&#x27;(?!)&#x27;</span> to exclude all volumes. Use -v <span style="color: #808000; text-decoration-color: #808000; font-weight: bold">^/path/</span> to only allow specified paths. <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[default: (exclude many system directories)]</span>
+* `--live`: Do not stop the services before backup.
+* `-b, --backup TEXT`: Specify backup name.
+* `--verbose`: Print more details if --dry-run.
+* `-n, --dry-run`: Do not actually backup, only show what would be done.
+* `--help`: Show this message and exit.
+
+### `doco backups restore`
 
 Restore project backups.
 
-Parent command: [`doco backups`](#doco-backups)
+**Usage**:
 
-```
- Usage: doco backups restore [OPTIONS] [PROJECTS]...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   projects      [PROJECTS]...  Compose files and/or directories containing a │
-│                                [docker-]compose.y[a]ml.                      │
-│                                [default: (stdin or current directory)]       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --running                Consider only projects with at least one running or │
-│                          restarting service.                                 │
-│ --name             TEXT  Override project name. Using directory name if not  │
-│                          given.                                              │
-│                          [default: None]                                     │
-│ --list     -l            List backups instead of restoring a backup.         │
-│ --backup   -b      TEXT  Backup index or name. [default: 0]                  │
-│ --verbose                Print more details if --dry-run.                    │
-│ --dry-run  -n            Do not actually restore a backup, only show what    │
-│                          would be done.                                      │
-│ --help     -h            Show this message and exit.                         │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco backups restore [OPTIONS] [PROJECTS]...
 ```
 
-#### `doco backups raw`
+**Arguments**:
 
-Manage backups (independently of docker compose).
+* `[PROJECTS]...`: Compose files and/or directories containing a [docker-]compose.y[a]ml.  [default: (stdin or current directory)]
 
-Parent command: [`doco backups`](#doco-backups)
+**Options**:
 
+* `--running`: Consider only projects with at least one running or restarting service.
+* `--name TEXT`: Override project name. Using directory name if not given.
+* `-l, --list`: List backups instead of restoring a backup.
+* `-b, --backup TEXT`: Backup index or name.  [default: 0]
+* `--verbose`: Print more details if --dry-run.
+* `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
+* `--help`: Show this message and exit.
+
+### `doco backups raw`
+
+Manage backups (independently of <span style="font-style: italic">docker compose</span>).
+
+**Usage**:
+
+```console
+$ doco backups raw [OPTIONS] COMMAND [ARGS]...
 ```
- Usage: doco backups raw [OPTIONS] COMMAND [ARGS]...
 
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --workdir  -w      DIRECTORY  Change working directory. [default: .]         │
-│ --root     -r      TEXT       Change root. [default: None]                   │
-│ --help     -h                 Show this message and exit.                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────╮
-│ ls              List backups.                                                │
-│ download        Download a backup for local analysis.                        │
-│ create          Backup files and directories.                                │
-│ restore         Restore a backup.                                            │
-╰──────────────────────────────────────────────────────────────────────────────╯
-```
+**Options**:
 
-Direct sub commands:
-- [`doco backups raw ls`](#doco-backups-raw-ls)
-- [`doco backups raw download`](#doco-backups-raw-download)
-- [`doco backups raw create`](#doco-backups-raw-create)
-- [`doco backups raw restore`](#doco-backups-raw-restore)
+* `-w, --workdir DIRECTORY`: Change working directory.  [default: .]
+* `-r, --root TEXT`: Change root.
+* `--help`: Show this message and exit.
 
-##### `doco backups raw ls`
+**Commands**:
+
+* `ls`: List backups.
+* `download`: Download a backup for local analysis.
+* `create`: Backup files and directories.
+* `restore`: Restore a backup.
+
+#### `doco backups raw ls`
 
 List backups.
 
-Parent command: [`doco backups raw`](#doco-backups-raw)
+**Usage**:
 
-```
- Usage: doco backups raw ls [OPTIONS] [PROJECT]
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   project      [PROJECT]  Project to list backups from. Listing projects if  │
-│                           not given.                                         │
-│                           [default: None]                                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --help  -h        Show this message and exit.                                │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco backups raw ls [OPTIONS] [PROJECT]
 ```
 
-##### `doco backups raw download`
+**Arguments**:
+
+* `[PROJECT]`: Project to list backups from. Listing projects if not given.
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+#### `doco backups raw download`
 
 Download a backup for local analysis.
 
-Parent command: [`doco backups raw`](#doco-backups-raw)
+**Usage**:
 
-```
- Usage: doco backups raw download [OPTIONS] PROJECT
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│ *    project      TEXT  Source project to retrieve backups from.             │
-│                         [default: None]                                      │
-│                         [required]                                           │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --backup       -b      TEXT       Backup index or name. [default: 0]         │
-│ --destination  -d      DIRECTORY  Destination (not relative to --workdir but │
-│                                   to the caller's CWD), defaults to          │
-│                                   --project within --workdir.                │
-│                                   [default: None]                            │
-│ --dry-run      -n                 Do not actually download, only show what   │
-│                                   would be done.                             │
-│ --help         -h                 Show this message and exit.                │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco backups raw download [OPTIONS] PROJECT
 ```
 
-##### `doco backups raw create`
+**Arguments**:
+
+* `PROJECT`: Source project to retrieve backups from.  [required]
+
+**Options**:
+
+* `-b, --backup TEXT`: Backup index or name.  [default: 0]
+* `-d, --destination DIRECTORY`: Destination (not relative to --workdir but to the caller&#x27;s CWD), defaults to --project within --workdir.
+* `-n, --dry-run`: Do not actually download, only show what would be done.
+* `--help`: Show this message and exit.
+
+#### `doco backups raw create`
 
 Backup files and directories.
 
-Parent command: [`doco backups raw`](#doco-backups-raw)
+**Usage**:
 
-```
- Usage: doco backups raw create [OPTIONS] PROJECT PATHS...
-
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│ *    project      TEXT      Target project to write backups to.              │
-│                             [default: None]                                  │
-│                             [required]                                       │
-│ *    paths        PATHS...  Paths to backup (not relative to --workdir but   │
-│                             to the caller's CWD).                            │
-│                             [required]                                       │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --backup   -b      TEXT  Specify backup name. [default: None]                │
-│ --verbose                Print more details if --dry-run.                    │
-│ --dry-run  -n            Do not actually backup, only show what would be     │
-│                          done.                                               │
-│ --help     -h            Show this message and exit.                         │
-╰──────────────────────────────────────────────────────────────────────────────╯
+```console
+$ doco backups raw create [OPTIONS] PROJECT PATHS...
 ```
 
-##### `doco backups raw restore`
+**Arguments**:
+
+* `PROJECT`: Target project to write backups to.  [required]
+* `PATHS...`: Paths to backup (not relative to --workdir but to the caller&#x27;s CWD).  [required]
+
+**Options**:
+
+* `-b, --backup TEXT`: Specify backup name.
+* `--verbose`: Print more details if --dry-run.
+* `-n, --dry-run`: Do not actually backup, only show what would be done.
+* `--help`: Show this message and exit.
+
+#### `doco backups raw restore`
 
 Restore a backup.
 
-Parent command: [`doco backups raw`](#doco-backups-raw)
+**Usage**:
 
+```console
+$ doco backups raw restore [OPTIONS] PROJECT
 ```
- Usage: doco backups raw restore [OPTIONS] PROJECT
 
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│ *    project      TEXT  Source project to retrieve backups from.             │
-│                         [default: None]                                      │
-│                         [required]                                           │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --backup   -b      TEXT  Backup index or name. [default: 0]                  │
-│ --verbose                Print more details if --dry-run.                    │
-│ --dry-run  -n            Do not actually restore a backup, only show what    │
-│                          would be done.                                      │
-│ --help     -h            Show this message and exit.                         │
-╰──────────────────────────────────────────────────────────────────────────────╯
-```
+**Arguments**:
+
+* `PROJECT`: Source project to retrieve backups from.  [required]
+
+**Options**:
+
+* `-b, --backup TEXT`: Backup index or name.  [default: 0]
+* `--verbose`: Print more details if --dry-run.
+* `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
+* `--help`: Show this message and exit.
