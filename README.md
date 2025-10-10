@@ -13,7 +13,7 @@ for working with [Docker Compose](https://docs.docker.com/compose/compose-file/)
 Example calls:
 
 - `doco s *`: Print pretty status of all _docker compose_ projects in the current directory.
-- `doco s . -aa`: Print most detailled status of a _docker compose_ project (including variables and volumes).
+- `doco s . -VV`: Print most detailled status of a _docker compose_ project (including variables and volumes).
 - `doco r .`: Equivalent of `docker compose down --remove-orphans && docker compose up --build -d`.
 - `doco backups create . --dry-run --verbose`: See what would be done to create a backup of a _docker compose_ project.
 

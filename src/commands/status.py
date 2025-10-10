@@ -10,6 +10,7 @@ import rich.table
 import rich.tree
 import typer
 
+from src.utils.cli import ALL_PROFILES_OPTION
 from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
@@ -293,6 +294,7 @@ FORMATTING_GROUP = {"rich_help_panel": "Formatting Options"}
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     profiles: list[str] = PROFILES_OPTION,
+    all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     path: bool = typer.Option(False, "--path", **DETAILS_GROUP, help="Print path of compose file."),
     print_individual_profiles: bool = typer.Option(
@@ -303,10 +305,22 @@ def main(  # noqa: CFQ002 (max arguments)
     ),
     envs: bool = typer.Option(False, "--envs", "-e", **DETAILS_GROUP, help="List environment variables."),
     volumes: int = typer.Option(
-        0, "--volumes", "-v", count=True, **DETAILS_GROUP, help="List volumes (use -vv to also list content)."
+        0,
+        "--volumes",
+        "-v",
+        count=True,
+        **DETAILS_GROUP,
+        show_default=False,
+        help="List volumes (use -vv to also list content).",
     ),
     all_details: int = typer.Option(
-        0, "--all", "-a", count=True, **DETAILS_GROUP, help="Like -pPbev (use -aa for -pPbevv)."
+        0,
+        "--verbose",
+        "-V",
+        count=True,
+        **DETAILS_GROUP,
+        show_default=False,
+        help="Like -pPbev (use -VV for -pPbevv).",
     ),
     no_print_all_profiles: bool = typer.Option(
         False, "--no-show-profiles", **DETAILS_GROUP, help="Don't print (enabled) profile names for projects."
@@ -324,7 +338,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
-        profiles,
+        all_profiles or profiles,
         ProjectSearchOptions(
             print_compose_errors=True,
             only_running=running,

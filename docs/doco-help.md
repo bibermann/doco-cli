@@ -43,13 +43,14 @@ $ doco s [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `--path`: Print path of compose file.
 * `-P, --profiles`: Output profile names of services.
 * `-b, --build`: Output build context and arguments.
 * `-e, --envs`: List environment variables.
-* `-v, --volumes`: List volumes (use -vv to also list content).  [default: 0]
-* `-a, --all`: Like -pPbev (use -aa for -pPbevv).  [default: 0]
+* `-v, --volumes`: List volumes (use -vv to also list content).
+* `-V, --verbose`: Like -pPbev (use -VV for -pPbevv).
 * `--no-show-profiles`: Don&#x27;t print (enabled) profile names for projects.
 * `-R, --right`: Right-align variable names.
 * `-Z, --zebra`: Alternate row colors in tables.
@@ -72,6 +73,7 @@ $ doco u [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `--pull`: Pull images before running.
 * `-l, --log`: Also show logs.
@@ -97,6 +99,7 @@ $ doco d [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-v, --remove-volumes`: Remove volumes (implies -f / --force).
 * `--no-remove-orphans`: Keep orphans.
@@ -121,6 +124,7 @@ $ doco r [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-v, --remove-volumes`: Remove volumes (implies -f / --force).
 * `--no-remove-orphans`: Keep orphans.
@@ -148,6 +152,7 @@ $ doco l [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-q, --no-follow`: Quit right after printing logs.
 * `--help`: Show this message and exit.
@@ -189,13 +194,14 @@ $ doco backups create [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-e, --exclude-project-dir`: Exclude project directory.
 * `-r, --include-ro`: Also consider read-only volumes.
 * `-v, --volume TEXT`: Regex for volume selection, can be specified multiple times. Use -v <span style="color: #808000; text-decoration-color: #808000; font-weight: bold">&#x27;(?!)&#x27;</span> to exclude all volumes. Use -v <span style="color: #808000; text-decoration-color: #808000; font-weight: bold">^/path/</span> to only allow specified paths. <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[default: (exclude many system directories)]</span>
 * `--live`: Do not stop the services before backup.
 * `-b, --backup TEXT`: Specify backup name.
-* `--verbose`: Print more details if --dry-run.
+* `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--help`: Show this message and exit.
 
@@ -216,11 +222,12 @@ $ doco backups restore [OPTIONS] [PROJECTS]...
 **Options**:
 
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
+* `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
 * `--name TEXT`: Override project name. Using directory name if not given.
 * `-l, --list`: List backups instead of restoring a backup.
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
-* `--verbose`: Print more details if --dry-run.
+* `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
 * `--help`: Show this message and exit.
 
@@ -304,7 +311,7 @@ $ doco backups raw create [OPTIONS] PROJECT PATHS...
 **Options**:
 
 * `-b, --backup TEXT`: Specify backup name.
-* `--verbose`: Print more details if --dry-run.
+* `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--help`: Show this message and exit.
 
@@ -325,6 +332,6 @@ $ doco backups raw restore [OPTIONS] PROJECT
 **Options**:
 
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
-* `--verbose`: Print more details if --dry-run.
+* `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
 * `--help`: Show this message and exit.

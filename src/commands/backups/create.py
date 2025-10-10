@@ -24,6 +24,7 @@ from src.utils.backup_rich import do_backup_content
 from src.utils.backup_rich import do_backup_job
 from src.utils.backup_rich import format_do_backup
 from src.utils.backup_rich import format_no_backup
+from src.utils.cli import ALL_PROFILES_OPTION
 from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
@@ -324,6 +325,7 @@ def volumes_callback(ctx: typer.Context, volumes: list[str]) -> list[str]:
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     profiles: list[str] = PROFILES_OPTION,
+    all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     exclude_project_dir: bool = typer.Option(
         False, "-e", "--exclude-project-dir", help="Exclude project directory."
@@ -342,7 +344,7 @@ def main(  # noqa: CFQ002 (max arguments)
     ),
     live: bool = typer.Option(False, "--live", help="Do not stop the services before backup."),
     backup: t.Optional[str] = typer.Option(None, "--backup", "-b", help="Specify backup name."),
-    verbose: bool = typer.Option(False, "--verbose", help="Print more details if --dry-run."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
     ),
@@ -365,7 +367,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
-        profiles,
+        all_profiles or profiles,
         ProjectSearchOptions(
             print_compose_errors=dry_run,
             only_running=running,

@@ -181,7 +181,7 @@ def main(
         show_default=False,
     ),
     backup: t.Optional[str] = typer.Option(None, "--backup", "-b", help="Specify backup name."),
-    verbose: bool = typer.Option(False, "--verbose", help="Print more details if --dry-run."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
     ),

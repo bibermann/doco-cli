@@ -13,6 +13,7 @@ import rich.tree
 import typer
 
 from src.utils.backup import BACKUP_CONFIG_JSON
+from src.utils.cli import ALL_PROFILES_OPTION
 from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
@@ -210,13 +211,14 @@ def get_project_name(project_name: t.Optional[str], project: ComposeProject) -> 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     profiles: list[str] = PROFILES_OPTION,
+    all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     name: t.Optional[str] = typer.Option(
         None, callback=project_name_callback, help="Override project name. Using directory name if not given."
     ),
     do_list: bool = typer.Option(False, "-l", "--list", help="List backups instead of restoring a backup."),
     backup: str = typer.Option("0", "--backup", "-b", help="Backup index or name."),
-    verbose: bool = typer.Option(False, "--verbose", help="Print more details if --dry-run."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually restore a backup, only show what would be done."
     ),
@@ -234,7 +236,7 @@ def main(  # noqa: CFQ002 (max arguments)
     compose_projects = list(
         get_compose_projects(
             projects,
-            profiles,
+            all_profiles or profiles,
             ProjectSearchOptions(
                 print_compose_errors=dry_run,
                 only_running=running,

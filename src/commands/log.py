@@ -3,6 +3,7 @@ import pathlib
 
 import typer
 
+from src.utils.cli import ALL_PROFILES_OPTION
 from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
@@ -37,6 +38,7 @@ def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
 def main(
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     profiles: list[str] = PROFILES_OPTION,
+    all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     no_follow: bool = typer.Option(False, "--no-follow", "-q", help="Quit right after printing logs."),
 ):
@@ -46,7 +48,7 @@ def main(
 
     for project in get_compose_projects(
         projects,
-        profiles,
+        all_profiles or profiles,
         ProjectSearchOptions(
             print_compose_errors=False,
             only_running=running,

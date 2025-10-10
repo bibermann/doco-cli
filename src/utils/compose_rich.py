@@ -41,7 +41,9 @@ class ProjectSearchOptions:
 
 
 def get_compose_projects(  # noqa: C901 (too complex)
-    paths: t.Iterable[pathlib.Path], profiles: list[str], options: ProjectSearchOptions
+    paths: t.Iterable[pathlib.Path],
+    profiles: t.Union[list[str], t.Literal[True]],
+    options: ProjectSearchOptions,
 ) -> t.Generator[ComposeProject, None, None]:
     if not (os.geteuid() == 0 or "docker" in get_user_groups()):
         raise DocoError(
@@ -53,7 +55,9 @@ def get_compose_projects(  # noqa: C901 (too complex)
         if not (options.allow_empty and project_file == ""):
             try:
                 project_profiles = load_compose_profiles(project_dir, project_file)
-                selected_profiles = [p for p in profiles if p in project_profiles]
+                selected_profiles = (
+                    project_profiles if profiles is True else [p for p in profiles if p in project_profiles]
+                )
                 project_config, project_config_yaml = load_compose_config(
                     project_dir, project_file, selected_profiles
                 )

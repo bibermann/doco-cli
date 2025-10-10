@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support new `compose.yaml` default name.
 - Add option `-p, --profile` to select compose profiles.
+- Add option `-a, --all` to select all compose profiles.
+
+### Changed
+- Verbose option changed from `-a, --all` to `-V, --verbose`.
 
 ## [2.2.2] -- 2024-10-20
 ### Fixed

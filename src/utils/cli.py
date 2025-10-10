@@ -39,6 +39,12 @@ PROFILES_OPTION = typer.Option(
     callback=profiles_callback,
     help="Enable specific profiles (comma-separated or multiple -p arguments).",
 )
+ALL_PROFILES_OPTION = typer.Option(
+    False,
+    "--all",
+    "-a",
+    help="Select all profiles.",
+)
 RUNNING_OPTION = typer.Option(
     False, "--running", help="Consider only projects with at least one running or restarting service."
 )

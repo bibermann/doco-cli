@@ -127,7 +127,7 @@ def main(
         ..., callback=project_name_callback, help="Source project to retrieve backups from."
     ),
     backup: str = typer.Option("0", "--backup", "-b", help="Backup index or name."),
-    verbose: bool = typer.Option(False, "--verbose", help="Print more details if --dry-run."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually restore a backup, only show what would be done."
     ),
