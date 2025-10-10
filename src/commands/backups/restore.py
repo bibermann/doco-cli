@@ -13,6 +13,7 @@ import rich.tree
 import typer
 
 from src.utils.backup import BACKUP_CONFIG_JSON
+from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
 from src.utils.common import PrintCmdData
@@ -68,7 +69,14 @@ def do_restore(
     )
 
     if config.tasks.restart_project:
-        rich_run_compose(project.dir, project.file, command=["down"], dry_run=options.dry_run, cmds=cmds)
+        rich_run_compose(
+            project.dir,
+            project.file,
+            project.selected_profiles,
+            command=["down"],
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
 
     for job in jobs:
         do_restore_job(
@@ -76,7 +84,14 @@ def do_restore(
         )
 
     if config.tasks.restart_project:
-        rich_run_compose(project.dir, project.file, command=["up", "-d"], dry_run=options.dry_run, cmds=cmds)
+        rich_run_compose(
+            project.dir,
+            project.file,
+            project.selected_profiles,
+            command=["up", "-d"],
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
 
 
 def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
@@ -194,6 +209,7 @@ def get_project_name(project_name: t.Optional[str], project: ComposeProject) -> 
 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    profiles: list[str] = PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     name: t.Optional[str] = typer.Option(
         None, callback=project_name_callback, help="Override project name. Using directory name if not given."
@@ -218,6 +234,7 @@ def main(  # noqa: CFQ002 (max arguments)
     compose_projects = list(
         get_compose_projects(
             projects,
+            profiles,
             ProjectSearchOptions(
                 print_compose_errors=dry_run,
                 only_running=running,

@@ -3,6 +3,7 @@ import pathlib
 
 import typer
 
+from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
 from src.utils.compose_rich import ComposeProject
@@ -30,6 +31,7 @@ def down_project(project: ComposeProject, options: Options, info: ProjectInfo):
         rich_run_compose(
             project.dir,
             project.file,
+            project.selected_profiles,
             command=[
                 "down",
                 *(["--remove-orphans"] if not options.no_remove_orphans else []),
@@ -40,8 +42,9 @@ def down_project(project: ComposeProject, options: Options, info: ProjectInfo):
         )
 
 
-def main(
+def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    profiles: list[str] = PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     remove_volumes: bool = typer.Option(
         False, "--remove-volumes", "-v", help="Remove volumes (implies -f / --force)."
@@ -58,6 +61,7 @@ def main(
 
     for project in get_compose_projects(
         projects,
+        profiles,
         ProjectSearchOptions(
             print_compose_errors=dry_run,
             only_running=running,

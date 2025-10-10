@@ -42,14 +42,17 @@ $ doco s [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
-* `-p, --path`: Print path of compose file.
+* `--path`: Print path of compose file.
+* `-P, --profiles`: Output profile names of services.
 * `-b, --build`: Output build context and arguments.
 * `-e, --envs`: List environment variables.
 * `-v, --volumes`: List volumes (use -vv to also list content).  [default: 0]
-* `-a, --all`: Like -pbev (use -aa for -pbevv).  [default: 0]
-* `--right`: Right-align variable names.
-* `--zebra`: Alternate row colors in tables.
+* `-a, --all`: Like -pPbev (use -aa for -pPbevv).  [default: 0]
+* `--no-show-profiles`: Don&#x27;t print (enabled) profile names for projects.
+* `-R, --right`: Right-align variable names.
+* `-Z, --zebra`: Alternate row colors in tables.
 * `--help`: Show this message and exit.
 
 ## `doco u`
@@ -68,8 +71,9 @@ $ doco u [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
-* `-p, --pull`: Pull images before running.
+* `--pull`: Pull images before running.
 * `-l, --log`: Also show logs.
 * `--no-build`: Don&#x27;t build images before running.
 * `--no-remove-orphans`: Keep orphans.
@@ -92,6 +96,7 @@ $ doco d [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-v, --remove-volumes`: Remove volumes (implies -f / --force).
 * `--no-remove-orphans`: Keep orphans.
@@ -115,11 +120,12 @@ $ doco r [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-v, --remove-volumes`: Remove volumes (implies -f / --force).
 * `--no-remove-orphans`: Keep orphans.
 * `-f, --force`: Force calling down even if not running.
-* `-p, --pull`: Pull images before running.
+* `--pull`: Pull images before running.
 * `-l, --log`: Also show logs.
 * `--no-build`: Don&#x27;t build images before running.
 * `-n, --dry-run`: Do not actually stop anything, only show what would be done.
@@ -141,6 +147,7 @@ $ doco l [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-q, --no-follow`: Quit right after printing logs.
 * `--help`: Show this message and exit.
@@ -181,6 +188,7 @@ $ doco backups create [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
 * `-e, --exclude-project-dir`: Exclude project directory.
 * `-r, --include-ro`: Also consider read-only volumes.
@@ -207,6 +215,7 @@ $ doco backups restore [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `--running`: Consider only projects with at least one running or restarting service.
 * `--name TEXT`: Override project name. Using directory name if not given.
 * `-l, --list`: List backups instead of restoring a backup.

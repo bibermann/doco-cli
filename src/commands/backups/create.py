@@ -24,6 +24,7 @@ from src.utils.backup_rich import do_backup_content
 from src.utils.backup_rich import do_backup_job
 from src.utils.backup_rich import format_do_backup
 from src.utils.backup_rich import format_no_backup
+from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
 from src.utils.common import dir_from_path
@@ -104,7 +105,14 @@ def do_backup(
     )
 
     if config.tasks.restart_project:
-        rich_run_compose(project.dir, project.file, command=["down"], dry_run=options.dry_run, cmds=cmds)
+        rich_run_compose(
+            project.dir,
+            project.file,
+            project.selected_profiles,
+            command=["down"],
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
 
     if config.tasks.backup_config:
         do_backup_content(
@@ -141,7 +149,14 @@ def do_backup(
         )
 
     if config.tasks.restart_project:
-        rich_run_compose(project.dir, project.file, command=["up", "-d"], dry_run=options.dry_run, cmds=cmds)
+        rich_run_compose(
+            project.dir,
+            project.file,
+            project.selected_profiles,
+            command=["up", "-d"],
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
 
     if not options.dry_run and config.tasks.create_last_backup_dir_file:
         save_last_backup_directory(project.dir, config.backup_dir)
@@ -308,6 +323,7 @@ def volumes_callback(ctx: typer.Context, volumes: list[str]) -> list[str]:
 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    profiles: list[str] = PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     exclude_project_dir: bool = typer.Option(
         False, "-e", "--exclude-project-dir", help="Exclude project directory."
@@ -349,6 +365,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
+        profiles,
         ProjectSearchOptions(
             print_compose_errors=dry_run,
             only_running=running,

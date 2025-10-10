@@ -9,6 +9,7 @@ import rich.tree
 from src.utils.common import PrintCmdData
 from src.utils.compose import find_compose_projects
 from src.utils.compose import load_compose_config
+from src.utils.compose import load_compose_profiles
 from src.utils.compose import load_compose_ps
 from src.utils.compose import run_compose
 from src.utils.doco_config import DocoConfig
@@ -21,12 +22,14 @@ from src.utils.system import get_user_groups
 
 
 @dataclasses.dataclass
-class ComposeProject:
+class ComposeProject:  # pylint: disable=too-many-instance-attributes
     dir: str
     file: str
     config: t.Mapping[str, t.Any]
     config_yaml: str
     ps: t.List[t.Mapping[str, t.Any]]
+    all_profiles: list[str]
+    selected_profiles: list[str]
     doco_config: DocoConfig
 
 
@@ -38,7 +41,7 @@ class ProjectSearchOptions:
 
 
 def get_compose_projects(  # noqa: C901 (too complex)
-    paths: t.Iterable[pathlib.Path], options: ProjectSearchOptions
+    paths: t.Iterable[pathlib.Path], profiles: list[str], options: ProjectSearchOptions
 ) -> t.Generator[ComposeProject, None, None]:
     if not (os.geteuid() == 0 or "docker" in get_user_groups()):
         raise DocoError(
@@ -49,7 +52,11 @@ def get_compose_projects(  # noqa: C901 (too complex)
     for project_dir, project_file in find_compose_projects(paths, options.allow_empty):
         if not (options.allow_empty and project_file == ""):
             try:
-                project_config, project_config_yaml = load_compose_config(project_dir, project_file)
+                project_profiles = load_compose_profiles(project_dir, project_file)
+                selected_profiles = [p for p in profiles if p in project_profiles]
+                project_config, project_config_yaml = load_compose_config(
+                    project_dir, project_file, selected_profiles
+                )
             except subprocess.CalledProcessError as e:
                 if options.print_compose_errors:
                     tree = rich.tree.Tree(f"[b]{Formatted(os.path.join(project_dir, project_file))}[/]")
@@ -65,7 +72,7 @@ def get_compose_projects(  # noqa: C901 (too complex)
                     rich.print(tree)
                 continue
 
-            project_ps = load_compose_ps(project_dir, project_file)
+            project_ps = load_compose_ps(project_dir, project_file, selected_profiles)
 
             if options.only_running:
                 has_running_or_restarting = False
@@ -82,6 +89,8 @@ def get_compose_projects(  # noqa: C901 (too complex)
             project_config = {}
             project_config_yaml = ""
             project_ps = []
+            project_profiles = []
+            selected_profiles = []
 
         yield ComposeProject(
             dir=project_dir,
@@ -89,13 +98,16 @@ def get_compose_projects(  # noqa: C901 (too complex)
             config=project_config,
             config_yaml=project_config_yaml,
             ps=project_ps,
+            all_profiles=project_profiles,
+            selected_profiles=selected_profiles,
             doco_config=load_doco_config(project_dir),
         )
 
 
-def rich_run_compose(
+def rich_run_compose(  # noqa: CFQ002 (max arguments)
     project_dir,
     project_file,
+    profiles: list[str],
     command: list[str],
     dry_run: bool,
     cmds: list[PrintCmdData],
@@ -105,6 +117,7 @@ def rich_run_compose(
         cmd = run_compose(
             project_dir=os.path.abspath(project_dir),
             project_file=project_file,
+            profiles=profiles,
             command=command,
             dry_run=dry_run,
             cancelable=cancelable,

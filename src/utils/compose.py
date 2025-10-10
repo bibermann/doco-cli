@@ -11,9 +11,14 @@ from src.utils.common import PrintCmdCallable
 from src.utils.common import relative_path_if_below
 
 
-def load_compose_config(cwd: str, file: str) -> tuple[t.Mapping[str, t.Any], str]:
+def load_compose_config(cwd: str, file: str, profiles: list[str]) -> tuple[t.Mapping[str, t.Any], str]:
+    cmd = ["docker", "compose", "-f", file]
+    for profile in profiles:
+        cmd.extend(["--profile", profile])
+    cmd.append("config")
+
     result = subprocess.run(
-        ["docker", "compose", "-f", file, "config"],
+        cmd,
         cwd=cwd,
         capture_output=True,
         encoding="utf-8",
@@ -23,9 +28,25 @@ def load_compose_config(cwd: str, file: str) -> tuple[t.Mapping[str, t.Any], str
     return yaml.safe_load(result.stdout), result.stdout
 
 
-def load_compose_ps(cwd: str, file: str) -> list[t.Mapping[str, t.Any]]:
+def load_compose_profiles(cwd: str, file: str) -> list[str]:
     result = subprocess.run(
-        ["docker", "compose", "-f", file, "ps", "--format", "json"],
+        ["docker", "compose", "-f", file, "config", "--profiles"],
+        cwd=cwd,
+        capture_output=True,
+        encoding="utf-8",
+        universal_newlines=True,
+        check=True,
+    )
+    return result.stdout.splitlines()
+
+
+def load_compose_ps(cwd: str, file: str, profiles: list[str]) -> list[t.Mapping[str, t.Any]]:
+    cmd = ["docker", "compose", "-f", file]
+    for profile in profiles:
+        cmd.extend(["--profile", profile])
+    cmd.extend(["ps", "--format", "json", "--orphans=false"])
+    result = subprocess.run(
+        cmd,
         cwd=cwd,
         capture_output=True,
         encoding="utf-8",
@@ -38,9 +59,10 @@ def load_compose_ps(cwd: str, file: str) -> list[t.Mapping[str, t.Any]]:
     return [json.loads(line) for line in result.stdout.split("\n") if line]
 
 
-def run_compose(
+def run_compose(  # noqa: CFQ002 (max arguments)
     project_dir,
     project_file,
+    profiles: list[str],
     command: list[str],
     dry_run: bool = False,
     cancelable: bool = False,
@@ -51,8 +73,11 @@ def run_compose(
         "compose",
         "-f",
         project_file,
-        *command,
     ]
+    for profile in profiles:
+        cmd.extend(["--profile", profile])
+    cmd.extend(command)
+
     if not dry_run:
         print_cmd_callback(cmd, project_dir)
         try:

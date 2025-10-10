@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Support new `compose.yaml` default name.
+- Add option `-p, --profile` to select compose profiles.
 
 ## [2.2.2] -- 2024-10-20
 ### Fixed

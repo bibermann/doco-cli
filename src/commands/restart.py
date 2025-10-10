@@ -4,6 +4,7 @@ import pathlib
 import typer
 
 from .down import DownOptions
+from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
 from src.utils.compose_rich import ComposeProject
@@ -27,6 +28,7 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
         rich_run_compose(
             project.dir,
             project.file,
+            project.selected_profiles,
             command=[
                 "down",
                 *(["--remove-orphans"] if not options.no_remove_orphans else []),
@@ -39,6 +41,7 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
     rich_run_compose(
         project.dir,
         project.file,
+        project.selected_profiles,
         command=[
             "up",
             *(["--remove-orphans"] if not options.no_remove_orphans else []),
@@ -54,6 +57,7 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
         rich_run_compose(
             project.dir,
             project.file,
+            project.selected_profiles,
             command=["logs", "-f"],
             dry_run=options.dry_run,
             cmds=info.cmds,
@@ -63,13 +67,14 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    profiles: list[str] = PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
     remove_volumes: bool = typer.Option(
         False, "--remove-volumes", "-v", help="Remove volumes (implies -f / --force)."
     ),
     no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", help="Keep orphans."),
     force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
-    do_pull: bool = typer.Option(False, "--pull", "-p", help="Pull images before running."),
+    do_pull: bool = typer.Option(False, "--pull", help="Pull images before running."),
     do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
     no_build: bool = typer.Option(False, "--no-build", help="Don't build images before running."),
     dry_run: bool = typer.Option(
@@ -82,6 +87,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
+        profiles,
         ProjectSearchOptions(
             print_compose_errors=dry_run,
             only_running=running,

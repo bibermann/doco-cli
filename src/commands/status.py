@@ -10,6 +10,7 @@ import rich.table
 import rich.tree
 import typer
 
+from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
 from src.utils.common import relative_path_if_below
@@ -122,8 +123,10 @@ def get_source_volume_name(volume: t.Mapping[str, t.Any], config: t.Mapping[str,
 
 
 @dataclasses.dataclass
-class PrintOptions:
+class PrintOptions:  # pylint: disable=too-many-instance-attributes
     print_path: bool
+    print_all_profiles: bool
+    print_individual_profiles: bool
     output_build: bool
     list_environment: bool
     list_volumes: int
@@ -139,13 +142,27 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
+    def build_profiles_str(profiles: t.Iterable[str]) -> str:
+        formatted_profiles = []
+        for profile in profiles:
+            if profile in project.selected_profiles:
+                formatted_profiles.append(f"[yellow]{Formatted(profile)}[/]")
+            else:
+                formatted_profiles.append(f"[dim yellow]{Formatted(profile)}[/]")
+        return "[dim],[/]".join(formatted_profiles)
+
     justify: rich.console.JustifyMethod = "left"
     if options.align_right:
         justify = "right"
 
     project_id_str = f"[b]{Formatted(project.config['name'])}[/]"
+
+    if options.print_all_profiles and project.all_profiles:
+        project_id_str += f" {build_profiles_str(project.all_profiles)}"
+
     if options.print_path:
         project_id_str += f" [dim]{Formatted(os.path.join(project.dir, project.file))}[/]"
+
     project_id = Formatted(project_id_str, True)
     tree = rich.tree.Tree(str(project_id))
 
@@ -177,6 +194,10 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
             str(source),
         ]
         s = tree.add(" ".join(z for z in service_line if z != ""))
+
+        service_profiles = service.get("profiles", [])
+        if options.print_individual_profiles and service_profiles:
+            s.add(f"[i]Profiles:[/] {build_profiles_str(service_profiles)}")
 
         if options.output_build and not is_image:
             build_context = dim_path(
@@ -271,8 +292,12 @@ FORMATTING_GROUP = {"rich_help_panel": "Formatting Options"}
 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    profiles: list[str] = PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
-    path: bool = typer.Option(False, "--path", "-p", **DETAILS_GROUP, help="Print path of compose file."),
+    path: bool = typer.Option(False, "--path", **DETAILS_GROUP, help="Print path of compose file."),
+    print_individual_profiles: bool = typer.Option(
+        False, "--profiles", "-P", **DETAILS_GROUP, help="Output profile names of services."
+    ),
     build: bool = typer.Option(
         False, "--build", "-b", **DETAILS_GROUP, help="Output build context and arguments."
     ),
@@ -281,11 +306,16 @@ def main(  # noqa: CFQ002 (max arguments)
         0, "--volumes", "-v", count=True, **DETAILS_GROUP, help="List volumes (use -vv to also list content)."
     ),
     all_details: int = typer.Option(
-        0, "--all", "-a", count=True, **DETAILS_GROUP, help="Like -pbev (use -aa for -pbevv)."
+        0, "--all", "-a", count=True, **DETAILS_GROUP, help="Like -pPbev (use -aa for -pPbevv)."
     ),
-    align_right: bool = typer.Option(False, "--right", **FORMATTING_GROUP, help="Right-align variable names."),
+    no_print_all_profiles: bool = typer.Option(
+        False, "--no-show-profiles", **DETAILS_GROUP, help="Don't print (enabled) profile names for projects."
+    ),
+    align_right: bool = typer.Option(
+        False, "--right", "-R", **FORMATTING_GROUP, help="Right-align variable names."
+    ),
     alternate_rows: bool = typer.Option(
-        False, "--zebra", **FORMATTING_GROUP, help="Alternate row colors in tables."
+        False, "--zebra", "-Z", **FORMATTING_GROUP, help="Alternate row colors in tables."
     ),
 ):
     """
@@ -294,6 +324,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
+        profiles,
         ProjectSearchOptions(
             print_compose_errors=True,
             only_running=running,
@@ -303,6 +334,8 @@ def main(  # noqa: CFQ002 (max arguments)
             project=project,
             options=PrintOptions(
                 print_path=all_details >= 1 or path,
+                print_all_profiles=not no_print_all_profiles,
+                print_individual_profiles=all_details >= 1 or print_individual_profiles,
                 output_build=all_details >= 1 or build,
                 list_environment=all_details >= 1 or envs,
                 list_volumes=max(all_details, volumes),
