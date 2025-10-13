@@ -33,6 +33,20 @@ def create_table(alternate_bg: bool) -> rich.table.Table:
     )
 
 
+def create_minimal_table(alternate_bg: bool) -> rich.table.Table:
+    return rich.table.Table(
+        title_justify="left",
+        style="dim",
+        show_header=False,
+        show_edge=False,
+        padding=0,  # (0,1),
+        pad_edge=False,
+        collapse_padding=True,
+        box=rich.box.SIMPLE,
+        row_styles=["on grey7", ""] if alternate_bg else None,
+    )
+
+
 def colored_container_state(state: str) -> Formatted:
     if state == "running":
         return Formatted(f"[b green]{Formatted(state)}[/]", True)
@@ -167,6 +181,16 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
     project_id = Formatted(project_id_str, True)
     tree = rich.tree.Tree(str(project_id))
 
+    if (
+        not options.print_individual_profiles
+        and not options.output_build
+        and not options.list_environment
+        and not options.list_volumes
+    ):
+        service_matrix: t.Union[list[list[str]], None] = []
+    else:
+        service_matrix = None
+
     for service_name, service in project.config["services"].items():  # pylint: disable=too-many-nested-blocks
         state = next((s["State"] for s in project.ps if s["Service"] == service_name), "exited")
         is_image = "image" in service
@@ -194,10 +218,13 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
             str(ports),
             str(source),
         ]
-        s = tree.add(" ".join(z for z in service_line if z != ""))
+        if service_matrix is None:
+            s = tree.add(" ".join(z for z in service_line if z != ""))
+        else:
+            service_matrix.append(service_line)
+            continue
 
-        service_profiles = service.get("profiles", [])
-        if options.print_individual_profiles and service_profiles:
+        if options.print_individual_profiles and (service_profiles := service.get("profiles", [])):
             s.add(f"[i]Profiles:[/] {build_profiles_str(service_profiles)}")
 
         if options.output_build and not is_image:
@@ -283,6 +310,18 @@ def print_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                     ),
                     str(colored_readonly("ro" if read_only else "rw", read_only, is_bind_mount)),
                 )
+
+    if service_matrix is not None:
+        table = create_minimal_table(options.alternate_rows)
+        table.add_column(no_wrap=True)
+        table.add_column(no_wrap=True)
+        table.add_column(no_wrap=True)
+        table.add_column(overflow="fold")
+
+        for service_line in service_matrix:
+            table.add_row(*service_line)
+
+        tree.add(table)
 
     rich.print(tree)
 
