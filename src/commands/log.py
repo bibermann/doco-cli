@@ -18,6 +18,7 @@ from src.utils.doco import ProjectInfo
 @dataclasses.dataclass
 class Options:
     follow: bool
+    show_timestamps: bool
 
 
 def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
@@ -27,6 +28,7 @@ def log_project(project: ComposeProject, options: Options, info: ProjectInfo):
         project.selected_profiles,
         command=[
             "logs",
+            *(["-t"] if options.show_timestamps else []),
             *(["-f"] if options.follow else []),
         ],
         dry_run=False,
@@ -40,6 +42,7 @@ def main(
     profiles: list[str] = PROFILES_OPTION,
     all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
+    show_timestamps: bool = typer.Option(False, "--timestamps", "-t", help="Show timestamps."),
     no_follow: bool = typer.Option(False, "--no-follow", "-q", help="Quit right after printing logs."),
 ):
     """
@@ -62,6 +65,7 @@ def main(
                 project,
                 options=Options(
                     follow=not no_follow,
+                    show_timestamps=show_timestamps,
                 ),
                 info=info,
             ),

@@ -20,6 +20,7 @@ from src.utils.doco import ProjectInfo
 class Options(DownOptions):
     do_pull: bool
     do_log: bool
+    show_timestamps: bool
     no_build: bool
     dry_run: bool
 
@@ -59,7 +60,11 @@ def restart_project(project: ComposeProject, options: Options, info: ProjectInfo
             project.dir,
             project.file,
             project.selected_profiles,
-            command=["logs", "-f"],
+            command=[
+                "logs",
+                *(["-t"] if options.show_timestamps else []),
+                "-f",
+            ],
             dry_run=options.dry_run,
             cmds=info.cmds,
             cancelable=True,
@@ -78,6 +83,7 @@ def main(  # noqa: CFQ002 (max arguments)
     force: bool = typer.Option(False, "--force", "-f", help="Force calling down even if not running."),
     do_pull: bool = typer.Option(False, "--pull", help="Pull images before running."),
     do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
+    show_timestamps: bool = typer.Option(False, "--timestamps", "-t", help="Show timestamps in logs."),
     no_build: bool = typer.Option(False, "--no-build", help="Don't build images before running."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually stop anything, only show what would be done."
@@ -107,6 +113,7 @@ def main(  # noqa: CFQ002 (max arguments)
                     force_down=force,
                     do_pull=do_pull,
                     do_log=do_log,
+                    show_timestamps=show_timestamps,
                     no_build=no_build,
                     dry_run=dry_run,
                 ),

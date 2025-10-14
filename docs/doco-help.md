@@ -77,6 +77,7 @@ $ doco u [OPTIONS] [PROJECTS]...
 * `--running`: Consider only projects with at least one running or restarting service.
 * `--pull`: Pull images before running.
 * `-l, --log`: Also show logs.
+* `-t, --timestamps`: Show timestamps in logs.
 * `--no-build`: Don&#x27;t build images before running.
 * `--no-remove-orphans`: Keep orphans.
 * `-n, --dry-run`: Do not actually start anything, only show what would be done.
@@ -131,6 +132,7 @@ $ doco r [OPTIONS] [PROJECTS]...
 * `-f, --force`: Force calling down even if not running.
 * `--pull`: Pull images before running.
 * `-l, --log`: Also show logs.
+* `-t, --timestamps`: Show timestamps in logs.
 * `--no-build`: Don&#x27;t build images before running.
 * `-n, --dry-run`: Do not actually stop anything, only show what would be done.
 * `--help`: Show this message and exit.
@@ -154,6 +156,7 @@ $ doco l [OPTIONS] [PROJECTS]...
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
+* `-t, --timestamps`: Show timestamps.
 * `-q, --no-follow`: Quit right after printing logs.
 * `--help`: Show this message and exit.
 

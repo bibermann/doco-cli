@@ -19,6 +19,7 @@ from src.utils.doco import ProjectInfo
 class Options:
     do_pull: bool
     do_log: bool
+    show_timestamps: bool
     no_build: bool
     no_remove_orphans: bool
     dry_run: bool
@@ -46,7 +47,11 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
             project.dir,
             project.file,
             project.selected_profiles,
-            command=["logs", "-f"],
+            command=[
+                "logs",
+                *(["-t"] if options.show_timestamps else []),
+                "-f",
+            ],
             dry_run=options.dry_run,
             cmds=info.cmds,
             cancelable=True,
@@ -60,6 +65,7 @@ def main(  # noqa: CFQ002 (max arguments)
     running: bool = RUNNING_OPTION,
     do_pull: bool = typer.Option(False, "--pull", help="Pull images before running."),
     do_log: bool = typer.Option(False, "--log", "-l", help="Also show logs."),
+    show_timestamps: bool = typer.Option(False, "--timestamps", "-t", help="Show timestamps in logs."),
     no_build: bool = typer.Option(False, "--no-build", help="Don't build images before running."),
     no_remove_orphans: bool = typer.Option(False, "--no-remove-orphans", help="Keep orphans."),
     dry_run: bool = typer.Option(
@@ -87,6 +93,7 @@ def main(  # noqa: CFQ002 (max arguments)
                 options=Options(
                     do_pull=do_pull,
                     do_log=do_log,
+                    show_timestamps=show_timestamps,
                     no_build=no_build,
                     no_remove_orphans=no_remove_orphans,
                     dry_run=dry_run,
