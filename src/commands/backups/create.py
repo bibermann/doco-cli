@@ -8,9 +8,7 @@ import typing as t
 import pydantic
 import rich.console
 import rich.json
-import rich.markup
 import rich.panel
-import rich.pretty
 import rich.tree
 import typer
 
@@ -28,6 +26,7 @@ from src.utils.cli import ALL_PROFILES_OPTION
 from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
+from src.utils.cli import SERVICES_OPTION
 from src.utils.common import dir_from_path
 from src.utils.common import PrintCmdData
 from src.utils.common import relative_path_if_below
@@ -110,7 +109,7 @@ def do_backup(
             project.dir,
             project.file,
             project.selected_profiles,
-            command=["down"],
+            command=["down", *project.selected_services],
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -154,7 +153,7 @@ def do_backup(
             project.dir,
             project.file,
             project.selected_profiles,
-            command=["up", "-d"],
+            command=["up", "-d", *project.selected_services],
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -324,6 +323,7 @@ def volumes_callback(ctx: typer.Context, volumes: list[str]) -> list[str]:
 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    services: list[str] = SERVICES_OPTION,
     profiles: list[str] = PROFILES_OPTION,
     all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
@@ -367,6 +367,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
+        services,
         all_profiles or profiles,
         ProjectSearchOptions(
             print_compose_errors=dry_run,

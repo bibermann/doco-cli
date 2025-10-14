@@ -11,6 +11,7 @@ from src.utils.compose import find_compose_projects
 from src.utils.compose import load_compose_config
 from src.utils.compose import load_compose_profiles
 from src.utils.compose import load_compose_ps
+from src.utils.compose import load_compose_services
 from src.utils.compose import run_compose
 from src.utils.doco_config import DocoConfig
 from src.utils.doco_config import load_doco_config
@@ -28,6 +29,7 @@ class ComposeProject:  # pylint: disable=too-many-instance-attributes
     config: t.Mapping[str, t.Any]
     config_yaml: str
     ps: t.List[t.Mapping[str, t.Any]]
+    selected_services: list[str]
     all_profiles: list[str]
     selected_profiles: list[str]
     doco_config: DocoConfig
@@ -40,11 +42,32 @@ class ProjectSearchOptions:
     allow_empty: bool = False
 
 
+def _get_profiles(cwd: str, file: str, *, profiles: t.Union[list[str], t.Literal[True]]):
+    project_profiles = load_compose_profiles(cwd, file)
+    selected_profiles = (
+        project_profiles if profiles is True else [p for p in profiles if p in project_profiles]
+    )
+    return project_profiles, selected_profiles
+
+
+def _get_services(
+    cwd: str, file: str, *, services: list[str], selected_profiles: list[str]
+) -> t.Optional[list[str]]:
+    if services:
+        project_services = load_compose_services(cwd, file, profiles=selected_profiles)
+        selected_services = [s for s in services if s in project_services]
+        return selected_services or None
+    return []
+
+
 def get_compose_projects(  # noqa: C901 (too complex)
     paths: t.Iterable[pathlib.Path],
+    services: list[str],
     profiles: t.Union[list[str], t.Literal[True]],
     options: ProjectSearchOptions,
 ) -> t.Generator[ComposeProject, None, None]:
+    # pylint: disable=too-many-locals
+
     if not (os.geteuid() == 0 or "docker" in get_user_groups()):
         raise DocoError(
             "You need to belong to the docker group or have root privileges to run this script.\n"
@@ -54,12 +77,19 @@ def get_compose_projects(  # noqa: C901 (too complex)
     for project_dir, project_file in find_compose_projects(paths, options.allow_empty):
         if not (options.allow_empty and project_file == ""):
             try:
-                project_profiles = load_compose_profiles(project_dir, project_file)
-                selected_profiles = (
-                    project_profiles if profiles is True else [p for p in profiles if p in project_profiles]
+                project_profiles, selected_profiles = _get_profiles(
+                    project_dir, project_file, profiles=profiles
                 )
+                selected_services = _get_services(
+                    project_dir, project_file, services=services, selected_profiles=selected_profiles
+                )
+                if selected_services is None:
+                    continue
                 project_config, project_config_yaml = load_compose_config(
-                    project_dir, project_file, selected_profiles
+                    cwd=project_dir,
+                    file=project_file,
+                    services=services,
+                    profiles=selected_profiles,
                 )
             except subprocess.CalledProcessError as e:
                 if options.print_compose_errors:
@@ -76,7 +106,9 @@ def get_compose_projects(  # noqa: C901 (too complex)
                     rich.print(tree)
                 continue
 
-            project_ps = load_compose_ps(project_dir, project_file, selected_profiles)
+            project_ps = load_compose_ps(
+                project_dir, project_file, services=selected_services, profiles=selected_profiles
+            )
 
             if options.only_running:
                 has_running_or_restarting = False
@@ -93,6 +125,7 @@ def get_compose_projects(  # noqa: C901 (too complex)
             project_config = {}
             project_config_yaml = ""
             project_ps = []
+            selected_services = []
             project_profiles = []
             selected_profiles = []
 
@@ -102,6 +135,7 @@ def get_compose_projects(  # noqa: C901 (too complex)
             config=project_config,
             config_yaml=project_config_yaml,
             ps=project_ps,
+            selected_services=selected_services,
             all_profiles=project_profiles,
             selected_profiles=selected_profiles,
             doco_config=load_doco_config(project_dir),

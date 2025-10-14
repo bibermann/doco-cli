@@ -42,6 +42,7 @@ $ doco s [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
@@ -72,6 +73,7 @@ $ doco u [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
@@ -99,6 +101,7 @@ $ doco d [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
@@ -124,6 +127,7 @@ $ doco r [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
@@ -153,6 +157,7 @@ $ doco l [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
@@ -196,6 +201,7 @@ $ doco backups create [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.
@@ -224,6 +230,7 @@ $ doco backups restore [OPTIONS] [PROJECTS]...
 
 **Options**:
 
+* `-s, --service TEXT`: Select services (comma-separated or multiple -s arguments).
 * `-p, --profile TEXT`: Enable specific profiles (comma-separated or multiple -p arguments).
 * `-a, --all`: Select all profiles.
 * `--running`: Consider only projects with at least one running or restarting service.

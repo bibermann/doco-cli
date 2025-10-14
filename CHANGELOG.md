@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Support new `compose.yaml` default name.
+- Add option `-s, --service` to select compose services.
 - Add option `-p, --profile` to select compose profiles.
 - Add option `-a, --all` to select all compose profiles.
 - Add option `-t, --timestamps` to show timestamps in logs.

@@ -14,15 +14,13 @@ def projects_callback(ctx: typer.Context, projects: t.Union[list[str], None]) ->
     return projects
 
 
-def profiles_callback(ctx: typer.Context, profile_args: list[str]) -> list[str]:
+def comma_separated_list_callback(ctx: typer.Context, args: list[str]) -> list[str]:
     if ctx.resilient_parsing:
-        return profile_args
-    profiles: list[str] = []
-    for profile_arg in profile_args:
-        profiles.extend(
-            stripped_profile for profile in profile_arg.split(",") if (stripped_profile := profile.strip())
-        )
-    return profiles
+        return args
+    items: list[str] = []
+    for value in args:
+        items.extend(stripped_item for item in value.split(",") if (stripped_item := item.strip()))
+    return items
 
 
 PROJECTS_ARGUMENT = typer.Argument(
@@ -32,11 +30,18 @@ PROJECTS_ARGUMENT = typer.Argument(
     help="Compose files and/or directories containing a \\[docker-]compose.y\\[a]ml.",
     show_default="stdin or current directory",
 )
+SERVICES_OPTION = typer.Option(
+    [],
+    "--service",
+    "-s",
+    callback=comma_separated_list_callback,
+    help="Select services (comma-separated or multiple -s arguments).",
+)
 PROFILES_OPTION = typer.Option(
     [],
     "--profile",
     "-p",
-    callback=profiles_callback,
+    callback=comma_separated_list_callback,
     help="Enable specific profiles (comma-separated or multiple -p arguments).",
 )
 ALL_PROFILES_OPTION = typer.Option(

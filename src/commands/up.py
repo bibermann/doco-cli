@@ -7,6 +7,7 @@ from src.utils.cli import ALL_PROFILES_OPTION
 from src.utils.cli import PROFILES_OPTION
 from src.utils.cli import PROJECTS_ARGUMENT
 from src.utils.cli import RUNNING_OPTION
+from src.utils.cli import SERVICES_OPTION
 from src.utils.compose_rich import ComposeProject
 from src.utils.compose_rich import get_compose_projects
 from src.utils.compose_rich import ProjectSearchOptions
@@ -37,6 +38,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
                 *(["--build"] if not options.no_build else []),
                 *(["--pull", "always"] if options.do_pull else []),
                 "-d",
+                *project.selected_services,
             ],
             dry_run=options.dry_run,
             cmds=info.cmds,
@@ -51,6 +53,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
                 "logs",
                 *(["-t"] if options.show_timestamps else []),
                 "-f",
+                *project.selected_services,
             ],
             dry_run=options.dry_run,
             cmds=info.cmds,
@@ -60,6 +63,7 @@ def up_project(project: ComposeProject, options: Options, info: ProjectInfo):
 
 def main(  # noqa: CFQ002 (max arguments)
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
+    services: list[str] = SERVICES_OPTION,
     profiles: list[str] = PROFILES_OPTION,
     all_profiles: bool = ALL_PROFILES_OPTION,
     running: bool = RUNNING_OPTION,
@@ -78,6 +82,7 @@ def main(  # noqa: CFQ002 (max arguments)
 
     for project in get_compose_projects(
         projects,
+        services,
         all_profiles or profiles,
         ProjectSearchOptions(
             print_compose_errors=dry_run,

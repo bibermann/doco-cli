@@ -11,11 +11,14 @@ from src.utils.common import PrintCmdCallable
 from src.utils.common import relative_path_if_below
 
 
-def load_compose_config(cwd: str, file: str, profiles: list[str]) -> tuple[t.Mapping[str, t.Any], str]:
+def load_compose_config(
+    *, cwd: str, file: str, services: list[str], profiles: list[str]
+) -> tuple[t.Mapping[str, t.Any], str]:
     cmd = ["docker", "compose", "-f", file]
     for profile in profiles:
         cmd.extend(["--profile", profile])
     cmd.append("config")
+    cmd.extend(services)
 
     result = subprocess.run(
         cmd,
@@ -40,11 +43,30 @@ def load_compose_profiles(cwd: str, file: str) -> list[str]:
     return result.stdout.splitlines()
 
 
-def load_compose_ps(cwd: str, file: str, profiles: list[str]) -> list[t.Mapping[str, t.Any]]:
+def load_compose_services(cwd: str, file: str, *, profiles: list[str]) -> list[str]:
+    cmd = ["docker", "compose", "-f", file]
+    for profile in profiles:
+        cmd.extend(["--profile", profile])
+    cmd.extend(["config", "--services"])
+    result = subprocess.run(
+        cmd,
+        cwd=cwd,
+        capture_output=True,
+        encoding="utf-8",
+        universal_newlines=True,
+        check=True,
+    )
+    return result.stdout.splitlines()
+
+
+def load_compose_ps(
+    cwd: str, file: str, *, services: list[str], profiles: list[str]
+) -> list[t.Mapping[str, t.Any]]:
     cmd = ["docker", "compose", "-f", file]
     for profile in profiles:
         cmd.extend(["--profile", profile])
     cmd.extend(["ps", "--format", "json", "--orphans=false"])
+    cmd.extend(services)
     result = subprocess.run(
         cmd,
         cwd=cwd,
