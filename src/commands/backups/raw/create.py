@@ -39,6 +39,7 @@ class BackupOptions:
     workdir: str
     paths: list[str]
     backup: t.Optional[str]
+    deep: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -144,7 +145,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
     for path in options.paths:
         job = BackupJob(
             source_path=os.path.abspath(path),
-            target_path=os.path.join("files", dir_from_path(os.path.abspath(path))),
+            target_path=os.path.join("files", dir_from_path(os.path.abspath(path), deep=options.deep)),
             project_dir=options.workdir,
             check_is_dir=True,
         )
@@ -168,7 +169,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
             rich_print_conditional_cmds(cmds)
 
 
-def main(
+def main(  # noqa: CFQ002 (max arguments)
     ctx: typer.Context,
     project: str = typer.Argument(
         ..., callback=project_name_callback, help="Target project to write backups to."
@@ -181,6 +182,9 @@ def main(
         show_default=False,
     ),
     backup: t.Optional[str] = typer.Option(None, "--backup", "-b", help="Specify backup name."),
+    deep: bool = typer.Option(
+        False, "--deep", help="Use deep instead of flat root dir names (e.g. home/john instead of home__john)."
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
@@ -212,6 +216,7 @@ def main(
             workdir=obj.workdir,
             paths=list(map(str, paths)),
             backup=backup,
+            deep=deep,
             dry_run=dry_run,
             dry_run_verbose=verbose,
         ),

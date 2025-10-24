@@ -44,12 +44,13 @@ COMPOSE_CONFIG_YAML = "compose.yaml"
 
 
 @dataclasses.dataclass
-class BackupOptions:
+class BackupOptions:  # pylint: disable=too-many-instance-attributes
     include_project_dir: bool
     include_read_only_volumes: bool
     volumes: list[str]
     live: bool
     backup: t.Optional[str]
+    deep: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -244,7 +245,9 @@ def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
         for volume in volumes:
             job = BackupJob(
                 source_path=volume["source"],
-                target_path=os.path.join("volumes", service_name, dir_from_path(volume["target"])),
+                target_path=os.path.join(
+                    "volumes", service_name, dir_from_path(volume["target"], deep=options.deep)
+                ),
                 project_dir=project.dir,
                 check_is_dir=True,
             )
@@ -344,6 +347,9 @@ def main(  # noqa: CFQ002 (max arguments)
     ),
     live: bool = typer.Option(False, "--live", help="Do not stop the services before backup."),
     backup: t.Optional[str] = typer.Option(None, "--backup", "-b", help="Specify backup name."),
+    deep: bool = typer.Option(
+        False, "--deep", help="Use deep instead of flat root dir names (e.g. home/john instead of home__john)."
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
@@ -384,6 +390,7 @@ def main(  # noqa: CFQ002 (max arguments)
                 volumes=volume,
                 live=live,
                 backup=backup,
+                deep=deep,
                 dry_run=dry_run,
                 dry_run_verbose=verbose,
             ),

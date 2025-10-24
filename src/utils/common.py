@@ -21,11 +21,12 @@ def load_env_file():
     return dotenv.dotenv_values(".env")
 
 
-def dir_from_path(path: str) -> str:
+def dir_from_path(path: str, deep: bool) -> str:
     if path.startswith("/"):
         path = path[1:]
-    result = path.replace("/", "__")
-    return result
+    if deep:
+        return path
+    return path.replace("/", "__")
 
 
 def relative_path(path: str) -> str:

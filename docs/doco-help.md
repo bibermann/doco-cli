@@ -210,6 +210,7 @@ $ doco backups create [OPTIONS] [PROJECTS]...
 * `-v, --volume TEXT`: Regex for volume selection, can be specified multiple times. Use -v <span style="color: #808000; text-decoration-color: #808000; font-weight: bold">&#x27;(?!)&#x27;</span> to exclude all volumes. Use -v <span style="color: #808000; text-decoration-color: #808000; font-weight: bold">^/path/</span> to only allow specified paths. <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">[default: (exclude many system directories)]</span>
 * `--live`: Do not stop the services before backup.
 * `-b, --backup TEXT`: Specify backup name.
+* `--deep`: Use deep instead of flat root dir names (e.g. home/john instead of home__john).
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--help`: Show this message and exit.
@@ -323,6 +324,7 @@ $ doco backups raw create [OPTIONS] PROJECT PATHS...
 **Options**:
 
 * `-b, --backup TEXT`: Specify backup name.
+* `--deep`: Use deep instead of flat root dir names (e.g. home/john instead of home__john).
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--help`: Show this message and exit.
