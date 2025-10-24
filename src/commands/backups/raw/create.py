@@ -82,7 +82,7 @@ def do_backup(
             structure_config=doco_config.backup.structure,
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
-            content=config.json(indent=4),
+            content=config.model_dump_json(indent=4),
             target_file_name=BACKUP_CONFIG_JSON,
             dry_run=options.dry_run,
             cmds=cmds,
@@ -161,7 +161,9 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
     if options.dry_run:
         if options.dry_run_verbose:
             config_group.renderables.append(
-                rich.panel.Panel(rich.json.JSON(config.json(indent=4)), expand=False, border_style="green")
+                rich.panel.Panel(
+                    rich.json.JSON(config.model_dump_json(indent=4)), expand=False, border_style="green"
+                )
             )
 
         rich.print(tree)
