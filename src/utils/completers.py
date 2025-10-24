@@ -1,8 +1,7 @@
 import os
 import typing as t
 
-import click
-import typer
+import click.shell_completion
 
 
 class _FileCompleter:
@@ -10,7 +9,9 @@ class _FileCompleter:
         self.param = param
         self.predicate = predicate
 
-    def __call__(self, ctx: typer.Context, param: click.Parameter, incomplete: str) -> list[str]:
+    def __call__(
+        self, ctx: click.Context, param: click.Parameter, incomplete: str
+    ) -> t.Union[t.List[click.shell_completion.CompletionItem], t.List[str]]:
         past_values: t.Optional[t.Union[str, tuple[str]]] = (
             ctx.params.get(self.param) if self.param is not None else None
         )
