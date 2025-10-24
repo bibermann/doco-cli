@@ -355,13 +355,14 @@ def main(  # noqa: CFQ002 (max arguments)
 
     if not (dry_run or os.geteuid() == 0):
         raise DocoError(
-            "You need to have root privileges to do a backup.\nPlease try again, this time using 'sudo'."
+            "You need to have root privileges to create/download/restore a backup.\n"
+            "Please try again, this time using 'sudo'."
         )
 
     def check_rsync_config(rsync_config: RsyncConfig):
         if not rsync_config.is_complete():
             raise DocoError(
-                "You need to configure rsync to get a backup.\n"
+                "You need to configure rsync to work with backups.\n"
                 "Please see documentation for 'doco.config.toml'."
             )
 

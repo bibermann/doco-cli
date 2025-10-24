@@ -85,12 +85,13 @@ def main(
 
     if not (dry_run or os.geteuid() == 0):
         raise DocoError(
-            "You need to have root privileges to load a backup.\nPlease try again, this time using 'sudo'."
+            "You need to have root privileges to create/download/restore a backup.\n"
+            "Please try again, this time using 'sudo'."
         )
 
     if not obj.doco_config.backup.rsync.is_complete():
         raise DocoError(
-            "You need to configure rsync to get a backup.\n"
+            "You need to configure rsync to work with backups.\n"
             "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
             "Please see documentation for 'doco.config.toml'.",
             formatted=True,
