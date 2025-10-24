@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import typing as t
 
+import click
 import typer.core
 
 from src.commands import backups as cmd_backups
@@ -14,8 +15,8 @@ __version__ = "2.2.2"
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
-    def list_commands(self, _):
-        return self.commands.keys()
+    def list_commands(self, ctx: click.Context) -> t.List[str]:  # pylint: disable=unused-argument
+        return list(self.commands.keys())
 
 
 app = typer.Typer(

@@ -2,11 +2,12 @@ import os
 import pathlib
 import typing as t
 
+import click
 import typer.core
 
 from . import create as cmd_create
 from . import download as cmd_download
-from . import list as cmd_list
+from . import ls as cmd_list
 from . import restore as cmd_restore
 from src.utils.bbak import BbakContextObject
 from src.utils.completers import DirectoryCompleter
@@ -14,8 +15,8 @@ from src.utils.doco_config import load_doco_config
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
-    def list_commands(self, _):
-        return self.commands.keys()
+    def list_commands(self, ctx: click.Context) -> t.List[str]:  # pylint: disable=unused-argument
+        return list(self.commands.keys())
 
 
 app = typer.Typer(

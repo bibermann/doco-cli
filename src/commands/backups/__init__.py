@@ -1,3 +1,6 @@
+import typing as t
+
+import click
 import typer.core
 
 from . import create as cmd_create
@@ -6,8 +9,8 @@ from . import restore as cmd_restore
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
-    def list_commands(self, _):
-        return self.commands.keys()
+    def list_commands(self, ctx: click.Context) -> t.List[str]:  # pylint: disable=unused-argument
+        return list(self.commands.keys())
 
 
 app = typer.Typer(
