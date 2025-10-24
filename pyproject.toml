@@ -25,6 +25,9 @@ tomli = "^2.3.0"
 pre-commit = "^2.20.0"
 bumpver = "^2022.1119"
 bump-pydantic = "^0.8.0"
+pytest = "^8.4.2"
+docker = "^7.1.0"
+python-on-whales = "^0.78.0"
 
 [tool.bumpver]
 current_version = "2.2.2"

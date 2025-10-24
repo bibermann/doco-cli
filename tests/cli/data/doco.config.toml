@@ -1,0 +1,10 @@
+[backup.structure]
+uid = "1000"
+gid = "1000"
+
+[backup.rsync]
+host = "localhost"
+user = "testuser"
+module = "test_module"
+root = ""
+args = ["--port", "8873"]

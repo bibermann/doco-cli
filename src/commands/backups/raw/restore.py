@@ -1,6 +1,7 @@
 import dataclasses
 import json
 import os
+import pathlib
 import subprocess
 import tempfile
 import typing as t
@@ -68,9 +69,15 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
                 destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
                 dry_run=False,
                 print_cmd_callback=rich_print_cmd,
+                extra_args=["--ignore-missing-args"],
             )
         except subprocess.CalledProcessError as e:
             raise RichAbortCmd(e) from e
+        if not pathlib.Path(config_path).exists():
+            raise DocoError(
+                f"'{BACKUP_CONFIG_JSON}' not found on remote machine.\n"
+                "Cannot restore backup, please use download command instead."
+            )
         with open(config_path, encoding="utf-8") as f:
             backup_config = json.load(f)
 
@@ -134,6 +141,9 @@ def main(
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually restore a backup, only show what would be done."
     ),
+    skip_root_check: bool = typer.Option(
+        False, "--skip-root-check", help="Do not cancel when not run with root privileges."
+    ),
 ):
     """
     Restore a backup.
@@ -141,7 +151,7 @@ def main(
 
     obj: BbakContextObject = ctx.obj
 
-    if not (dry_run or os.geteuid() == 0):
+    if not skip_root_check and not (dry_run or os.geteuid() == 0):
         raise DocoError(
             "You need to have root privileges to create/download/restore a backup.\n"
             "Please try again, this time using 'sudo'."

@@ -1,0 +1,6 @@
+services:
+  doco-test-s1:
+    image: bash
+    volumes:
+      - ../s1-volume:/volume:ro
+      - ../s1-volume-rw:/volume-rw

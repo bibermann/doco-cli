@@ -171,11 +171,13 @@ def run_rsync_download_incremental(
     destination: str,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
+    extra_args: t.Union[list[str], None] = None,
 ) -> list[str]:
     opt = RsyncBackupOptions(config=config, delete_from_destination=True)
     cmd = [
         "rsync",
         *opt.args,
+        *(extra_args or []),
         "--",
         f"{opt.path()}{source}",
         destination,

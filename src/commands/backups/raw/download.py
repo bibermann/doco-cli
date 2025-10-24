@@ -76,6 +76,9 @@ def main(
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually download, only show what would be done."
     ),
+    skip_root_check: bool = typer.Option(
+        False, "--skip-root-check", help="Do not cancel when not run with root privileges."
+    ),
 ):
     """
     Download a backup for local analysis.
@@ -83,7 +86,7 @@ def main(
 
     obj: BbakContextObject = ctx.obj
 
-    if not (dry_run or os.geteuid() == 0):
+    if not skip_root_check and not (dry_run or os.geteuid() == 0):
         raise DocoError(
             "You need to have root privileges to create/download/restore a backup.\n"
             "Please try again, this time using 'sudo'."

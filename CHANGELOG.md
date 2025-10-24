@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option `--deep` for creating backups to use deep instead of flat root dir names.
 - Introduce incremental backup strategy for raw backups
     with new options `--incremental` and `--incremental-backup`.
+- Add option `--skip-root-check` for create/download/restore (raw) backups.
 
 ### Changed
 - Verbose option changed from `-a, --all` to `-V, --verbose`.

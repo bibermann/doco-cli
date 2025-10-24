@@ -326,7 +326,7 @@ def volumes_callback(ctx: typer.Context, volumes: list[str]) -> list[str]:
     return volumes
 
 
-def main(  # noqa: CFQ002 (max arguments)
+def main(  # noqa: CFQ002 (max arguments) pylint: disable=too-many-locals
     projects: list[pathlib.Path] = PROJECTS_ARGUMENT,
     services: list[str] = SERVICES_OPTION,
     profiles: list[str] = PROFILES_OPTION,
@@ -356,12 +356,15 @@ def main(  # noqa: CFQ002 (max arguments)
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
     ),
+    skip_root_check: bool = typer.Option(
+        False, "--skip-root-check", help="Do not cancel when not run with root privileges."
+    ),
 ):
     """
     Backup projects.
     """
 
-    if not (dry_run or os.geteuid() == 0):
+    if not skip_root_check and not (dry_run or os.geteuid() == 0):
         raise DocoError(
             "You need to have root privileges to create/download/restore a backup.\n"
             "Please try again, this time using 'sudo'."

@@ -213,6 +213,7 @@ $ doco backups create [OPTIONS] [PROJECTS]...
 * `--deep`: Use deep instead of flat root dir names (e.g. home/john instead of home__john).
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
+* `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
 
 ### `doco backups restore`
@@ -240,6 +241,7 @@ $ doco backups restore [OPTIONS] [PROJECTS]...
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
+* `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
 
 ### `doco backups raw`
@@ -304,6 +306,7 @@ $ doco backups raw download [OPTIONS] PROJECT
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
 * `-d, --destination DIRECTORY`: Destination (not relative to --workdir but to the caller&#x27;s CWD), defaults to --project within --workdir.
 * `-n, --dry-run`: Do not actually download, only show what would be done.
+* `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
 
 #### `doco backups raw create`
@@ -329,6 +332,7 @@ $ doco backups raw create [OPTIONS] PROJECT PATHS...
 * `--incremental-backup TEXT`: Specify incremental backup directory name (for changed and removed files).
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
+* `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
 
 #### `doco backups raw restore`
@@ -350,4 +354,5 @@ $ doco backups raw restore [OPTIONS] PROJECT
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
+* `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
