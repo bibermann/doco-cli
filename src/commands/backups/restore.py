@@ -169,6 +169,7 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
     if backup_project_dir:
         jobs.append(
             RestoreJob(
+                source_root_path=backup_config["backup_dir"],
                 source_path="project_files" if isinstance(backup_project_dir, bool) else backup_project_dir[1],
                 target_path="." if isinstance(backup_project_dir, bool) else backup_project_dir[0],
                 project_dir=project.dir,
@@ -178,7 +179,10 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
     for backup_volumes_item in backup_volumes:
         jobs.append(
             RestoreJob(
-                source_path=backup_volumes_item[1], target_path=backup_volumes_item[0], project_dir=project.dir
+                source_root_path=backup_config["backup_dir"],
+                source_path=backup_volumes_item[1],
+                target_path=backup_volumes_item[0],
+                project_dir=project.dir,
             )
         )
 

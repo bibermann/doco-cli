@@ -100,7 +100,10 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
     for backup_paths_item in backup_paths:
         jobs.append(
             RestoreJob(
-                source_path=backup_paths_item[1], target_path=backup_paths_item[0], project_dir=options.workdir
+                source_root_path=backup_config["backup_dir"],
+                source_path=backup_paths_item[1],
+                target_path=backup_paths_item[0],
+                project_dir=options.workdir,
             )
         )
 

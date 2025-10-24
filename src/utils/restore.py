@@ -23,12 +23,24 @@ class RestoreJob:
     rsync_target_path: str
     is_dir: bool
 
-    def __init__(self, source_path: str, target_path: str, project_dir: str, is_dir: t.Optional[bool] = None):
+    def __init__(
+        self,
+        *,
+        source_path: str,
+        target_path: str,
+        project_dir: str,
+        is_dir: t.Optional[bool] = None,
+        source_root_path: str = ".",
+    ):
         target_path_seems_dir = target_path.endswith("/")
         target_path = os.path.normpath(os.path.join(project_dir, target_path))
         source_path = os.path.normpath(source_path)
         if source_path.startswith("/") or source_path.startswith("../"):
             raise ValueError("source_path cannot be absolute or go upwards.")
+        if source_root_path != ".":
+            source_path = os.path.normpath(os.path.join(source_root_path, source_path))
+            if source_path.startswith("/") or source_path.startswith("../"):
+                raise ValueError("source_root_path cannot be absolute or go upwards.")
         if is_dir is not None:
             self.is_dir = is_dir
         else:
@@ -41,7 +53,7 @@ class RestoreJob:
         self.relative_source_path = relative_path(source_path) + ("/" if self.is_dir else "")
         self.absolute_target_path = os.path.abspath(target_path) + ("/" if self.is_dir else "")
         self.rsync_target_path = self.absolute_target_path
-        self.rsync_source_path = source_path
+        self.rsync_source_path = source_path + ("/" if self.is_dir else "")
 
 
 def get_backup_directory(
