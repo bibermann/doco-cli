@@ -10,6 +10,7 @@ from src.utils.rich import Formatted
 from src.utils.rich import rich_print_cmd
 from src.utils.rich import RichAbortCmd
 from src.utils.rsync import RsyncConfig
+from src.utils.rsync import run_rsync_backup_incremental
 from src.utils.rsync import run_rsync_backup_with_hardlinks
 from src.utils.rsync import run_rsync_without_delete
 from src.utils.system import chown_given_strings
@@ -58,6 +59,33 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
         cmds.append(PrintCmdData(cmd=cmd))
 
 
+def do_copy_content(  # noqa: CFQ002 (max arguments)
+    rsync_config: RsyncConfig,
+    structure_config: DocoBackupStructureConfig,
+    backup_dir: str,
+    content: str,
+    target_file_name: str,
+    dry_run: bool,
+    cmds: list[PrintCmdData],
+):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        source = os.path.join(tmp_dir, target_file_name)
+        with open(source, "w", encoding="utf-8") as f:
+            f.write(content)
+        chown_given_strings(source, structure_config.uid, structure_config.gid)
+        try:
+            cmd = run_rsync_without_delete(
+                config=rsync_config,
+                source=source,
+                destination=os.path.join(backup_dir, target_file_name),
+                dry_run=dry_run,
+                print_cmd_callback=rich_print_cmd,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RichAbortCmd(e) from e
+        cmds.append(PrintCmdData(cmd=cmd))
+
+
 def do_backup_job(
     rsync_config: RsyncConfig,
     new_backup_dir: str,
@@ -78,6 +106,28 @@ def do_backup_job(
             source=job.rsync_source_path,
             new_backup=os.path.join(new_backup_dir, job.rsync_target_path),
             old_backup_dirs=[old_backup_path] if old_backup_path is not None else [],
+            dry_run=dry_run,
+            print_cmd_callback=rich_print_cmd,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RichAbortCmd(e) from e
+    cmds.append(PrintCmdData(cmd=cmd))
+
+
+def do_incremental_backup_job(
+    rsync_config: RsyncConfig,
+    backup_dir: str,
+    incremental_backup_dir: str,
+    job: BackupJob,
+    dry_run: bool,
+    cmds: list[PrintCmdData],
+):
+    try:
+        cmd = run_rsync_backup_incremental(
+            config=rsync_config,
+            source=job.rsync_source_path,
+            destination=os.path.join(backup_dir, job.rsync_target_path),
+            backup_dir=os.path.join(incremental_backup_dir, job.rsync_target_path),
             dry_run=dry_run,
             print_cmd_callback=rich_print_cmd,
         )

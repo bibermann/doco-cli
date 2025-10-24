@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option `-a, --all` to select all compose profiles.
 - Add option `-t, --timestamps` to show timestamps in logs.
 - Add option `--deep` for creating backups to use deep instead of flat root dir names.
+- Introduce incremental backup strategy for raw backups
+    with new options `--incremental` and `--incremental-backup`.
 
 ### Changed
 - Verbose option changed from `-a, --all` to `-V, --verbose`.

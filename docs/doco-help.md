@@ -325,6 +325,8 @@ $ doco backups raw create [OPTIONS] PROJECT PATHS...
 
 * `-b, --backup TEXT`: Specify backup name.
 * `--deep`: Use deep instead of flat root dir names (e.g. home/john instead of home__john).
+* `--incremental`: Use incremental backup strategy with a single directory, instead of having separate self-contained and hard-linked directories.
+* `--incremental-backup TEXT`: Specify incremental backup directory name (for changed and removed files).
 * `-V, --verbose`: Print more details if --dry-run.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--help`: Show this message and exit.

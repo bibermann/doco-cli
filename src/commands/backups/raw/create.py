@@ -21,6 +21,8 @@ from src.utils.backup import save_last_backup_directory
 from src.utils.backup_rich import create_target_structure
 from src.utils.backup_rich import do_backup_content
 from src.utils.backup_rich import do_backup_job
+from src.utils.backup_rich import do_copy_content
+from src.utils.backup_rich import do_incremental_backup_job
 from src.utils.backup_rich import format_do_backup
 from src.utils.bbak import BbakContextObject
 from src.utils.common import dir_from_path
@@ -35,11 +37,13 @@ from src.utils.validators import project_name_callback
 
 
 @dataclasses.dataclass
-class BackupOptions:
+class BackupOptions:  # pylint: disable=too-many-instance-attributes
     workdir: str
     paths: list[str]
     backup: t.Optional[str]
     deep: bool
+    incremental: bool
+    incremental_backup: t.Optional[str]
     dry_run: bool
     dry_run_verbose: bool
 
@@ -55,6 +59,7 @@ class BackupConfig(pydantic.BaseModel):
     work_dir: str
     timestamp: datetime.datetime
     backup_dir: str
+    incremental_backup_dir: t.Optional[str]
     last_backup_dir: t.Optional[str]
     rsync: RsyncConfig
     tasks: BackupConfigTasks
@@ -67,6 +72,8 @@ def do_backup(
     doco_config: DocoConfig,
     cmds: list[PrintCmdData],
 ):
+    assert not options.incremental
+    assert config.incremental_backup_dir is None
     create_target_structure(
         rsync_config=doco_config.backup.rsync,
         structure_config=doco_config.backup.structure,
@@ -105,13 +112,79 @@ def do_backup(
         )
 
 
-def backup_files(project_name: str, options: BackupOptions, doco_config: DocoConfig):
+def do_incremental_backup(
+    options: BackupOptions,
+    config: BackupConfig,
+    jobs: list[BackupJob],
+    doco_config: DocoConfig,
+    cmds: list[PrintCmdData],
+):
+    assert options.incremental
+    assert config.incremental_backup_dir is not None
+    create_target_structure(
+        rsync_config=doco_config.backup.rsync,
+        structure_config=doco_config.backup.structure,
+        new_backup_dir=config.backup_dir,
+        jobs=jobs,
+        dry_run=options.dry_run,
+        cmds=cmds,
+    )
+
+    if config.tasks.backup_config:
+        do_copy_content(
+            rsync_config=doco_config.backup.rsync,
+            structure_config=doco_config.backup.structure,
+            backup_dir=config.backup_dir,
+            content=config.model_dump_json(indent=4),
+            target_file_name=BACKUP_CONFIG_JSON,
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
+
+    for job in jobs:
+        do_incremental_backup_job(
+            rsync_config=doco_config.backup.rsync,
+            backup_dir=config.backup_dir,
+            incremental_backup_dir=config.incremental_backup_dir,
+            job=job,
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
+
+    if not options.dry_run and config.tasks.create_last_backup_dir_file:
+        assert isinstance(config.tasks.create_last_backup_dir_file, str)
+        save_last_backup_directory(
+            options.workdir, config.incremental_backup_dir, file_name=config.tasks.create_last_backup_dir_file
+        )
+
+
+def backup_files(project_name: str, options: BackupOptions, doco_config: DocoConfig):  # noqa: CFQ001
+    # pylint: disable=too-many-locals
     project_id = f"[b]{Formatted(project_name)}[/]"
 
     now = datetime.datetime.now()
-    new_backup_dir = os.path.join(
-        project_name,
-        options.backup if options.backup is not None else f"backup-{now.strftime('%Y-%m-%d_%H.%M')}",
+    relative_backup_dir = (
+        options.backup
+        if options.backup is not None
+        else (f"backup-{now.strftime('%Y-%m-%d_%H.%M')}" if not options.incremental else "backup")
+    )
+    new_backup_dir = (
+        os.path.join(
+            project_name,
+            relative_backup_dir,
+        )
+        if relative_backup_dir != ""
+        else project_name
+    )
+    new_incremental_backup_dir = (
+        os.path.join(
+            project_name,
+            options.incremental_backup
+            if options.incremental_backup is not None
+            else f"before-{now.strftime('%Y-%m-%d_%H.%M')}",
+        )
+        if options.incremental
+        else None
     )
     old_backup_dir = load_last_backup_directory(options.workdir)
 
@@ -119,6 +192,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
         work_dir=os.path.abspath(options.workdir),
         timestamp=now,
         backup_dir=new_backup_dir,
+        incremental_backup_dir=new_incremental_backup_dir,
         last_backup_dir=old_backup_dir,
         rsync=doco_config.backup.rsync,
         tasks=BackupConfigTasks(
@@ -129,12 +203,24 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
     jobs: list[BackupJob] = []
 
     tree = rich.tree.Tree(str(project_id))
-    if old_backup_dir is None:
-        tree.add(f"[i]Backup directory:[/] [b]{Formatted(new_backup_dir)}[/]")
+    if not options.incremental:
+        if old_backup_dir is None:
+            tree.add(f"[i]Backup directory:[/] [b]{Formatted(new_backup_dir)}[/]")
+        else:
+            tree.add(
+                f"[i]Backup directory:[/] "
+                f"[dim]{Formatted(old_backup_dir)}[/] => [b]{Formatted(new_backup_dir)}[/]"
+            )
     else:
-        tree.add(
-            f"[i]Backup directory:[/] [dim]{Formatted(old_backup_dir)}[/] => [b]{Formatted(new_backup_dir)}[/]"
-        )
+        assert new_incremental_backup_dir is not None
+        tree.add(f"[i]Backup directory:[/] [b]{Formatted(new_backup_dir)}[/]")
+        if old_backup_dir is None:
+            tree.add(f"[i]Incremental backup directory:[/] [b]{Formatted(new_incremental_backup_dir)}[/]")
+        else:
+            tree.add(
+                f"[i]Incremental backup directory:[/] "
+                f"[dim]{Formatted(old_backup_dir)}[/] => [b]{Formatted(new_incremental_backup_dir)}[/]"
+            )
     backup_node = tree.add("[i]Backup items[/]")
 
     # Schedule config.json
@@ -156,7 +242,10 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
 
     cmds: list[PrintCmdData] = []
 
-    do_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, cmds=cmds)
+    if not options.incremental:
+        do_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, cmds=cmds)
+    else:
+        do_incremental_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, cmds=cmds)
 
     if options.dry_run:
         if options.dry_run_verbose:
@@ -187,6 +276,17 @@ def main(  # noqa: CFQ002 (max arguments)
     deep: bool = typer.Option(
         False, "--deep", help="Use deep instead of flat root dir names (e.g. home/john instead of home__john)."
     ),
+    incremental: bool = typer.Option(
+        False,
+        "--incremental",
+        help="Use incremental backup strategy with a single directory, "
+        "instead of having separate self-contained and hard-linked directories.",
+    ),
+    incremental_backup: t.Optional[str] = typer.Option(
+        None,
+        "--incremental-backup",
+        help="Specify incremental backup directory name (for changed and removed files).",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
@@ -204,6 +304,13 @@ def main(  # noqa: CFQ002 (max arguments)
             "Please try again, this time using 'sudo'."
         )
 
+    if incremental_backup is not None and not incremental:
+        raise DocoError(
+            "You cannot specify '[b green]--incremental-backup[/]' "
+            "when not using '[b green]--incremental[/]'.",
+            formatted=True,
+        )
+
     if not obj.doco_config.backup.rsync.is_complete():
         raise DocoError(
             "You need to configure rsync to work with backups.\n"
@@ -219,6 +326,8 @@ def main(  # noqa: CFQ002 (max arguments)
             paths=list(map(str, paths)),
             backup=backup,
             deep=deep,
+            incremental=incremental,
+            incremental_backup=incremental_backup,
             dry_run=dry_run,
             dry_run_verbose=verbose,
         ),
