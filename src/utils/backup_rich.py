@@ -97,6 +97,7 @@ def create_target_structure(
     """Create target directory structure at destination
 
     Required as long as remote rsync does not implement --mkpath
+    But maybe even then, with this function we have the possibility to chown the directories.
     """
 
     paths = set(

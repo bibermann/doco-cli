@@ -19,6 +19,8 @@ def main(
 ):
     """
     List backups.
+
+    Note that the order of backups is not guaranteed between backups created within the same second.
     """
 
     obj: BbakContextObject = ctx.obj

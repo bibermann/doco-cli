@@ -268,6 +268,8 @@ $ doco backups raw [OPTIONS] COMMAND [ARGS]...
 
 List backups.
 
+Note that the order of backups is not guaranteed between backups created within the same second.
+
 **Usage**:
 
 ```console
