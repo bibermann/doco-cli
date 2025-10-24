@@ -58,14 +58,22 @@ class RestoreJob:
 
 def get_backup_directory(
     rsync_config: RsyncConfig,
+    *,
     project_name: str,
     backup_id: str,
+    show_progress: bool,
+    verbose: bool,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> str:
     if backup_id.isnumeric():
         try:
             _, date_file_tuples = run_rsync_list(
-                rsync_config, target=f"{project_name}/", dry_run=False, print_cmd_callback=print_cmd_callback
+                rsync_config,
+                target=f"{project_name}/",
+                show_progress=show_progress,
+                verbose=verbose,
+                dry_run=False,
+                print_cmd_callback=print_cmd_callback,
             )
         except subprocess.CalledProcessError as e:
             raise RichAbortCmd(e) from e

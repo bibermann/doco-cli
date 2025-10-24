@@ -51,6 +51,8 @@ class BackupOptions:  # pylint: disable=too-many-instance-attributes
     live: bool
     backup: t.Optional[str]
     deep: bool
+    show_progress: bool
+    rsync_verbose: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -101,6 +103,8 @@ def do_backup(
         structure_config=project.doco_config.backup.structure,
         new_backup_dir=config.backup_dir,
         jobs=jobs,
+        show_progress=options.show_progress,
+        verbose=options.rsync_verbose,
         dry_run=options.dry_run,
         cmds=cmds,
     )
@@ -123,6 +127,8 @@ def do_backup(
             old_backup_dir=config.last_backup_dir,
             content=config.model_dump_json(indent=4),
             target_file_name=BACKUP_CONFIG_JSON,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -135,6 +141,8 @@ def do_backup(
             old_backup_dir=config.last_backup_dir,
             content=project.config_yaml,
             target_file_name=COMPOSE_CONFIG_YAML,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -145,6 +153,8 @@ def do_backup(
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
             job=job,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -352,7 +362,8 @@ def main(  # noqa: CFQ002 (max arguments) pylint: disable=too-many-locals
     deep: bool = typer.Option(
         False, "--deep", help="Use deep instead of flat root dir names (e.g. home/john instead of home__john)."
     ),
-    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
+    show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
     ),
@@ -396,6 +407,8 @@ def main(  # noqa: CFQ002 (max arguments) pylint: disable=too-many-locals
                 live=live,
                 backup=backup,
                 deep=deep,
+                show_progress=show_progress,
+                rsync_verbose=verbose,
                 dry_run=dry_run,
                 dry_run_verbose=verbose,
             ),

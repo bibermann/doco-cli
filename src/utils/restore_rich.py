@@ -23,10 +23,15 @@ from src.utils.rsync import run_rsync_list
 from src.utils.system import chown_given_strings
 
 
-def list_projects(doco_config: DocoConfig):
+def list_projects(doco_config: DocoConfig, *, show_progress: bool, verbose: bool):
     try:
         _, date_file_tuples = run_rsync_list(
-            doco_config.backup.rsync, target="", dry_run=False, print_cmd_callback=rich_print_cmd
+            doco_config.backup.rsync,
+            target="",
+            show_progress=show_progress,
+            verbose=verbose,
+            dry_run=False,
+            print_cmd_callback=rich_print_cmd,
         )
     except subprocess.CalledProcessError as e:
         raise RichAbortCmd(e) from e
@@ -37,11 +42,13 @@ def list_projects(doco_config: DocoConfig):
     rich.print(tree)
 
 
-def list_backups(project_name: str, doco_config: DocoConfig):
+def list_backups(project_name: str, doco_config: DocoConfig, *, show_progress: bool, verbose: bool):
     try:
         _, date_file_tuples = run_rsync_list(
             doco_config.backup.rsync,
             target=f"{project_name}/",
+            show_progress=show_progress,
+            verbose=verbose,
             dry_run=False,
             print_cmd_callback=rich_print_cmd,
         )
@@ -56,12 +63,22 @@ def list_backups(project_name: str, doco_config: DocoConfig):
     rich.print(tree)
 
 
-def do_restore_job(rsync_config: RsyncConfig, job: RestoreJob, dry_run: bool, cmds: list[PrintCmdData]):
+def do_restore_job(
+    rsync_config: RsyncConfig,
+    job: RestoreJob,
+    *,
+    show_progress: bool,
+    verbose: bool,
+    dry_run: bool,
+    cmds: list[PrintCmdData],
+):
     try:
         cmd = run_rsync_download_incremental(
             config=rsync_config,
             source=job.rsync_source_path,
             destination=job.rsync_target_path,
+            show_progress=show_progress,
+            verbose=verbose,
             dry_run=dry_run,
             print_cmd_callback=rich_print_cmd,
         )

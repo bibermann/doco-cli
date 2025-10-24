@@ -211,7 +211,8 @@ $ doco backups create [OPTIONS] [PROJECTS]...
 * `--live`: Do not stop the services before backup.
 * `-b, --backup TEXT`: Specify backup name.
 * `--deep`: Use deep instead of flat root dir names (e.g. home/john instead of home__john).
-* `-V, --verbose`: Print more details if --dry-run.
+* `--progress`: Show rsync progress.
+* `-V, --verbose`: Print more details.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
@@ -239,7 +240,8 @@ $ doco backups restore [OPTIONS] [PROJECTS]...
 * `--name TEXT`: Override project name. Using directory name if not given.
 * `-l, --list`: List backups instead of restoring a backup.
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
-* `-V, --verbose`: Print more details if --dry-run.
+* `--progress`: Show rsync progress.
+* `-V, --verbose`: Print more details.
 * `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
 * `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
@@ -285,6 +287,8 @@ $ doco backups raw ls [OPTIONS] [PROJECT]
 
 **Options**:
 
+* `--progress`: Show rsync progress.
+* `-V, --verbose`: Print more details.
 * `--help`: Show this message and exit.
 
 #### `doco backups raw download`
@@ -305,6 +309,8 @@ $ doco backups raw download [OPTIONS] PROJECT
 
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
 * `-d, --destination DIRECTORY`: Destination (not relative to --workdir but to the caller&#x27;s CWD), defaults to --project within --workdir.
+* `--progress`: Show rsync progress.
+* `-V, --verbose`: Print more details.
 * `-n, --dry-run`: Do not actually download, only show what would be done.
 * `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
@@ -330,7 +336,8 @@ $ doco backups raw create [OPTIONS] PROJECT PATHS...
 * `--deep`: Use deep instead of flat root dir names (e.g. home/john instead of home__john).
 * `--incremental`: Use incremental backup strategy with a single directory, instead of having separate self-contained and hard-linked directories.
 * `--incremental-backup TEXT`: Specify incremental backup directory name (for changed and removed files).
-* `-V, --verbose`: Print more details if --dry-run.
+* `--progress`: Show rsync progress.
+* `-V, --verbose`: Print more details.
 * `-n, --dry-run`: Do not actually backup, only show what would be done.
 * `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.
@@ -352,7 +359,8 @@ $ doco backups raw restore [OPTIONS] PROJECT
 **Options**:
 
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
-* `-V, --verbose`: Print more details if --dry-run.
+* `--progress`: Show rsync progress.
+* `-V, --verbose`: Print more details.
 * `-n, --dry-run`: Do not actually restore a backup, only show what would be done.
 * `--skip-root-check`: Do not cancel when not run with root privileges.
 * `--help`: Show this message and exit.

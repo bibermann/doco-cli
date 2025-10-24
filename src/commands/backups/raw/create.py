@@ -44,6 +44,8 @@ class BackupOptions:  # pylint: disable=too-many-instance-attributes
     deep: bool
     incremental: bool
     incremental_backup: t.Optional[str]
+    show_progress: bool
+    rsync_verbose: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -79,6 +81,8 @@ def do_backup(
         structure_config=doco_config.backup.structure,
         new_backup_dir=config.backup_dir,
         jobs=jobs,
+        show_progress=options.show_progress,
+        verbose=options.rsync_verbose,
         dry_run=options.dry_run,
         cmds=cmds,
     )
@@ -91,6 +95,8 @@ def do_backup(
             old_backup_dir=config.last_backup_dir,
             content=config.model_dump_json(indent=4),
             target_file_name=BACKUP_CONFIG_JSON,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -101,6 +107,8 @@ def do_backup(
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
             job=job,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -126,6 +134,8 @@ def do_incremental_backup(
         structure_config=doco_config.backup.structure,
         new_backup_dir=config.backup_dir,
         jobs=jobs,
+        show_progress=options.show_progress,
+        verbose=options.rsync_verbose,
         dry_run=options.dry_run,
         cmds=cmds,
     )
@@ -137,6 +147,8 @@ def do_incremental_backup(
             backup_dir=config.backup_dir,
             content=config.model_dump_json(indent=4),
             target_file_name=BACKUP_CONFIG_JSON,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -147,6 +159,8 @@ def do_incremental_backup(
             backup_dir=config.backup_dir,
             incremental_backup_dir=config.incremental_backup_dir,
             job=job,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             cmds=cmds,
         )
@@ -287,7 +301,8 @@ def main(  # noqa: CFQ002 (max arguments)
         "--incremental-backup",
         help="Specify incremental backup directory name (for changed and removed files).",
     ),
-    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
+    show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually backup, only show what would be done."
     ),
@@ -331,6 +346,8 @@ def main(  # noqa: CFQ002 (max arguments)
             deep=deep,
             incremental=incremental,
             incremental_backup=incremental_backup,
+            show_progress=show_progress,
+            rsync_verbose=verbose,
             dry_run=dry_run,
             dry_run_verbose=verbose,
         ),

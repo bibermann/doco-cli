@@ -16,6 +16,8 @@ def main(
         callback=project_name_callback,
         help="Project to list backups from. Listing projects if not given.",
     ),
+    show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
 ):
     """
     List backups.
@@ -34,6 +36,8 @@ def main(
         )
 
     if project is None:
-        list_projects(doco_config=obj.doco_config)
+        list_projects(doco_config=obj.doco_config, show_progress=show_progress, verbose=verbose)
     else:
-        list_backups(project_name=project, doco_config=obj.doco_config)
+        list_backups(
+            project_name=project, doco_config=obj.doco_config, show_progress=show_progress, verbose=verbose
+        )

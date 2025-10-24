@@ -32,6 +32,8 @@ from src.utils.validators import project_name_callback
 class RestoreOptions:
     workdir: str
     backup: str
+    show_progress: bool
+    rsync_verbose: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -47,7 +49,14 @@ def do_restore(
     )
 
     for job in jobs:
-        do_restore_job(rsync_config=doco_config.backup.rsync, job=job, dry_run=options.dry_run, cmds=cmds)
+        do_restore_job(
+            rsync_config=doco_config.backup.rsync,
+            job=job,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
+            dry_run=options.dry_run,
+            cmds=cmds,
+        )
 
 
 def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoConfig):
@@ -56,6 +65,8 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
         doco_config.backup.rsync,
         project_name=project_name,
         backup_id=options.backup,
+        show_progress=options.show_progress,
+        verbose=options.rsync_verbose,
         print_cmd_callback=rich_print_cmd,
     )
 
@@ -67,6 +78,8 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
                 doco_config.backup.rsync,
                 source=f"{project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
                 destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
+                show_progress=options.show_progress,
+                verbose=options.rsync_verbose,
                 dry_run=False,
                 print_cmd_callback=rich_print_cmd,
                 extra_args=["--ignore-missing-args"],
@@ -131,13 +144,14 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
         print_details(tree, backup_dir_node, backup_config, cmds, options.dry_run_verbose)
 
 
-def main(
+def main(  # noqa: CFQ002 (max arguments)
     ctx: typer.Context,
     project: str = typer.Argument(
         ..., callback=project_name_callback, help="Source project to retrieve backups from."
     ),
     backup: str = typer.Option("0", "--backup", "-b", help="Backup index or name."),
-    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
+    show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually restore a backup, only show what would be done."
     ),
@@ -170,6 +184,8 @@ def main(
         options=RestoreOptions(
             workdir=obj.workdir,
             backup=backup,
+            show_progress=show_progress,
+            rsync_verbose=verbose,
             dry_run=dry_run,
             dry_run_verbose=verbose,
         ),

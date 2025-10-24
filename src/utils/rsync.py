@@ -54,19 +54,20 @@ class RsyncBackupOptions(RsyncBaseOptions):
     def __init__(  # noqa: CFQ002 (max arguments)
         self,
         config: RsyncConfig,
+        *,
         delete_from_destination: bool,
+        show_progress: bool,
+        verbose: bool,
         compress: bool = True,
         cross_filesystem_boundaries: bool = True,
-        verbose: bool = False,
-        show_progress: bool = False,
         dry_run: bool = False,
     ):
         super().__init__(config)
 
         info_args = [
             "-h",
-            *(["-v"] if verbose else []),
             *(["--info=progress2"] if show_progress else []),
+            *(["-v"] if verbose else []),
         ]
         backup_args = [
             *(["--delete"] if delete_from_destination else []),
@@ -87,23 +88,35 @@ class RsyncListOptions(RsyncBaseOptions):
     def __init__(
         self,
         config: RsyncConfig,
+        *,
+        show_progress: bool,
+        verbose: bool,
     ):
         super().__init__(config)
 
+        info_args = [
+            "-h",
+            *(["--info=progress2"] if show_progress else []),
+            *(["-v"] if verbose else []),
+        ]
         list_args = [
             "--list-only",
         ]
-        self.args.extend([*list_args])
+        self.args.extend([*info_args, *list_args])
 
 
-def run_rsync_without_delete(
+def run_rsync_without_delete(  # noqa: CFQ002 (max arguments)
     config: RsyncConfig,
     source: str,
     destination: str,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
-    opt = RsyncBackupOptions(config=config, delete_from_destination=False)
+    opt = RsyncBackupOptions(
+        config=config, delete_from_destination=False, show_progress=show_progress, verbose=verbose
+    )
     cmd = [
         "rsync",
         *opt.args,
@@ -117,15 +130,19 @@ def run_rsync_without_delete(
     return cmd
 
 
-def run_rsync_backup_incremental(
+def run_rsync_backup_incremental(  # noqa: CFQ002 (max arguments)
     config: RsyncConfig,
     source: str,
     destination: str,
     backup_dir: str,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
-    opt = RsyncBackupOptions(config=config, delete_from_destination=True)
+    opt = RsyncBackupOptions(
+        config=config, delete_from_destination=True, show_progress=show_progress, verbose=verbose
+    )
     cmd = [
         "rsync",
         *opt.args,
@@ -141,15 +158,19 @@ def run_rsync_backup_incremental(
     return cmd
 
 
-def run_rsync_backup_with_hardlinks(
+def run_rsync_backup_with_hardlinks(  # noqa: CFQ002 (max arguments)
     config: RsyncConfig,
     source: str,
     new_backup: str,
     old_backup_dirs: list[str],
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
-    opt = RsyncBackupOptions(config=config, delete_from_destination=True)
+    opt = RsyncBackupOptions(
+        config=config, delete_from_destination=True, show_progress=show_progress, verbose=verbose
+    )
     for old_backup_dir in old_backup_dirs:
         opt.args.extend(["--link-dest", f"{opt.root}{old_backup_dir}"])
     cmd = [
@@ -165,15 +186,19 @@ def run_rsync_backup_with_hardlinks(
     return cmd
 
 
-def run_rsync_download_incremental(
+def run_rsync_download_incremental(  # noqa: CFQ002 (max arguments)
     config: RsyncConfig,
     source: str,
     destination: str,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
     extra_args: t.Union[list[str], None] = None,
 ) -> list[str]:
-    opt = RsyncBackupOptions(config=config, delete_from_destination=True)
+    opt = RsyncBackupOptions(
+        config=config, delete_from_destination=True, show_progress=show_progress, verbose=verbose
+    )
     cmd = [
         "rsync",
         *opt.args,
@@ -191,13 +216,15 @@ def run_rsync_download_incremental(
 def run_rsync_list(
     config: RsyncConfig,
     target: str,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> tuple[list[str], list[tuple[str, str]]]:
     """
     :return: Tuple of cmdline and list of date-file-tuples
     """
-    opt = RsyncListOptions(config=config)
+    opt = RsyncListOptions(config=config, show_progress=show_progress, verbose=verbose)
     cmd = [
         "rsync",
         *opt.args,

@@ -24,6 +24,8 @@ class DownloadOptions:
     project_name: str
     backup: str
     destination: str
+    show_progress: bool
+    rsync_verbose: bool
     dry_run: bool
 
 
@@ -32,6 +34,8 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
         doco_config.backup.rsync,
         project_name=options.project_name,
         backup_id=options.backup,
+        show_progress=options.show_progress,
+        verbose=options.rsync_verbose,
         print_cmd_callback=rich_print_cmd,
     )
 
@@ -48,6 +52,8 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
             doco_config.backup.rsync,
             source=f"{options.project_name}/{backup_dir}/",
             destination=f"{options.destination}/",
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
             dry_run=options.dry_run,
             print_cmd_callback=rich_print_cmd,
         )
@@ -58,7 +64,7 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
         rich_print_conditional_cmds([PrintCmdData(cmd=cmd)])
 
 
-def main(
+def main(  # noqa: CFQ002 (max arguments)
     ctx: typer.Context,
     project: str = typer.Argument(
         ..., callback=project_name_callback, help="Source project to retrieve backups from."
@@ -73,6 +79,8 @@ def main(
         help="Destination (not relative to --workdir but to the caller's CWD), "
         "defaults to --project within --workdir.",
     ),
+    show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually download, only show what would be done."
     ),
@@ -107,6 +115,8 @@ def main(
             destination=os.path.normpath(
                 str(destination) if destination is not None else os.path.join(obj.workdir, project)
             ),
+            show_progress=show_progress,
+            rsync_verbose=verbose,
             dry_run=dry_run,
         ),
         doco_config=obj.doco_config,

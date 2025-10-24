@@ -37,6 +37,8 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
     old_backup_dir: t.Optional[str],
     content: str,
     target_file_name: str,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool,
     cmds: list[PrintCmdData],
 ):
@@ -51,6 +53,8 @@ def do_backup_content(  # noqa: CFQ002 (max arguments)
                 source=source,
                 new_backup=os.path.join(new_backup_dir, target_file_name),
                 old_backup_dirs=[old_backup_dir] if old_backup_dir is not None else [],
+                show_progress=show_progress,
+                verbose=verbose,
                 dry_run=dry_run,
                 print_cmd_callback=rich_print_cmd,
             )
@@ -65,6 +69,8 @@ def do_copy_content(  # noqa: CFQ002 (max arguments)
     backup_dir: str,
     content: str,
     target_file_name: str,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool,
     cmds: list[PrintCmdData],
 ):
@@ -78,6 +84,8 @@ def do_copy_content(  # noqa: CFQ002 (max arguments)
                 config=rsync_config,
                 source=source,
                 destination=os.path.join(backup_dir, target_file_name),
+                show_progress=show_progress,
+                verbose=verbose,
                 dry_run=dry_run,
                 print_cmd_callback=rich_print_cmd,
             )
@@ -86,11 +94,13 @@ def do_copy_content(  # noqa: CFQ002 (max arguments)
         cmds.append(PrintCmdData(cmd=cmd))
 
 
-def do_backup_job(
+def do_backup_job(  # noqa: CFQ002 (max arguments)
     rsync_config: RsyncConfig,
     new_backup_dir: str,
     old_backup_dir: t.Optional[str],
     job: BackupJob,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool,
     cmds: list[PrintCmdData],
 ):
@@ -106,6 +116,8 @@ def do_backup_job(
             source=job.rsync_source_path,
             new_backup=os.path.join(new_backup_dir, job.rsync_target_path),
             old_backup_dirs=[old_backup_path] if old_backup_path is not None else [],
+            show_progress=show_progress,
+            verbose=verbose,
             dry_run=dry_run,
             print_cmd_callback=rich_print_cmd,
         )
@@ -114,11 +126,13 @@ def do_backup_job(
     cmds.append(PrintCmdData(cmd=cmd))
 
 
-def do_incremental_backup_job(
+def do_incremental_backup_job(  # noqa: CFQ002 (max arguments)
     rsync_config: RsyncConfig,
     backup_dir: str,
     incremental_backup_dir: str,
     job: BackupJob,
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool,
     cmds: list[PrintCmdData],
 ):
@@ -128,6 +142,8 @@ def do_incremental_backup_job(
             source=job.rsync_source_path,
             destination=os.path.join(backup_dir, job.rsync_target_path),
             backup_dir=os.path.join(incremental_backup_dir, job.rsync_target_path),
+            show_progress=show_progress,
+            verbose=verbose,
             dry_run=dry_run,
             print_cmd_callback=rich_print_cmd,
         )
@@ -136,11 +152,13 @@ def do_incremental_backup_job(
     cmds.append(PrintCmdData(cmd=cmd))
 
 
-def create_target_structure(
+def create_target_structure(  # noqa: CFQ002 (max arguments)
     rsync_config: RsyncConfig,
     structure_config: DocoBackupStructureConfig,
     new_backup_dir: str,
     jobs: t.Iterable[BackupJob],
+    show_progress: bool,
+    verbose: bool,
     dry_run: bool,
     cmds: list[PrintCmdData],
 ):
@@ -169,6 +187,8 @@ def create_target_structure(
                 config=rsync_config,
                 source=f"{tmp_dir}/",
                 destination="",
+                show_progress=show_progress,
+                verbose=verbose,
                 dry_run=dry_run,
                 print_cmd_callback=rich_print_cmd,
             )

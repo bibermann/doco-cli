@@ -42,6 +42,8 @@ from src.utils.validators import project_name_callback
 class RestoreOptions:
     project_name: str
     backup: str
+    show_progress: bool
+    rsync_verbose: bool
     dry_run: bool
     dry_run_verbose: bool
 
@@ -82,7 +84,12 @@ def do_restore(
 
     for job in jobs:
         do_restore_job(
-            rsync_config=project.doco_config.backup.rsync, job=job, dry_run=options.dry_run, cmds=cmds
+            rsync_config=project.doco_config.backup.rsync,
+            job=job,
+            show_progress=options.show_progress,
+            verbose=options.rsync_verbose,
+            dry_run=options.dry_run,
+            cmds=cmds,
         )
 
     if config.tasks.restart_project:
@@ -104,6 +111,8 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
         project.doco_config.backup.rsync,
         project_name=options.project_name,
         backup_id=options.backup,
+        show_progress=options.show_progress,
+        verbose=options.rsync_verbose,
         print_cmd_callback=rich_print_cmd,
     )
 
@@ -115,6 +124,8 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                 project.doco_config.backup.rsync,
                 source=f"{options.project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
                 destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
+                show_progress=options.show_progress,
+                verbose=options.rsync_verbose,
                 dry_run=False,
                 print_cmd_callback=rich_print_cmd,
             )
@@ -224,7 +235,8 @@ def main(  # noqa: CFQ002 (max arguments)
     ),
     do_list: bool = typer.Option(False, "-l", "--list", help="List backups instead of restoring a backup."),
     backup: str = typer.Option("0", "--backup", "-b", help="Backup index or name."),
-    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details if --dry-run."),
+    show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
+    verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
     dry_run: bool = typer.Option(
         False, "--dry-run", "-n", help="Do not actually restore a backup, only show what would be done."
     ),
@@ -273,7 +285,10 @@ def main(  # noqa: CFQ002 (max arguments)
         for compose_project in compose_projects:
             check_rsync_config(compose_project.doco_config.backup.rsync)
             list_backups(
-                project_name=get_project_name(name, compose_project), doco_config=compose_project.doco_config
+                project_name=get_project_name(name, compose_project),
+                doco_config=compose_project.doco_config,
+                show_progress=show_progress,
+                verbose=verbose,
             )
     else:
         for compose_project in compose_projects:
@@ -283,6 +298,8 @@ def main(  # noqa: CFQ002 (max arguments)
                 options=RestoreOptions(
                     project_name=get_project_name(name, compose_project),
                     backup=backup,
+                    show_progress=show_progress,
+                    rsync_verbose=verbose,
                     dry_run=dry_run,
                     dry_run_verbose=verbose,
                 ),
