@@ -30,7 +30,7 @@ def list_projects(doco_config: DocoConfig):
         )
     except subprocess.CalledProcessError as e:
         raise RichAbortCmd(e) from e
-    tree = rich.tree.Tree(f"[b]{Formatted(doco_config.backup.rsync.root)}[/]")
+    tree = rich.tree.Tree(f"[b]{Formatted(doco_config.backup.rsync.root or '/')}[/]")
     files = sorted([item[1] for item in date_file_tuples])
     for file in files:
         tree.add(f"[yellow]{Formatted(file)}[/]")
