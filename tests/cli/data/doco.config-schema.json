@@ -1,0 +1,211 @@
+{
+  "$defs": {
+    "DocoBackupConfig": {
+      "properties": {
+        "structure": {
+          "$ref": "#/$defs/DocoBackupStructureConfig",
+          "default": {
+            "uid": null,
+            "gid": null
+          }
+        },
+        "restore_structure": {
+          "$ref": "#/$defs/DocoBackupRestoreStructureConfig",
+          "default": {
+            "uid": null,
+            "gid": null
+          }
+        },
+        "rsync": {
+          "$ref": "#/$defs/RsyncConfig",
+          "default": {
+            "host": "",
+            "user": "",
+            "module": "",
+            "root": "",
+            "rsh": "",
+            "args": []
+          }
+        }
+      },
+      "title": "DocoBackupConfig",
+      "type": "object"
+    },
+    "DocoBackupRestoreStructureConfig": {
+      "properties": {
+        "uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uid"
+        },
+        "gid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gid"
+        }
+      },
+      "title": "DocoBackupRestoreStructureConfig",
+      "type": "object"
+    },
+    "DocoBackupStructureConfig": {
+      "properties": {
+        "uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uid"
+        },
+        "gid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gid"
+        }
+      },
+      "title": "DocoBackupStructureConfig",
+      "type": "object"
+    },
+    "DocoConfigTextSubstitutions": {
+      "properties": {
+        "bind_mount_volume_path": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TextSubstitutions"
+          },
+          "title": "Bind Mount Volume Path",
+          "type": "array"
+        }
+      },
+      "title": "DocoConfigTextSubstitutions",
+      "type": "object"
+    },
+    "DocoOutputConfig": {
+      "properties": {
+        "text_substitutions": {
+          "$ref": "#/$defs/DocoConfigTextSubstitutions",
+          "default": {
+            "bind_mount_volume_path": []
+          }
+        }
+      },
+      "title": "DocoOutputConfig",
+      "type": "object"
+    },
+    "RsyncConfig": {
+      "properties": {
+        "host": {
+          "default": "",
+          "title": "Host",
+          "type": "string"
+        },
+        "user": {
+          "default": "",
+          "title": "User",
+          "type": "string"
+        },
+        "module": {
+          "default": "",
+          "title": "Module",
+          "type": "string"
+        },
+        "root": {
+          "default": "",
+          "title": "Root",
+          "type": "string"
+        },
+        "rsh": {
+          "default": "",
+          "title": "Rsh",
+          "type": "string"
+        },
+        "args": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Args",
+          "type": "array"
+        }
+      },
+      "title": "RsyncConfig",
+      "type": "object"
+    },
+    "TextSubstitutions": {
+      "properties": {
+        "pattern": {
+          "title": "Pattern",
+          "type": "string"
+        },
+        "replace": {
+          "title": "Replace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pattern",
+        "replace"
+      ],
+      "title": "TextSubstitutions",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "output": {
+      "$ref": "#/$defs/DocoOutputConfig",
+      "default": {
+        "text_substitutions": {
+          "bind_mount_volume_path": []
+        }
+      }
+    },
+    "backup": {
+      "$ref": "#/$defs/DocoBackupConfig",
+      "default": {
+        "structure": {
+          "gid": null,
+          "uid": null
+        },
+        "restore_structure": {
+          "gid": null,
+          "uid": null
+        },
+        "rsync": {
+          "args": [],
+          "host": "",
+          "module": "",
+          "root": "",
+          "rsh": "",
+          "user": ""
+        }
+      }
+    }
+  },
+  "title": "DocoConfig",
+  "type": "object"
+}

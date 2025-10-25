@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+import json
+import pathlib
 import typing as t
 
 import click
 import typer.core
 
+import src.utils.doco_config
 from src.commands import backups as cmd_backups
 from src.commands import down as cmd_down
 from src.commands import log as cmd_log
@@ -39,10 +42,32 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
+def create_schema_callback(value: bool):
+    if value:
+        schema_filename = pathlib.Path("doco.config-schema.json")
+        schema_filename.write_text(
+            json.dumps(src.utils.doco_config.DocoConfig.model_json_schema(), indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"{schema_filename} written.")
+
+        config_filename = pathlib.Path("doco.config.toml")
+        if not config_filename.exists():
+            config_filename.write_text("# $schema: ./doco.config-schema.json", encoding="utf-8")
+            print(f"Empty {config_filename} referencing the schema created.")
+
+        raise typer.Exit()
+
+
 @app.callback()
 def main(
     _: t.Optional[bool] = typer.Option(
         None, "--version", callback=version_callback, is_eager=True, help="Show version information and exit."
+    ),
+    _create_schema: t.Optional[bool] = typer.Option(
+        False,
+        "--create-schema",
+        callback=create_schema_callback,
+        help="Write config schema to current directory and exit.",
     ),
 ):
     """

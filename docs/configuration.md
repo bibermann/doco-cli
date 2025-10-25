@@ -13,6 +13,8 @@ All settings are optional, but for the `doco backups` command you need to set `.
 Example configuration file
 `doco.config.toml` ([TOML syntax](https://toml.io/en/)):
 ```toml
+# $schema: ./doco.config-schema.json
+
 [[output.text_substitutions.bind_mount_volume_path]]
 pattern = "^/var/(.*)$"
 replace = "[red]/var/\\1[/]"
@@ -83,3 +85,7 @@ Names are translated on the machine running doco.
 For information on how to use rsync-daemon features via a remote-shell connection, see:
 - https://download.samba.org/pub/rsync/rsync.1#opt--rsh
 - https://download.samba.org/pub/rsync/rsync.1#USING_RSYNC-DAEMON_FEATURES_VIA_A_REMOTE-SHELL_CONNECTION
+
+### Configuration schema
+
+Run `doco --create-schema` to create the `doco.config-schema.json` file.

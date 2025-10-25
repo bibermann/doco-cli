@@ -13,6 +13,7 @@ $ doco [OPTIONS] COMMAND [ARGS]...
 **Options**:
 
 * `--version`: Show version information and exit.
+* `--create-schema`: Write config schema to current directory and exit.
 * `--install-completion`: Install completion for the current shell.
 * `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
