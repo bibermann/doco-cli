@@ -60,8 +60,14 @@ class RsyncBackupOptions(RsyncBaseOptions):
         verbose: bool,
         compress: bool = True,
         cross_filesystem_boundaries: bool = True,
+        preserve_creation_times: bool = False,  # supported only on OS X apparently
+        preserve_acls: bool = False,
+        preserve_extended_attributes: bool = True,
+        preserve_hard_links: bool = False,
+        sparse: bool = False,
         dry_run: bool = False,
     ):
+        # pylint: disable=too-many-locals
         super().__init__(config)
 
         info_args = [
@@ -77,7 +83,11 @@ class RsyncBackupOptions(RsyncBaseOptions):
         ]
         archive_args = [
             "-a",
-            # '-N', # -N (--crtimes) supported only on OS X apparently
+            *(["-N"] if preserve_creation_times else []),
+            *(["-A"] if preserve_acls else []),
+            *(["-X"] if preserve_extended_attributes else []),
+            *(["-H"] if preserve_hard_links else []),
+            *(["-S"] if sparse else []),
             "--numeric-ids",
             *(["-x"] if not cross_filesystem_boundaries else []),
         ]
