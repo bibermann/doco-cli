@@ -77,6 +77,9 @@ def get_backup_directory(
             )
         except subprocess.CalledProcessError as e:
             raise RichAbortCmd(e) from e
-        files = [item[1] for item in sorted(date_file_tuples, key=lambda item: item[0], reverse=True)]
+        files = [
+            item[1]
+            for item in sorted(date_file_tuples, key=lambda item: (item[1] == "backup", item[0]), reverse=True)
+        ]
         return files[int(backup_id)]
     return backup_id

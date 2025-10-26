@@ -22,7 +22,11 @@ def main(
     """
     List backups.
 
-    Note that the order of backups is not guaranteed between backups created within the same second.
+    If the list contains an item `backup`, it will always be at position 0.
+    All other items will be sorted by modification date in descending order.
+
+    Note that the order of items is not guaranteed between items created within the same second
+    (except for `backup` - see above).
     """
 
     obj: BbakContextObject = ctx.obj

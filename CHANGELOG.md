@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Verbose option changed from `-a, --all` to `-V, --verbose`.
+- If the backup listing contains `backup`, this item will always be at position 0, regardless of its age.
 - Render status aligned when no details are requested.
 
 ## [2.2.2] -- 2024-10-20

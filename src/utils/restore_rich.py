@@ -57,7 +57,10 @@ def list_backups(project_name: str, doco_config: DocoConfig, *, show_progress: b
     tree = rich.tree.Tree(
         f"[dim]{Formatted(doco_config.backup.rsync.root)}/[/][b]{Formatted(project_name)}[/]"
     )
-    files = [item[1] for item in sorted(date_file_tuples, key=lambda item: item[0], reverse=True)]
+    files = [
+        item[1]
+        for item in sorted(date_file_tuples, key=lambda item: (item[1] == "backup", item[0]), reverse=True)
+    ]
     for i, file in enumerate(files):
         tree.add(f"[yellow]{i}[/][dim]:[/] {Formatted(file)}")
     rich.print(tree)

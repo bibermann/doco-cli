@@ -138,9 +138,8 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
 
     output = when_running_doco(doco_args=list_backups_doco_args)
 
-    assert output.strip().endswith(
-        f"{TEST_PROJECT_NAME}\n├── 0: backup\n└── 1: before"
-    ) or output.strip().endswith(f"{TEST_PROJECT_NAME}\n├── 0: before\n└── 1: backup")
+    # directory with name "backup" will always be placed on top
+    assert output.strip().endswith(f"{TEST_PROJECT_NAME}\n├── 0: backup\n└── 1: before")
 
     for backup_name in ["before", "backup"]:
         shutil.rmtree(clean_local_instance_workdir / TEST_PROJECT_NAME, ignore_errors=True)
