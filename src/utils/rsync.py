@@ -8,6 +8,12 @@ from src.utils.common import print_cmd
 from src.utils.common import PrintCmdCallable
 
 
+class RsyncFilterRule(pydantic.BaseModel):
+    project_pattern: re.Pattern
+    path_pattern: re.Pattern
+    filter: list[str]
+
+
 class RsyncConfig(pydantic.BaseModel):
     host: str = ""
     user: str = ""
@@ -15,6 +21,7 @@ class RsyncConfig(pydantic.BaseModel):
     root: str = ""
     rsh: str = ""  # deprecated
     args: list[str] = []
+    filter: list[RsyncFilterRule] = []
 
     def is_complete(self):
         return self.host != ""
@@ -55,6 +62,8 @@ class RsyncBackupOptions(RsyncBaseOptions):
         self,
         config: RsyncConfig,
         *,
+        project_for_filter: str,
+        path_for_filter: str,
         delete_from_destination: bool,
         show_progress: bool,
         verbose: bool,
@@ -91,7 +100,16 @@ class RsyncBackupOptions(RsyncBaseOptions):
             "--numeric-ids",
             *(["-x"] if not cross_filesystem_boundaries else []),
         ]
-        self.args.extend([*info_args, *backup_args, *archive_args])
+        filter_args = []
+        for filter_ in [
+            filter_
+            for filter_ in config.filter
+            if filter_.project_pattern.search(project_for_filter)
+            and filter_.path_pattern.search(path_for_filter)
+        ]:
+            for filter_rule in filter_.filter:
+                filter_args.extend(["-f", filter_rule])
+        self.args.extend([*info_args, *backup_args, *archive_args, *filter_args])
 
 
 class RsyncListOptions(RsyncBaseOptions):
@@ -119,13 +137,19 @@ def run_rsync_without_delete(  # noqa: CFQ002 (max arguments)
     config: RsyncConfig,
     source: str,
     destination: str,
+    project_for_filter: str,
     show_progress: bool,
     verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(
-        config=config, delete_from_destination=False, show_progress=show_progress, verbose=verbose
+        config=config,
+        project_for_filter=project_for_filter,
+        path_for_filter=source,
+        delete_from_destination=False,
+        show_progress=show_progress,
+        verbose=verbose,
     )
     cmd = [
         "rsync",
@@ -145,13 +169,19 @@ def run_rsync_backup_incremental(  # noqa: CFQ002 (max arguments)
     source: str,
     destination: str,
     backup_dir: str,
+    project_for_filter: str,
     show_progress: bool,
     verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(
-        config=config, delete_from_destination=True, show_progress=show_progress, verbose=verbose
+        config=config,
+        project_for_filter=project_for_filter,
+        path_for_filter=source,
+        delete_from_destination=True,
+        show_progress=show_progress,
+        verbose=verbose,
     )
     cmd = [
         "rsync",
@@ -173,13 +203,19 @@ def run_rsync_backup_with_hardlinks(  # noqa: CFQ002 (max arguments)
     source: str,
     new_backup: str,
     old_backup_dirs: list[str],
+    project_for_filter: str,
     show_progress: bool,
     verbose: bool,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
 ) -> list[str]:
     opt = RsyncBackupOptions(
-        config=config, delete_from_destination=True, show_progress=show_progress, verbose=verbose
+        config=config,
+        project_for_filter=project_for_filter,
+        path_for_filter=source,
+        delete_from_destination=True,
+        show_progress=show_progress,
+        verbose=verbose,
     )
     for old_backup_dir in old_backup_dirs:
         opt.args.extend(["--link-dest", f"{opt.root}{old_backup_dir}"])
@@ -200,6 +236,7 @@ def run_rsync_download_incremental(  # noqa: CFQ002 (max arguments)
     config: RsyncConfig,
     source: str,
     destination: str,
+    project_for_filter: str,
     show_progress: bool,
     verbose: bool,
     dry_run: bool = False,
@@ -207,7 +244,12 @@ def run_rsync_download_incremental(  # noqa: CFQ002 (max arguments)
     extra_args: t.Union[list[str], None] = None,
 ) -> list[str]:
     opt = RsyncBackupOptions(
-        config=config, delete_from_destination=True, show_progress=show_progress, verbose=verbose
+        config=config,
+        project_for_filter=project_for_filter,
+        path_for_filter=destination,
+        delete_from_destination=True,
+        show_progress=show_progress,
+        verbose=verbose,
     )
     cmd = [
         "rsync",

@@ -153,6 +153,7 @@ def do_backup(
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
             job=job,
+            project_for_filter=project.config["name"],
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
             dry_run=options.dry_run,

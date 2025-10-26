@@ -86,6 +86,7 @@ def do_restore(
         do_restore_job(
             rsync_config=project.doco_config.backup.rsync,
             job=job,
+            project_for_filter=project.config["name"],
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
             dry_run=options.dry_run,
@@ -124,6 +125,7 @@ def restore_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
                 project.doco_config.backup.rsync,
                 source=f"{options.project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
                 destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
+                project_for_filter=options.project_name,
                 show_progress=options.show_progress,
                 verbose=options.rsync_verbose,
                 dry_run=False,

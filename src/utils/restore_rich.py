@@ -63,10 +63,11 @@ def list_backups(project_name: str, doco_config: DocoConfig, *, show_progress: b
     rich.print(tree)
 
 
-def do_restore_job(
+def do_restore_job(  # noqa: CFQ002 (max arguments)
     rsync_config: RsyncConfig,
     job: RestoreJob,
     *,
+    project_for_filter: str,
     show_progress: bool,
     verbose: bool,
     dry_run: bool,
@@ -77,6 +78,7 @@ def do_restore_job(
             config=rsync_config,
             source=job.rsync_source_path,
             destination=job.rsync_target_path,
+            project_for_filter=project_for_filter,
             show_progress=show_progress,
             verbose=verbose,
             dry_run=dry_run,

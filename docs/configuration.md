@@ -35,6 +35,13 @@ root = "/docker-projects"
 args = [
   "--rsh", "ssh -p 22 -i /home/johndoe/.ssh/id_ed25519",
 ]
+
+[[backup.rsync.filter]]
+project_pattern = "^compose-project-name$"
+path_pattern = "/some-backed-up-volume-path/"
+filter = [
+    "- /.cache/***"
+]
 ```
 
 Instead of `doco.config.toml` you may give a
@@ -85,6 +92,11 @@ Names are translated on the machine running doco.
 For information on how to use rsync-daemon features via a remote-shell connection, see:
 - https://download.samba.org/pub/rsync/rsync.1#opt--rsh
 - https://download.samba.org/pub/rsync/rsync.1#USING_RSYNC-DAEMON_FEATURES_VIA_A_REMOTE-SHELL_CONNECTION
+
+The filter items (`.backup.rsync.filter`) are added to the rsync args
+as `-f FILTER` (see [documentation](https://download.samba.org/pub/rsync/rsync.1#FILTER_RULES))
+when the given project and path match.
+You can specify multiple items per project, they are all applied in order when they match.
 
 ### Configuration schema
 

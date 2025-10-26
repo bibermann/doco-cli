@@ -24,7 +24,8 @@
             "module": "",
             "root": "",
             "rsh": "",
-            "args": []
+            "args": [],
+            "filter": []
           }
         }
       },
@@ -151,9 +152,45 @@
           },
           "title": "Args",
           "type": "array"
+        },
+        "filter": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RsyncFilterRule"
+          },
+          "title": "Filter",
+          "type": "array"
         }
       },
       "title": "RsyncConfig",
+      "type": "object"
+    },
+    "RsyncFilterRule": {
+      "properties": {
+        "project_pattern": {
+          "format": "regex",
+          "title": "Project Pattern",
+          "type": "string"
+        },
+        "path_pattern": {
+          "format": "regex",
+          "title": "Path Pattern",
+          "type": "string"
+        },
+        "filter": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Filter",
+          "type": "array"
+        }
+      },
+      "required": [
+        "project_pattern",
+        "path_pattern",
+        "filter"
+      ],
+      "title": "RsyncFilterRule",
       "type": "object"
     },
     "TextSubstitutions": {
@@ -197,6 +234,7 @@
         },
         "rsync": {
           "args": [],
+          "filter": [],
           "host": "",
           "module": "",
           "root": "",

@@ -52,6 +52,7 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
             doco_config.backup.rsync,
             source=f"{options.project_name}/{backup_dir}/",
             destination=f"{options.destination}/",
+            project_for_filter=options.project_name,
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
             dry_run=options.dry_run,

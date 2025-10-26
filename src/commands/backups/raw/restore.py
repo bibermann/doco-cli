@@ -39,7 +39,11 @@ class RestoreOptions:
 
 
 def do_restore(
-    options: RestoreOptions, jobs: list[RestoreJob], doco_config: DocoConfig, cmds: list[PrintCmdData]
+    options: RestoreOptions,
+    jobs: list[RestoreJob],
+    project_for_filter: str,
+    doco_config: DocoConfig,
+    cmds: list[PrintCmdData],
 ):
     create_target_structure(
         structure_config=doco_config.backup.restore_structure,
@@ -52,6 +56,7 @@ def do_restore(
         do_restore_job(
             rsync_config=doco_config.backup.rsync,
             job=job,
+            project_for_filter=project_for_filter,
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
             dry_run=options.dry_run,
@@ -78,6 +83,7 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
                 doco_config.backup.rsync,
                 source=f"{project_name}/{backup_dir}/{BACKUP_CONFIG_JSON}",
                 destination=os.path.join(tmp_dir, BACKUP_CONFIG_JSON),
+                project_for_filter=project_name,
                 show_progress=options.show_progress,
                 verbose=options.rsync_verbose,
                 dry_run=False,
@@ -138,7 +144,7 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
 
     cmds: list[PrintCmdData] = []
 
-    do_restore(options=options, jobs=jobs, doco_config=doco_config, cmds=cmds)
+    do_restore(options=options, jobs=jobs, project_for_filter=project_name, doco_config=doco_config, cmds=cmds)
 
     if options.dry_run:
         print_details(tree, backup_dir_node, backup_config, cmds, options.dry_run_verbose)

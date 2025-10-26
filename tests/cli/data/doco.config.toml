@@ -10,3 +10,10 @@ user = "testuser"
 module = "test_module"
 root = ""
 args = ["--port", "8873"]
+
+[[backup.rsync.filter]]
+project_pattern = "^test-project$"
+path_pattern = "/local-data/"
+filter = [
+    "- /path1/cache/***"
+]

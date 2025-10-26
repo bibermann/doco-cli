@@ -71,6 +71,7 @@ def do_backup(
     options: BackupOptions,
     config: BackupConfig,
     jobs: list[BackupJob],
+    project_for_filter: str,
     doco_config: DocoConfig,
     cmds: list[PrintCmdData],
 ):
@@ -107,6 +108,7 @@ def do_backup(
             new_backup_dir=config.backup_dir,
             old_backup_dir=config.last_backup_dir,
             job=job,
+            project_for_filter=project_for_filter,
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
             dry_run=options.dry_run,
@@ -124,6 +126,7 @@ def do_incremental_backup(
     options: BackupOptions,
     config: BackupConfig,
     jobs: list[BackupJob],
+    project_for_filter: str,
     doco_config: DocoConfig,
     cmds: list[PrintCmdData],
 ):
@@ -159,6 +162,7 @@ def do_incremental_backup(
             backup_dir=config.backup_dir,
             incremental_backup_dir=config.incremental_backup_dir,
             job=job,
+            project_for_filter=project_for_filter,
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
             dry_run=options.dry_run,
@@ -257,9 +261,23 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
     cmds: list[PrintCmdData] = []
 
     if not options.incremental:
-        do_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, cmds=cmds)
+        do_backup(
+            options=options,
+            config=config,
+            jobs=jobs,
+            project_for_filter=project_name,
+            doco_config=doco_config,
+            cmds=cmds,
+        )
     else:
-        do_incremental_backup(options=options, config=config, jobs=jobs, doco_config=doco_config, cmds=cmds)
+        do_incremental_backup(
+            options=options,
+            config=config,
+            jobs=jobs,
+            project_for_filter=project_name,
+            doco_config=doco_config,
+            cmds=cmds,
+        )
 
     if options.dry_run:
         if options.dry_run_verbose:
