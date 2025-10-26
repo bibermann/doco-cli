@@ -1,13 +1,24 @@
 import pathlib
 import shutil
 
+import src.utils.common
 from tests.cli.utils.helpers import TEST_PROJECT_NAME
 
 
 def raw_remote_content_root(
-    backup_name: str, *, remote_data_dir: pathlib.Path, local_data_dir: pathlib.Path
+    backup_name: str,
+    *,
+    remote_data_dir: pathlib.Path,
+    local_data_dir: pathlib.Path,
+    deep: bool,
 ) -> pathlib.Path:
-    return remote_data_dir / TEST_PROJECT_NAME / backup_name / "files" / str(local_data_dir)[1:]
+    return (
+        remote_data_dir
+        / TEST_PROJECT_NAME
+        / backup_name
+        / "files"
+        / str(src.utils.common.dir_from_path(str(local_data_dir), deep=deep))
+    )
 
 
 def when_having_initial_source_files_for_raw_backup(

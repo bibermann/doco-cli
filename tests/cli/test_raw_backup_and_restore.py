@@ -19,10 +19,13 @@ def then_files_match_raw_backup(
     local_data_dir: pathlib.Path,
     local_instance_workdir: pathlib.Path,
     check_last_backup_file: bool = True,
+    deep: bool,
 ):
     then_dirs_match(
         local_data_dir,
-        raw_remote_content_root(backup_name, remote_data_dir=remote_data_dir, local_data_dir=local_data_dir),
+        raw_remote_content_root(
+            backup_name, remote_data_dir=remote_data_dir, local_data_dir=local_data_dir, deep=deep
+        ),
     )
 
     last_backup_file = local_instance_workdir / f"{TEST_PROJECT_NAME}.last-backup-dir"
@@ -30,9 +33,10 @@ def then_files_match_raw_backup(
         assert last_backup_file.read_text().strip() == f"{TEST_PROJECT_NAME}/{backup_name}"
 
 
+@pytest.mark.parametrize("deep", [True, False])
 @pytest.mark.usefixtures("rsync_daemon")
 def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
-    doco_config_path, clean_remote_data_dir, clean_local_data_dir, clean_local_instance_workdir
+    doco_config_path, clean_remote_data_dir, clean_local_data_dir, clean_local_instance_workdir, deep: bool
 ):
     base_raw_backups_doco_args = [
         "backups",
@@ -46,7 +50,7 @@ def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
             *base_raw_backups_doco_args,
             "create",
             "--skip-root-check",
-            "--deep",
+            *(["--deep"] if deep else []),
             "--backup",
             backup_name,
             TEST_PROJECT_NAME,
@@ -97,6 +101,7 @@ def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
         remote_data_dir=clean_remote_data_dir,
         local_data_dir=clean_local_data_dir,
         local_instance_workdir=clean_local_instance_workdir,
+        deep=deep,
     )
 
     when_changing_raw_source_files(local_data_dir=clean_local_data_dir)
@@ -109,6 +114,7 @@ def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
         remote_data_dir=clean_remote_data_dir,
         local_data_dir=clean_local_data_dir,
         local_instance_workdir=clean_local_instance_workdir,
+        deep=deep,
     )
 
     output = when_running_doco(doco_args=list_projects_doco_args)
@@ -138,4 +144,5 @@ def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
             local_data_dir=clean_local_data_dir,
             local_instance_workdir=clean_local_instance_workdir,
             check_last_backup_file=False,
+            deep=deep,
         )

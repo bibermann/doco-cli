@@ -3,6 +3,7 @@ import shutil
 
 import pytest
 
+import src.utils.common
 from tests.cli.utils.helpers import rmtree_keeping_root
 from tests.cli.utils.helpers import TEST_PROJECT_NAME
 from tests.cli.utils.helpers import then_dirs_match
@@ -19,10 +20,13 @@ def then_files_match_raw_incremental_backup(
     local_data_dir: pathlib.Path,
     local_instance_workdir: pathlib.Path,
     check_last_backup_file: bool = True,
+    deep: bool,
 ):
     then_dirs_match(
         local_data_dir,
-        raw_remote_content_root(backup_name, remote_data_dir=remote_data_dir, local_data_dir=local_data_dir),
+        raw_remote_content_root(
+            backup_name, remote_data_dir=remote_data_dir, local_data_dir=local_data_dir, deep=deep
+        ),
     )
 
     last_backup_file = local_instance_workdir / f"{TEST_PROJECT_NAME}.last-backup-dir"
@@ -30,9 +34,14 @@ def then_files_match_raw_incremental_backup(
         assert last_backup_file.read_text().strip() == f"{TEST_PROJECT_NAME}/before"
 
 
+@pytest.mark.parametrize("deep", [True, False])
 @pytest.mark.usefixtures("rsync_daemon")
 def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length)
-    doco_config_path, clean_remote_data_dir, clean_local_data_dir, clean_local_instance_workdir
+    doco_config_path,
+    clean_remote_data_dir,
+    clean_local_data_dir,
+    clean_local_instance_workdir,
+    deep: bool,
 ):
     base_raw_backups_doco_args = [
         "backups",
@@ -43,7 +52,7 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
     doco_args = [
         *base_raw_backups_doco_args,
         "create",
-        "--deep",
+        *(["--deep"] if deep else []),
         "--incremental",
         "--skip-root-check",
         TEST_PROJECT_NAME,
@@ -84,7 +93,11 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
         ]
 
     remote_incremental_backup_dir = (
-        clean_remote_data_dir / TEST_PROJECT_NAME / "before" / "files" / str(clean_local_data_dir)[1:]
+        clean_remote_data_dir
+        / TEST_PROJECT_NAME
+        / "before"
+        / "files"
+        / str(src.utils.common.dir_from_path(str(clean_local_data_dir), deep=deep))
     )
 
     when_having_initial_source_files_for_raw_backup(
@@ -100,6 +113,7 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
         remote_data_dir=clean_remote_data_dir,
         local_data_dir=clean_local_data_dir,
         local_instance_workdir=clean_local_instance_workdir,
+        deep=deep,
     )
 
     assert not remote_incremental_backup_dir.exists()
@@ -113,6 +127,7 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
         remote_data_dir=clean_remote_data_dir,
         local_data_dir=clean_local_data_dir,
         local_instance_workdir=clean_local_instance_workdir,
+        deep=deep,
     )
 
     assert (remote_incremental_backup_dir / "initial_file.txt").read_text() == "Initial content"
@@ -149,4 +164,5 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
         local_data_dir=clean_local_data_dir,
         local_instance_workdir=clean_local_instance_workdir,
         check_last_backup_file=False,
+        deep=deep,
     )

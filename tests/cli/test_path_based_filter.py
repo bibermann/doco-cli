@@ -19,7 +19,9 @@ def then_files_match_raw_incremental_backup(
 ):
     then_dirs_match(
         local_data_dir,
-        raw_remote_content_root(backup_name, remote_data_dir=remote_data_dir, local_data_dir=local_data_dir),
+        raw_remote_content_root(
+            backup_name, remote_data_dir=remote_data_dir, local_data_dir=local_data_dir, deep=True
+        ),
     )
 
     last_backup_file = local_instance_workdir / f"{TEST_PROJECT_NAME}.last-backup-dir"
@@ -42,7 +44,10 @@ def test_path_based_filter(  # noqa: CFQ001 (max allowed length)
     doco_config_path, clean_remote_data_dir, clean_local_data_dir, clean_local_instance_workdir
 ):
     remote_backup_root = raw_remote_content_root(
-        "backup", remote_data_dir=clean_remote_data_dir, local_data_dir=clean_local_data_dir
+        "backup",
+        remote_data_dir=clean_remote_data_dir,
+        local_data_dir=clean_local_data_dir,
+        deep=True,
     )
 
     base_raw_backups_doco_args = [
