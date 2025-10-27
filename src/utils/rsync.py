@@ -239,6 +239,7 @@ def run_rsync_download_incremental(  # noqa: CFQ002 (max arguments)
     project_for_filter: str,
     show_progress: bool,
     verbose: bool,
+    delete_from_destination: bool = True,
     dry_run: bool = False,
     print_cmd_callback: PrintCmdCallable = print_cmd,
     extra_args: t.Union[list[str], None] = None,
@@ -247,7 +248,7 @@ def run_rsync_download_incremental(  # noqa: CFQ002 (max arguments)
         config=config,
         project_for_filter=project_for_filter,
         path_for_filter=destination,
-        delete_from_destination=True,
+        delete_from_destination=delete_from_destination,
         show_progress=show_progress,
         verbose=verbose,
     )

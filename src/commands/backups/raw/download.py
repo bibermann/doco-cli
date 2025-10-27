@@ -20,11 +20,12 @@ from src.utils.validators import project_name_callback
 
 
 @dataclasses.dataclass
-class DownloadOptions:
+class DownloadOptions:  # pylint: disable=too-many-instance-attributes
     project_name: str
     backup_path: t.Optional[str]
     backup: str
     destination: str
+    with_delete: bool
     show_progress: bool
     rsync_verbose: bool
     dry_run: bool
@@ -40,10 +41,10 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
         print_cmd_callback=rich_print_cmd,
     )
 
-    if not options.dry_run and os.path.exists(options.destination):
+    if not options.dry_run and not options.with_delete and os.path.exists(options.destination):
         answer = input(
             f"The directory {os.path.abspath(options.destination)} already exists.\n"
-            f"Enter '{options.destination}' to overwrite (files may get deleted): "
+            f"Enter '{options.destination}' to overwrite (files may get overwritten): "
         )
         if answer != options.destination:
             raise typer.Abort()
@@ -56,6 +57,7 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
             project_for_filter=options.project_name,
             show_progress=options.show_progress,
             verbose=options.rsync_verbose,
+            delete_from_destination=options.with_delete,
             dry_run=options.dry_run,
             print_cmd_callback=rich_print_cmd,
         )
@@ -83,6 +85,9 @@ def main(  # noqa: CFQ002 (max arguments)
         file_okay=False,
         help="Destination (not relative to --workdir but to the caller's CWD), "
         "defaults to --project within --workdir.",
+    ),
+    with_delete: bool = typer.Option(
+        False, "--delete", help="Delete destination files not existing in the backup without confirmation."
     ),
     show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
     verbose: bool = typer.Option(False, "--verbose", "-V", help="Print more details."),
@@ -122,6 +127,7 @@ def main(  # noqa: CFQ002 (max arguments)
             destination=os.path.normpath(
                 str(destination) if destination is not None else os.path.join(obj.workdir, project)
             ),
+            with_delete=with_delete,
             show_progress=show_progress,
             rsync_verbose=verbose,
             dry_run=dry_run,

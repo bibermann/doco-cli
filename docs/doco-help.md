@@ -316,6 +316,7 @@ $ doco backups raw download [OPTIONS] PROJECT [BACKUP_PATH]
 
 * `-b, --backup TEXT`: Backup index or name.  [default: 0]
 * `-d, --destination DIRECTORY`: Destination (not relative to --workdir but to the caller&#x27;s CWD), defaults to --project within --workdir.
+* `--delete`: Delete destination files not existing in the backup without confirmation.
 * `--progress`: Show rsync progress.
 * `-V, --verbose`: Print more details.
 * `-n, --dry-run`: Do not actually download, only show what would be done.
