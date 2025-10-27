@@ -259,6 +259,7 @@ $ doco backups raw [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
+* `-c, --config FILE`: Specify config (instead of searching upwards from --workdir).
 * `-w, --workdir DIRECTORY`: Change working directory.  [default: .]
 * `-r, --root TEXT`: Change root.
 * `--help`: Show this message and exit.

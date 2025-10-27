@@ -10,8 +10,10 @@ from . import download as cmd_download
 from . import ls as cmd_list
 from . import restore as cmd_restore
 from src.utils.bbak import BbakContextObject
+from src.utils.completers import ConfigFileCompleter
 from src.utils.completers import DirectoryCompleter
 from src.utils.doco_config import load_doco_config
+from src.utils.doco_config import load_specific_doco_config
 
 
 class NaturalOrderGroup(typer.core.TyperGroup):
@@ -34,6 +36,15 @@ app.command(name="restore")(cmd_restore.main)
 @app.callback()
 def main(
     ctx: typer.Context,
+    config: t.Optional[pathlib.Path] = typer.Option(
+        None,
+        "--config",
+        "-c",
+        shell_complete=ConfigFileCompleter().__call__,
+        dir_okay=False,
+        exists=True,
+        help="Specify config (instead of searching upwards from --workdir).",
+    ),
     workdir: pathlib.Path = typer.Option(
         ".",
         "--workdir",
@@ -49,7 +60,11 @@ def main(
     Manage backups (independently of [i]docker compose[/]).
     """
 
-    doco_config = load_doco_config(str(workdir))
+    if config:
+        doco_config = load_specific_doco_config(config)
+    else:
+        doco_config = load_doco_config(str(workdir))
+
     if root is not None:
         doco_config.backup.rsync.root = os.path.normpath(os.path.join(doco_config.backup.rsync.root, root))
 

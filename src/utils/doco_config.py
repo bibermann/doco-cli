@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shlex
 import typing as t
 
@@ -97,3 +98,11 @@ def load_doco_config(project_path: str) -> DocoConfig:
     _load_backup_restore_structure_config_from_env(config.backup.restore_structure)
     _load_backup_rsync_config_from_env(config.backup.rsync)
     return config
+
+
+def load_specific_doco_config(config_path: pathlib.Path) -> DocoConfig:
+    if str(config_path).endswith(".toml"):
+        return DocoConfig.model_validate(tomli.loads(config_path.read_text()))
+    if str(config_path).endswith(".json"):
+        return DocoConfig.model_validate_json(config_path.read_text())
+    raise ValueError(f"DocoConfig does not support {config_path}")

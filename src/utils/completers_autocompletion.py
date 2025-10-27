@@ -56,5 +56,18 @@ class LegacyComposeProjectCompleter(_FileCompleter):
             self,
             param=param,
             predicate=lambda path: os.path.isdir(path)
-            or ("compose" in path and (path.endswith(".yml") or path.endswith(".yaml"))),
+            or (
+                os.path.isfile(path)
+                and "compose" in path
+                and (path.endswith(".yml") or path.endswith(".yaml"))
+            ),
+        )
+
+
+class LegacyConfigFileCompleter(_FileCompleter):
+    def __init__(self, param: t.Optional[str] = None):
+        _FileCompleter.__init__(
+            self,
+            param=param,
+            predicate=lambda path: os.path.isfile(path) and path.endswith(".toml") or path.endswith(".json"),
         )

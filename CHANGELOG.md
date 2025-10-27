@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option `--skip-root-check` for create/download/restore (raw) backups.
 - Add option `--show-progress` for file transfers (uses `--info=progress2` for rsync operations).
 - Add/use option `-V, --verbose` for rsync operations.
+- Add `--config` option for raw backups to not rely on `--workdir` for config resolution.
 - Add `--create-schema` option to write a doco config JSON schema file.
 - Allow specifying specific paths to restore/download for raw backups.
 

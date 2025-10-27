@@ -108,7 +108,8 @@ def main(  # noqa: CFQ002 (max arguments)
     if not obj.doco_config.backup.rsync.is_complete():
         raise DocoError(
             "You need to configure rsync to work with backups.\n"
-            "You may want to adjust '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
+            "You may want to adjust '[b green]-c[/]' / '[b bright_cyan]--config[/]' "
+            "or '[b green]-w[/]' / '[b bright_cyan]--workdir[/]'.\n"
             "Please see documentation for 'doco.config.toml'.",
             formatted=True,
         )
