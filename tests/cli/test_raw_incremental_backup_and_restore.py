@@ -97,7 +97,7 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
         / TEST_PROJECT_NAME
         / "before"
         / "files"
-        / str(src.utils.common.dir_from_path(str(clean_local_data_dir), deep=deep))
+        / src.utils.common.dir_from_path(str(clean_local_data_dir), deep=deep)
     )
 
     when_having_initial_source_files_for_raw_backup(

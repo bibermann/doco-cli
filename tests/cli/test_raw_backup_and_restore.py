@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import time
+import typing
 
 import pytest
 
@@ -68,23 +69,38 @@ def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
         TEST_PROJECT_NAME,
     ]
 
-    def download_backup_doco_args(backup_name: str) -> list[str]:
+    def download_backup_doco_args(
+        backup_arg: typing.Union[str, None], backup_path: typing.Optional[str]
+    ) -> list[str]:
         return [
             *base_raw_backups_doco_args,
             "download",
             "--skip-root-check",
-            "--backup",
-            backup_name,
+            *(
+                [
+                    "--backup",
+                    backup_arg,
+                ]
+                if backup_arg is not None
+                else []
+            ),
             TEST_PROJECT_NAME,
+            *([backup_path] if backup_path is not None else []),
         ]
 
-    def restore_backup_doco_args(backup_name: str) -> list[str]:
+    def restore_backup_doco_args(backup_arg: typing.Union[str, None]) -> list[str]:
         return [
             *base_raw_backups_doco_args,
             "restore",
             "--skip-root-check",
-            "--backup",
-            backup_name,
+            *(
+                [
+                    "--backup",
+                    backup_arg,
+                ]
+                if backup_arg is not None
+                else []
+            ),
             TEST_PROJECT_NAME,
         ]
 
@@ -125,18 +141,23 @@ def test_raw_backup_and_restore(  # noqa: CFQ001 (max allowed length)
 
     assert output.strip().endswith(f"{TEST_PROJECT_NAME}\n├── 0: backup2\n└── 1: backup1")
 
-    for backup_name in ["backup1", "backup2"]:
+    for backup_arg, backup_name, backup_path in [
+        ("backup1", "backup1", None),
+        ("backup1", "backup1", ""),
+        ("backup1", "backup1", "."),
+        (None, "backup2", None),
+    ]:
         shutil.rmtree(clean_local_instance_workdir / TEST_PROJECT_NAME, ignore_errors=True)
 
-        when_running_doco(doco_args=download_backup_doco_args(backup_name))
+        when_running_doco(doco_args=download_backup_doco_args(backup_arg, backup_path))
 
         then_dirs_match(
             clean_remote_data_dir / TEST_PROJECT_NAME / backup_name,
             clean_local_instance_workdir / TEST_PROJECT_NAME,
         )
 
-    for backup_name in ["backup1", "backup2"]:
-        when_running_doco(doco_args=restore_backup_doco_args(backup_name))
+    for backup_arg, backup_name in [("backup1", "backup1"), (None, "backup2")]:
+        when_running_doco(doco_args=restore_backup_doco_args(backup_arg))
 
         then_files_match_raw_backup(
             backup_name,

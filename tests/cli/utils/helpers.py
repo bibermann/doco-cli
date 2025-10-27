@@ -38,5 +38,7 @@ def then_dirs_match(a: pathlib.Path, b: pathlib.Path, ignore: typing.Union[list[
 def when_running_doco(*, doco_args: list[str]) -> str:
     result = runner.invoke(src.main.app, doco_args)
     print(result.output)
+    if result.exception:
+        print(result.exception, result.exc_info)
     assert result.exit_code == 0
     return result.output

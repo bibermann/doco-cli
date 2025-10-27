@@ -23,13 +23,14 @@ class RestoreJob:
     rsync_target_path: str
     is_dir: bool
 
-    def __init__(
+    def __init__(  # noqa: CFQ002 (max arguments)
         self,
         *,
         source_path: str,
         target_path: str,
         project_dir: str,
         is_dir: t.Optional[bool] = None,
+        check_is_dir: bool = False,
         source_root_path: str = ".",
     ):
         target_path_seems_dir = target_path.endswith("/")
@@ -42,9 +43,14 @@ class RestoreJob:
             if source_path.startswith("/") or source_path.startswith("../"):
                 raise ValueError("source_root_path cannot be absolute or go upwards.")
         if is_dir is not None:
+            if check_is_dir:
+                raise ValueError("check_is_dir cannot be True if is_dir is not None.")
             self.is_dir = is_dir
         else:
-            self.is_dir = target_path_seems_dir
+            if check_is_dir:
+                self.is_dir = os.path.isdir(target_path)
+            else:
+                self.is_dir = target_path_seems_dir
         self.display_target_path = relative_path_if_below(target_path) + ("/" if self.is_dir else "")
         self.display_source_path = relative_path(source_path) + ("/" if self.is_dir else "")
         self.relative_target_path = relative_path_if_below(target_path, project_dir) + (

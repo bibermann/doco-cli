@@ -63,6 +63,7 @@ class BackupConfig(pydantic.BaseModel):
     backup_dir: str
     incremental_backup_dir: t.Optional[str]
     last_backup_dir: t.Optional[str]
+    deep: t.Optional[bool]
     rsync: RsyncConfig
     tasks: BackupConfigTasks
 
@@ -212,6 +213,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
         backup_dir=new_backup_dir,
         incremental_backup_dir=new_incremental_backup_dir,
         last_backup_dir=old_backup_dir,
+        deep=options.deep,
         rsync=doco_config.backup.rsync,
         tasks=BackupConfigTasks(
             create_last_backup_dir_file=project_name + LAST_BACKUP_DIR_FILENAME,

@@ -13,7 +13,9 @@ import typer
 
 from src.utils.backup import BACKUP_CONFIG_JSON
 from src.utils.bbak import BbakContextObject
+from src.utils.common import dir_from_path
 from src.utils.common import PrintCmdData
+from src.utils.completers_autocompletion import LegacyPathCompleter
 from src.utils.doco_config import DocoConfig
 from src.utils.exceptions_rich import DocoError
 from src.utils.restore import get_backup_directory
@@ -30,6 +32,7 @@ from src.utils.validators import project_name_callback
 
 @dataclasses.dataclass
 class RestoreOptions:
+    paths: t.Optional[list[pathlib.Path]]
     workdir: str
     backup: str
     show_progress: bool
@@ -64,7 +67,9 @@ def do_restore(
         )
 
 
-def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoConfig):
+def restore_files(  # noqa: C901 CFQ001 (too complex, max allowed length)
+    project_name: str, options: RestoreOptions, doco_config: DocoConfig
+):
     # pylint: disable=too-many-locals
     backup_dir = get_backup_directory(
         doco_config.backup.rsync,
@@ -119,7 +124,25 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
 
     backup_node = tree.add("[i]Backup items[/]")
 
-    backup_paths = backup_config.get("tasks", {}).get("backup_paths", [])
+    if options.paths:
+        deep = backup_config.get("deep", True)
+        if not deep:
+            raise DocoError(
+                "Cannot restore specific paths "
+                "when '[b bright_cyan]--deep[/]' was not set while creating the backup.\n"
+                "Please restore the whole backup or use download command instead."
+            )
+        backup_paths = (
+            [
+                os.path.abspath(path),
+                os.path.join("files", dir_from_path(os.path.abspath(path), deep=True)),
+            ]
+            for path in options.paths
+        )
+        check_is_dir = True
+    else:
+        backup_paths = backup_config.get("tasks", {}).get("backup_paths", [])
+        check_is_dir = False
 
     jobs: list[RestoreJob] = []
 
@@ -130,6 +153,7 @@ def restore_files(project_name: str, options: RestoreOptions, doco_config: DocoC
                 source_path=backup_paths_item[1],
                 target_path=backup_paths_item[0],
                 project_dir=options.workdir,
+                check_is_dir=check_is_dir,
             )
         )
 
@@ -154,6 +178,13 @@ def main(  # noqa: CFQ002 (max arguments)
     ctx: typer.Context,
     project: str = typer.Argument(
         ..., callback=project_name_callback, help="Source project to retrieve backups from."
+    ),
+    paths: t.Optional[list[pathlib.Path]] = typer.Argument(
+        None,
+        autocompletion=LegacyPathCompleter().__call__,
+        exists=True,
+        help="Paths to restore (not relative to --workdir but to the caller's CWD).",
+        show_default="Paths listed in the backup config",
     ),
     backup: str = typer.Option("0", "--backup", "-b", help="Backup index or name."),
     show_progress: bool = typer.Option(False, "--progress", help="Show rsync progress."),
@@ -188,6 +219,7 @@ def main(  # noqa: CFQ002 (max arguments)
     restore_files(
         project_name=project,
         options=RestoreOptions(
+            paths=paths,
             workdir=obj.workdir,
             backup=backup,
             show_progress=show_progress,

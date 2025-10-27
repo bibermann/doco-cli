@@ -86,6 +86,7 @@ class BackupConfig(pydantic.BaseModel):
     timestamp: datetime.datetime
     backup_dir: str
     last_backup_dir: t.Optional[str]
+    deep: t.Optional[bool]
     rsync: RsyncConfig
     options: BackupConfigOptions
     tasks: BackupConfigTasks
@@ -198,6 +199,7 @@ def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)
         timestamp=now,
         backup_dir=new_backup_dir,
         last_backup_dir=old_backup_dir,
+        deep=options.deep,
         rsync=project.doco_config.backup.rsync,
         options=BackupConfigOptions(
             live=options.live,

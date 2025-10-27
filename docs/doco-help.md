@@ -303,12 +303,13 @@ Download a backup for local analysis.
 **Usage**:
 
 ```console
-$ doco backups raw download [OPTIONS] PROJECT
+$ doco backups raw download [OPTIONS] PROJECT [BACKUP_PATH]
 ```
 
 **Arguments**:
 
 * `PROJECT`: Source project to retrieve backups from.  [required]
+* `[BACKUP_PATH]`: Path to restore (relative to to the backup dir).  [default: (.)]
 
 **Options**:
 
@@ -354,12 +355,13 @@ Restore a backup.
 **Usage**:
 
 ```console
-$ doco backups raw restore [OPTIONS] PROJECT
+$ doco backups raw restore [OPTIONS] PROJECT [PATHS]...
 ```
 
 **Arguments**:
 
 * `PROJECT`: Source project to retrieve backups from.  [required]
+* `[PATHS]...`: Paths to restore (not relative to --workdir but to the caller&#x27;s CWD).  [default: (Paths listed in the backup config)]
 
 **Options**:
 

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add option `--show-progress` for file transfers (uses `--info=progress2` for rsync operations).
 - Add/use option `-V, --verbose` for rsync operations.
 - Add `--create-schema` option to write a doco config JSON schema file.
+- Allow specifying specific paths to restore/download for raw backups.
 
 ### Changed
 - Verbose option changed from `-a, --all` to `-V, --verbose`.

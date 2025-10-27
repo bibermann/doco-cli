@@ -22,6 +22,7 @@ from src.utils.validators import project_name_callback
 @dataclasses.dataclass
 class DownloadOptions:
     project_name: str
+    backup_path: t.Optional[str]
     backup: str
     destination: str
     show_progress: bool
@@ -50,7 +51,7 @@ def download_backup(options: DownloadOptions, doco_config: DocoConfig):
     try:
         cmd = run_rsync_download_incremental(
             doco_config.backup.rsync,
-            source=f"{options.project_name}/{backup_dir}/",
+            source=f"{options.project_name}/{backup_dir}/" + (options.backup_path or ""),
             destination=f"{options.destination}/",
             project_for_filter=options.project_name,
             show_progress=options.show_progress,
@@ -69,6 +70,9 @@ def main(  # noqa: CFQ002 (max arguments)
     ctx: typer.Context,
     project: str = typer.Argument(
         ..., callback=project_name_callback, help="Source project to retrieve backups from."
+    ),
+    backup_path: t.Optional[str] = typer.Argument(
+        None, help="Path to restore (relative to to the backup dir).", show_default="."
     ),
     backup: str = typer.Option("0", "--backup", "-b", help="Backup index or name."),
     destination: t.Optional[pathlib.Path] = typer.Option(
@@ -112,6 +116,7 @@ def main(  # noqa: CFQ002 (max arguments)
     download_backup(
         DownloadOptions(
             project_name=project,
+            backup_path=backup_path,
             backup=backup,
             destination=os.path.normpath(
                 str(destination) if destination is not None else os.path.join(obj.workdir, project)
