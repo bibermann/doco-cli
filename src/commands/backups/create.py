@@ -72,9 +72,9 @@ class BackupConfigOptions(pydantic.BaseModel):
 
 class BackupConfigTasks(pydantic.BaseModel):
     restart_project: bool = False
-    create_last_backup_dir_file: t.Union[bool, str]
-    backup_config: t.Union[bool, str]
-    backup_compose_config: t.Union[bool, str]
+    create_last_backup_dir_file: t.Union[t.Literal[False], str]
+    backup_config: t.Union[t.Literal[False], str]
+    backup_compose_config: t.Union[t.Literal[False], str]
     backup_project_dir: t.Union[bool, tuple[str, str]]
     backup_services: list[BackupConfigServiceTask] = []
 
@@ -172,7 +172,10 @@ def do_backup(
         )
 
     if not options.dry_run and config.tasks.create_last_backup_dir_file:
-        save_last_backup_directory(project.dir, config.backup_dir)
+        assert isinstance(config.tasks.create_last_backup_dir_file, str)
+        save_last_backup_directory(
+            project.dir, config.backup_dir, file_name=config.tasks.create_last_backup_dir_file
+        )
 
 
 def backup_project(  # noqa: C901 CFQ001 (too complex, max allowed length)

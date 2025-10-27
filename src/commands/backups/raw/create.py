@@ -51,8 +51,8 @@ class BackupOptions:  # pylint: disable=too-many-instance-attributes
 
 
 class BackupConfigTasks(pydantic.BaseModel):
-    create_last_backup_dir_file: t.Union[bool, str]
-    backup_config: t.Union[bool, str]
+    create_last_backup_dir_file: t.Union[t.Literal[False], str]
+    backup_config: t.Union[t.Literal[False], str]
     backup_paths: list[tuple[str, str]] = []
 
 
@@ -205,7 +205,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
         if options.incremental
         else None
     )
-    old_backup_dir = load_last_backup_directory(options.workdir)
+    old_backup_dir = load_last_backup_directory(options.workdir) if not options.incremental else None
 
     config = BackupConfig(
         work_dir=os.path.abspath(options.workdir),
@@ -216,7 +216,9 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
         deep=options.deep,
         rsync=doco_config.backup.rsync,
         tasks=BackupConfigTasks(
-            create_last_backup_dir_file=project_name + LAST_BACKUP_DIR_FILENAME,
+            create_last_backup_dir_file=project_name + LAST_BACKUP_DIR_FILENAME
+            if not options.incremental
+            else False,
             backup_config=BACKUP_CONFIG_JSON,
         ),
     )
@@ -234,13 +236,7 @@ def backup_files(project_name: str, options: BackupOptions, doco_config: DocoCon
     else:
         assert new_incremental_backup_dir is not None
         tree.add(f"[i]Backup directory:[/] [b]{Formatted(new_backup_dir)}[/]")
-        if old_backup_dir is None:
-            tree.add(f"[i]Incremental backup directory:[/] [b]{Formatted(new_incremental_backup_dir)}[/]")
-        else:
-            tree.add(
-                f"[i]Incremental backup directory:[/] "
-                f"[dim]{Formatted(old_backup_dir)}[/] => [b]{Formatted(new_incremental_backup_dir)}[/]"
-            )
+        tree.add(f"[i]Incremental backup directory:[/] [b]{Formatted(new_incremental_backup_dir)}[/]")
     backup_node = tree.add("[i]Backup items[/]")
 
     # Schedule config.json

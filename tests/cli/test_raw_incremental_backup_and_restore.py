@@ -19,7 +19,6 @@ def then_files_match_raw_incremental_backup(
     remote_data_dir: pathlib.Path,
     local_data_dir: pathlib.Path,
     local_instance_workdir: pathlib.Path,
-    check_last_backup_file: bool = True,
     deep: bool,
 ):
     then_dirs_match(
@@ -29,9 +28,8 @@ def then_files_match_raw_incremental_backup(
         ),
     )
 
-    last_backup_file = local_instance_workdir / f"{TEST_PROJECT_NAME}.last-backup-dir"
-    if check_last_backup_file:
-        assert last_backup_file.read_text().strip() == f"{TEST_PROJECT_NAME}/before"
+    # for incremental backups this is disabled
+    assert not (local_instance_workdir / f"{TEST_PROJECT_NAME}.last-backup-dir").exists()
 
 
 @pytest.mark.parametrize("deep", [True, False])
@@ -162,6 +160,5 @@ def test_raw_incremental_backup_and_restore(  # noqa: CFQ001 (max allowed length
         remote_data_dir=clean_remote_data_dir,
         local_data_dir=clean_local_data_dir,
         local_instance_workdir=clean_local_instance_workdir,
-        check_last_backup_file=False,
         deep=deep,
     )
