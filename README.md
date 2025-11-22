@@ -4,6 +4,7 @@
 for working with [Docker Compose](https://docs.docker.com/compose/compose-file/) projects
 (pretty-printing status, creating backups using rsync, batch commands and more).
 
+[![Python 3.9.2](https://img.shields.io/badge/python-3.9.2-blue.svg)](https://www.python.org/downloads/release/python-392/)
 [![Code style](https://github.com/bibermann/doco-cli/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/bibermann/doco-cli/actions/workflows/pre-commit.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI](https://img.shields.io/pypi/v/doco-cli)](https://pypi.org/project/doco-cli)
