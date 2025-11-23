@@ -22,6 +22,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Install pipx
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pipx
+          python3 -m pipx ensurepath
       - name: Install poetry
         run: pipx install poetry==${{ env.POETRY_VERSION }}
       - name: Install Dependencies
