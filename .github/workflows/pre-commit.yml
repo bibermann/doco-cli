@@ -16,13 +16,13 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
         run: pipx install poetry==${{ env.POETRY_VERSION }}
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'poetry'
